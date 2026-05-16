@@ -69,10 +69,20 @@ export function SaveButtons({ eventId }: { eventId: string }) {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-wrap items-center gap-3">
-        <Button asChild variant="outline" size="sm">
-          <Link to="/login">Sign in to save</Link>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button variant="outline" size="sm" onClick={() => setSignInOpen(true)}>
+          <Check className="h-4 w-4" />
+          Going
         </Button>
+        <Button variant="outline" size="sm" onClick={() => setSignInOpen(true)}>
+          <Star className="h-4 w-4" />
+          Interested
+        </Button>
+        <MagicLinkDialog
+          open={signInOpen}
+          onOpenChange={setSignInOpen}
+          title="Enter your email to save this event"
+        />
       </div>
     );
   }
@@ -104,3 +114,4 @@ export function SaveButtons({ eventId }: { eventId: string }) {
     </div>
   );
 }
+
