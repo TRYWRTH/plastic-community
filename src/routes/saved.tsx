@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { MapPin, Calendar, Check, Star } from "lucide-react";
 
 import { Header } from "@/components/Header";
+import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
@@ -15,6 +17,7 @@ export const Route = createFileRoute("/saved")({
 
 function SavedPage() {
   const { user, isAuthenticated, loading } = useAuth();
+  const [signInOpen, setSignInOpen] = useState(false);
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["my_saved_events", user?.id],
