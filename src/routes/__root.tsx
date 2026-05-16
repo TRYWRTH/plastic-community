@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -139,6 +139,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const {
@@ -177,6 +182,8 @@ function RootComponent() {
       /* ignore registration failures */
     });
   }, []);
+
+  if (!mounted) return null;
 
   return (
     <QueryClientProvider client={queryClient}>
