@@ -12,6 +12,7 @@ type SaveStatus = "going" | "interested";
 
 export function SaveButtons({ eventId }: { eventId: string }) {
   const { user, isAuthenticated, loading } = useAuth();
+  const [signInOpen, setSignInOpen] = useState(false);
   const qc = useQueryClient();
 
   const { data: save } = useQuery({
