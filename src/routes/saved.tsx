@@ -55,9 +55,14 @@ function SavedPage() {
             <p className="font-mono text-xs uppercase tracking-wide text-foreground">
               Sign in to save events.
             </p>
-            <Button asChild className="mt-4">
-              <Link to="/login">Sign in</Link>
+            <Button className="mt-4" onClick={() => setSignInOpen(true)}>
+              Enter your email
             </Button>
+            <MagicLinkDialog
+              open={signInOpen}
+              onOpenChange={setSignInOpen}
+              title="Enter your email to view your list"
+            />
           </div>
         )}
 
