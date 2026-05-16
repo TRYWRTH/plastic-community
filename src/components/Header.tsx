@@ -16,11 +16,11 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
-        <Link to="/" className="flex items-baseline gap-2 group">
-          <span className="font-brand neon-text text-lg leading-none tracking-wide transition group-hover:scale-105">
-            PLASTIC
+        <Link to="/" className="flex items-baseline gap-3 group">
+          <span className="font-brand neon-text text-xl leading-none tracking-[0.18em] uppercase transition group-hover:opacity-90">
+            Plastic
           </span>
-          <span className="font-display text-sm italic text-muted-foreground">
+          <span className="font-display text-sm italic tracking-wide text-muted-foreground">
             productions
           </span>
         </Link>
