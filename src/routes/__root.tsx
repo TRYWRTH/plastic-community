@@ -95,6 +95,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "Spot a poster, add the event, share it.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:title", content: "The Poster Said So — Performance events in Berlin" },
+      { name: "twitter:title", content: "The Poster Said So — Performance events in Berlin" },
+      { name: "description", content: "Discover and share local events with \"The Poster Said So\" app." },
+      { property: "og:description", content: "Discover and share local events with \"The Poster Said So\" app." },
+      { name: "twitter:description", content: "Discover and share local events with \"The Poster Said So\" app." },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
