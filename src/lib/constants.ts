@@ -17,16 +17,18 @@ export const EVENT_TYPES: { value: EventType; label: string; emoji: string }[] =
 ];
 
 export const NEIGHBORHOODS: { value: Neighborhood; label: string }[] = [
-  { value: "downtown", label: "Downtown" },
-  { value: "old_town", label: "Old Town" },
-  { value: "north", label: "North" },
-  { value: "south", label: "South" },
-  { value: "east", label: "East" },
-  { value: "west", label: "West" },
-  { value: "riverside", label: "Riverside" },
-  { value: "university", label: "University" },
-  { value: "industrial", label: "Industrial" },
-  { value: "suburbs", label: "Suburbs" },
+  { value: "Mitte", label: "Mitte" },
+  { value: "Prenzlauer Berg", label: "Prenzlauer Berg" },
+  { value: "Friedrichshain", label: "Friedrichshain" },
+  { value: "Kreuzberg", label: "Kreuzberg" },
+  { value: "Neukölln", label: "Neukölln" },
+  { value: "Tempelhof", label: "Tempelhof" },
+  { value: "Schöneberg", label: "Schöneberg" },
+  { value: "Charlottenburg", label: "Charlottenburg" },
+  { value: "Marzahn", label: "Marzahn" },
+  { value: "Spandau", label: "Spandau" },
+  { value: "Pankow", label: "Pankow" },
+  { value: "Lichtenberg", label: "Lichtenberg" },
 ];
 
 export const eventTypeMeta = (v: EventType) =>
