@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      event_saves: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          status: Database["public"]["Enums"]["save_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          status: Database["public"]["Enums"]["save_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          status?: Database["public"]["Enums"]["save_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_saves_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           created_at: string
@@ -86,6 +121,7 @@ export type Database = {
         | "university"
         | "industrial"
         | "suburbs"
+      save_status: "going" | "interested"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -237,6 +273,7 @@ export const Constants = {
         "industrial",
         "suburbs",
       ],
+      save_status: ["going", "interested"],
     },
   },
 } as const
