@@ -1,0 +1,25 @@
+{
+  "name": "The Poster Said So",
+  "short_name": "Poster Said So",
+  "description": "Performance events in Berlin, collected from the posters on the street.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F2F0EB",
+  "theme_color": "#F2F0EB",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

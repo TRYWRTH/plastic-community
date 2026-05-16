@@ -69,27 +69,39 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no",
+      },
       { name: "theme-color", content: "#F2F0EB" },
-      { title: "Plastic Productions — Performance events in Berlin" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "Poster Said So" },
+      { name: "application-name", content: "The Poster Said So" },
+      { title: "The Poster Said So — Performance events in Berlin" },
       {
         name: "description",
         content:
-          "A living index of Plastic Productions performance events in Berlin. Add what you spot on posters, filter by date, area and type.",
+          "Spot a poster, add the event, share it. A living index of Plastic Productions performance events in Berlin.",
       },
-      { property: "og:title", content: "Plastic Productions — Performance events in Berlin" },
+      {
+        property: "og:title",
+        content: "The Poster Said So — Performance events in Berlin",
+      },
       {
         property: "og:description",
-        content: "Performance events in Berlin, collected from the posters on the street.",
+        content: "Spot a poster, add the event, share it.",
       },
       { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      {
-        rel: "preconnect",
-        href: "https://fonts.googleapis.com",
-      },
+      { rel: "manifest", href: "/manifest.json" },
+      { rel: "icon", href: "/icon.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: "/icon.svg" },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
       {
         rel: "stylesheet",
@@ -130,6 +142,34 @@ function RootComponent() {
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
+
+  // PWA service worker — disabled inside Lovable preview iframes
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!("serviceWorker" in navigator)) return;
+
+    const inIframe = (() => {
+      try {
+        return window.self !== window.top;
+      } catch {
+        return true;
+      }
+    })();
+    const host = window.location.hostname;
+    const isPreviewHost =
+      host.includes("lovableproject.com") || host.includes("id-preview--");
+
+    if (inIframe || isPreviewHost) {
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((r) => r.unregister());
+      });
+      return;
+    }
+
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      /* ignore registration failures */
+    });
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
