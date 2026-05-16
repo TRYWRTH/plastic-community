@@ -5,6 +5,7 @@ import { MapPin, Calendar, ExternalLink, Trash2, ArrowLeft } from "lucide-react"
 import { toast } from "sonner";
 
 import { Header } from "@/components/Header";
+import { SaveButtons } from "@/components/SaveButtons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
@@ -41,30 +42,33 @@ function EventDetail() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-paper">
       <Header />
       <main className="mx-auto max-w-2xl px-4 py-8">
-        <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to events
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-widest text-foreground hover:text-primary"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back
         </Link>
 
         {isLoading ? (
-          <div className="mt-6 h-48 animate-pulse rounded-2xl border border-border bg-card/50" />
+          <div className="mt-6 h-48 animate-pulse border-2 border-foreground bg-card" />
         ) : !event ? (
-          <p className="mt-6 text-muted-foreground">Event not found.</p>
+          <p className="mt-6 font-mono text-sm uppercase tracking-wide text-foreground">
+            Event not found.
+          </p>
         ) : (
-          <article className="mt-6 overflow-hidden rounded-2xl border border-border bg-card">
-            <div className="bg-aurora p-6 sm:p-8">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-lg">{eventTypeMeta(event.event_type).emoji}</span>
-                <span className="uppercase tracking-wider text-muted-foreground">
-                  {eventTypeMeta(event.event_type).label}
-                </span>
+          <article className="mt-6 border-2 border-foreground bg-card shadow-stamp">
+            <div className="border-b-2 border-foreground p-6 sm:p-8">
+              <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-foreground">
+                <span className="text-base">{eventTypeMeta(event.event_type).emoji}</span>
+                <span>{eventTypeMeta(event.event_type).label}</span>
               </div>
-              <h1 className="mt-2 font-display text-3xl font-bold text-balance sm:text-4xl">
+              <h1 className="mt-3 font-brand text-3xl uppercase text-balance text-foreground sm:text-5xl">
                 {event.title}
               </h1>
-              <div className="mt-4 grid gap-2 text-sm text-foreground/90 sm:grid-cols-2">
+              <div className="mt-5 grid gap-2 font-mono text-xs uppercase tracking-wide text-foreground sm:grid-cols-2">
                 <div className="inline-flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-primary" />
                   {format(new Date(event.event_date), "EEEE, MMM d · HH:mm")}
@@ -75,24 +79,32 @@ function EventDetail() {
                 </div>
               </div>
             </div>
-            <div className="space-y-4 p-6 sm:p-8">
+            <div className="space-y-5 p-6 sm:p-8">
+              <SaveButtons eventId={event.id} />
               {event.description && (
-                <p className="whitespace-pre-wrap text-foreground/90">{event.description}</p>
+                <p className="whitespace-pre-wrap text-sm text-foreground">
+                  {event.description}
+                </p>
               )}
               {event.link && (
                 <a
                   href={event.link}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="inline-flex items-center gap-2 text-primary hover:underline break-all"
+                  className="inline-flex items-center gap-2 break-all font-mono text-xs uppercase tracking-wide text-primary underline underline-offset-4"
                 >
                   <ExternalLink className="h-4 w-4 shrink-0" />
                   {event.link}
                 </a>
               )}
               {user?.id === event.created_by && (
-                <div className="border-t border-border pt-4">
-                  <Button variant="ghost" size="sm" onClick={remove} className="text-destructive hover:text-destructive">
+                <div className="border-t-2 border-foreground pt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={remove}
+                    className="text-destructive"
+                  >
                     <Trash2 className="h-4 w-4" /> Delete event
                   </Button>
                 </div>

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Plus, LogOut, LogIn } from "lucide-react";
+import { Plus, LogOut, LogIn, Bookmark } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { Button } from "@/components/ui/button";
@@ -27,12 +27,20 @@ export function Header() {
 
         <nav className="flex items-center gap-2">
           {isAuthenticated && (
-            <Button asChild size="sm" variant="default">
-              <Link to="/add">
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Add event</span>
-              </Link>
-            </Button>
+            <>
+              <Button asChild size="sm" variant="ghost">
+                <Link to="/saved">
+                  <Bookmark className="h-4 w-4" />
+                  <span className="hidden sm:inline">My list</span>
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="default">
+                <Link to="/add">
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Add event</span>
+                </Link>
+              </Button>
+            </>
           )}
           {!loading &&
             (isAuthenticated ? (

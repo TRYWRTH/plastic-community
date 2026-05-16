@@ -87,7 +87,7 @@ function Home() {
             said so.
           </h1>
           <p className="mt-6 max-w-xl text-balance font-mono text-sm uppercase tracking-wide text-foreground sm:text-base">
-            Spot a poster, add the event, share it with people who actually show up.
+            Spot a poster, add the event, share it.
           </p>
         </div>
       </section>
