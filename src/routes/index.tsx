@@ -80,17 +80,15 @@ function Home() {
         <div className="mx-auto max-w-5xl px-4 pb-10 pt-12 sm:pt-16">
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
             <Sparkles className="h-3 w-3 text-primary" />
-            What's happening around the city
+            Plastic Productions · Berlin
           </div>
-          <h1 className="mt-4 font-display text-4xl font-bold text-balance sm:text-5xl">
-            Catch every poster.
-            <br />
-            <span className="bg-gradient-to-r from-primary to-[color:var(--glow)] bg-clip-text text-transparent">
-              Never miss a night.
+          <h1 className="mt-4 font-display text-4xl font-bold text-balance sm:text-6xl">
+            <span className="neon-text font-brand tracking-wide">
+              The poster said so.
             </span>
           </h1>
-          <p className="mt-3 max-w-xl text-balance text-muted-foreground">
-            Snap a QR, drop the details, and your crew sees it instantly.
+          <p className="mt-4 max-w-xl text-balance text-muted-foreground sm:text-lg">
+            Spot a poster, add the event, share it with people who actually show up.
           </p>
         </div>
       </section>
