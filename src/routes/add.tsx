@@ -71,13 +71,35 @@ function AddEvent() {
     navigate({ to: "/event/$eventId", params: { eventId: data.id } });
   };
 
-  if (loading || !isAuthenticated) {
+  if (loading) {
     return (
       <div className="min-h-screen">
         <Header />
         <div className="mx-auto max-w-xl px-4 py-12 text-center text-muted-foreground">
           Loading…
         </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <main className="mx-auto max-w-xl px-4 py-12 text-center">
+          <h1 className="font-brand text-3xl uppercase">Sign in to add events</h1>
+          <p className="mt-2 font-mono text-xs uppercase tracking-wide text-muted-foreground">
+            We'll email you a magic link — no password needed.
+          </p>
+          <Button className="mt-6" onClick={() => setSignInOpen(true)}>
+            Enter your email
+          </Button>
+        </main>
+        <MagicLinkDialog
+          open={signInOpen}
+          onOpenChange={setSignInOpen}
+          title="Enter your email to add an event"
+        />
       </div>
     );
   }
