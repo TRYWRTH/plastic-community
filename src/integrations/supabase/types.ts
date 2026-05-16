@@ -111,16 +111,18 @@ export type Database = {
         | "nightlife"
         | "other"
       neighborhood:
-        | "downtown"
-        | "old_town"
-        | "north"
-        | "south"
-        | "east"
-        | "west"
-        | "riverside"
-        | "university"
-        | "industrial"
-        | "suburbs"
+        | "Mitte"
+        | "Prenzlauer Berg"
+        | "Friedrichshain"
+        | "Kreuzberg"
+        | "Neukölln"
+        | "Tempelhof"
+        | "Schöneberg"
+        | "Charlottenburg"
+        | "Marzahn"
+        | "Spandau"
+        | "Pankow"
+        | "Lichtenberg"
       save_status: "going" | "interested"
     }
     CompositeTypes: {
@@ -262,16 +264,18 @@ export const Constants = {
         "other",
       ],
       neighborhood: [
-        "downtown",
-        "old_town",
-        "north",
-        "south",
-        "east",
-        "west",
-        "riverside",
-        "university",
-        "industrial",
-        "suburbs",
+        "Mitte",
+        "Prenzlauer Berg",
+        "Friedrichshain",
+        "Kreuzberg",
+        "Neukölln",
+        "Tempelhof",
+        "Schöneberg",
+        "Charlottenburg",
+        "Marzahn",
+        "Spandau",
+        "Pankow",
+        "Lichtenberg",
       ],
       save_status: ["going", "interested"],
     },
