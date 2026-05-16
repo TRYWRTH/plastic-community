@@ -14,20 +14,20 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
-        <Link to="/" className="flex items-baseline gap-3 group">
-          <span className="font-brand neon-text text-xl leading-none tracking-[0.18em] uppercase transition group-hover:opacity-90">
+    <header className="sticky top-0 z-40 border-b-2 border-foreground bg-background">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
+        <Link to="/" className="flex items-baseline gap-2">
+          <span className="font-brand text-base uppercase tracking-[0.12em] text-foreground">
             Plastic
           </span>
-          <span className="font-display text-sm italic tracking-wide text-muted-foreground">
+          <span className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
             productions
           </span>
         </Link>
 
         <nav className="flex items-center gap-2">
           {isAuthenticated && (
-            <Button asChild size="sm" variant="default" className="shadow-glow">
+            <Button asChild size="sm" variant="default">
               <Link to="/add">
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">Add event</span>
