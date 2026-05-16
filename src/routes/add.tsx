@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 import { Header } from "@/components/Header";
 import { QrScanButton } from "@/components/QrScanButton";
+import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import {
@@ -32,12 +33,7 @@ export const Route = createFileRoute("/add")({
 function AddEvent() {
   const { isAuthenticated, user, loading } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      navigate({ to: "/login", search: { redirect: "/add" } });
-    }
-  }, [loading, isAuthenticated, navigate]);
+  const [signInOpen, setSignInOpen] = useState(!loading && !isAuthenticated);
 
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("");
