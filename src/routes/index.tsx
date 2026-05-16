@@ -82,10 +82,8 @@ function Home() {
             <Sparkles className="h-3 w-3 text-primary" />
             Plastic Productions · Berlin
           </div>
-          <h1 className="mt-4 font-display text-4xl font-bold text-balance sm:text-6xl">
-            <span className="neon-text font-brand tracking-wide">
-              The poster said so.
-            </span>
+          <h1 className="mt-4 font-brand neon-text text-5xl text-balance sm:text-7xl tracking-tight">
+            The poster said&nbsp;so.
           </h1>
           <p className="mt-4 max-w-xl text-balance text-muted-foreground sm:text-lg">
             Spot a poster, add the event, share it with people who actually show up.
