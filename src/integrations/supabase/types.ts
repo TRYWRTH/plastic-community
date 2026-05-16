@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      events: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          event_date: string
+          event_type: Database["public"]["Enums"]["event_type"]
+          id: string
+          link: string | null
+          neighborhood: Database["public"]["Enums"]["neighborhood"]
+          place: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          event_date: string
+          event_type: Database["public"]["Enums"]["event_type"]
+          id?: string
+          link?: string | null
+          neighborhood: Database["public"]["Enums"]["neighborhood"]
+          place: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          event_date?: string
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          link?: string | null
+          neighborhood?: Database["public"]["Enums"]["neighborhood"]
+          place?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +64,28 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      event_type:
+        | "music"
+        | "theater"
+        | "food"
+        | "art"
+        | "sports"
+        | "film"
+        | "workshop"
+        | "community"
+        | "nightlife"
+        | "other"
+      neighborhood:
+        | "downtown"
+        | "old_town"
+        | "north"
+        | "south"
+        | "east"
+        | "west"
+        | "riverside"
+        | "university"
+        | "industrial"
+        | "suburbs"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +212,31 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      event_type: [
+        "music",
+        "theater",
+        "food",
+        "art",
+        "sports",
+        "film",
+        "workshop",
+        "community",
+        "nightlife",
+        "other",
+      ],
+      neighborhood: [
+        "downtown",
+        "old_town",
+        "north",
+        "south",
+        "east",
+        "west",
+        "riverside",
+        "university",
+        "industrial",
+        "suburbs",
+      ],
+    },
   },
 } as const
