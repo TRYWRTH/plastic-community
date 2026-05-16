@@ -1,12 +1,23 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Plus, LogOut, LogIn, Bookmark } from "lucide-react";
+import { Plus, LogOut, Bookmark, UserRound } from "lucide-react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 
 export function Header() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
   const navigate = useNavigate();
+  const [signInOpen, setSignInOpen] = useState(false);
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -27,37 +38,45 @@ export function Header() {
 
         <nav className="flex items-center gap-2">
           {isAuthenticated && (
-            <>
-              <Button asChild size="sm" variant="ghost">
-                <Link to="/saved">
-                  <Bookmark className="h-4 w-4" />
-                  <span className="hidden sm:inline">My list</span>
-                </Link>
-              </Button>
-              <Button asChild size="sm" variant="default">
-                <Link to="/add">
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Add event</span>
-                </Link>
-              </Button>
-            </>
+            <Button asChild size="sm" variant="ghost">
+              <Link to="/saved">
+                <Bookmark className="h-4 w-4" />
+                <span className="hidden sm:inline">My list</span>
+              </Link>
+            </Button>
           )}
-          {!loading &&
-            (isAuthenticated ? (
-              <Button size="sm" variant="ghost" onClick={signOut}>
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Sign out</span>
-              </Button>
-            ) : (
-              <Button asChild size="sm" variant="ghost">
-                <Link to="/login">
-                  <LogIn className="h-4 w-4" />
-                  <span className="hidden sm:inline">Sign in</span>
-                </Link>
-              </Button>
-            ))}
+          <Button asChild size="sm" variant="default">
+            <Link to="/add">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Add event</span>
+            </Link>
+          </Button>
+          {!loading && isAuthenticated && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-9 w-9 rounded-full"
+                  aria-label="Account"
+                >
+                  <UserRound className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="truncate font-mono text-xs">
+                  {user?.email ?? "Account"}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={signOut}>
+                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </nav>
       </div>
+      <MagicLinkDialog open={signInOpen} onOpenChange={setSignInOpen} />
     </header>
   );
 }
