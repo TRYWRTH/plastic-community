@@ -70,17 +70,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { name: "theme-color", content: "#0a0a1a" },
-      { title: "Citybeat — Track city events with your crew" },
+      { name: "theme-color", content: "#f7ecdf" },
+      { title: "Plastic Productions — Performance events in Berlin" },
       {
         name: "description",
         content:
-          "A simple app to collect, browse and filter events happening in your city — perfect for the posters you spot on the street.",
+          "A living index of Plastic Productions performance events in Berlin. Add what you spot on posters, filter by date, area and type.",
       },
-      { property: "og:title", content: "Citybeat — Track city events with your crew" },
+      { property: "og:title", content: "Plastic Productions — Performance events in Berlin" },
       {
         property: "og:description",
-        content: "Add events from posters in seconds. Filter by date, area and type.",
+        content: "Performance events in Berlin, collected from the posters on the street.",
       },
       { property: "og:type", content: "website" },
     ],
@@ -93,7 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600&display=swap",
       },
     ],
   }),
@@ -134,7 +134,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      <Toaster theme="dark" position="top-center" richColors />
+      <Toaster theme="light" position="top-center" richColors />
     </QueryClientProvider>
   );
 }

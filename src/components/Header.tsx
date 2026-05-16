@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Calendar, Plus, LogOut, LogIn } from "lucide-react";
+import { Plus, LogOut, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,12 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2 group">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground shadow-glow transition group-hover:scale-105">
-            <Calendar className="h-4 w-4" />
+        <Link to="/" className="flex items-baseline gap-2 group">
+          <span className="font-brand neon-text text-lg leading-none tracking-wide transition group-hover:scale-105">
+            PLASTIC
           </span>
-          <span className="font-display text-lg font-semibold tracking-tight">
-            Citybeat
+          <span className="font-display text-sm italic text-muted-foreground">
+            productions
           </span>
         </Link>
 
