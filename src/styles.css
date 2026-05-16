@@ -5,11 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -29,61 +29,44 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-glow: var(--glow);
-  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --color-glow: var(--primary);
+  --font-display: "Archivo Black", "Helvetica Neue", Arial, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-brand: "Italiana", "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-brand: "Archivo Black", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0px;
 
-  /* Plastic Productions — deep midnight blue + neon pink */
-  --background: oklch(0.16 0.06 265);
-  --foreground: oklch(0.97 0.015 320);
+  /* Brutalist zine — concrete + washed red */
+  --background: oklch(0.95 0.005 80);   /* #F2F0EB-ish concrete */
+  --foreground: oklch(0.18 0 0);        /* near-black */
 
-  --card: oklch(0.21 0.07 265);
-  --card-foreground: oklch(0.97 0.015 320);
+  --card: oklch(0.97 0.004 80);
+  --card-foreground: oklch(0.18 0 0);
 
-  --popover: oklch(0.21 0.07 265);
-  --popover-foreground: oklch(0.97 0.015 320);
+  --popover: oklch(0.97 0.004 80);
+  --popover-foreground: oklch(0.18 0 0);
 
-  --primary: oklch(0.70 0.27 350);
-  --primary-foreground: oklch(0.99 0.005 0);
-  --glow: oklch(0.80 0.22 345);
+  --primary: oklch(0.52 0.16 28);       /* washed red ~ #B94040 */
+  --primary-foreground: oklch(0.18 0 0); /* black label on red */
 
-  --secondary: oklch(0.26 0.07 265);
-  --secondary-foreground: oklch(0.97 0.015 320);
+  --secondary: oklch(0.90 0.005 80);
+  --secondary-foreground: oklch(0.18 0 0);
 
-  --muted: oklch(0.24 0.06 265);
-  --muted-foreground: oklch(0.72 0.04 320);
+  --muted: oklch(0.90 0.005 80);
+  --muted-foreground: oklch(0.40 0.005 80);
 
-  --accent: oklch(0.34 0.14 320);
-  --accent-foreground: oklch(0.98 0.01 320);
+  --accent: oklch(0.52 0.16 28);
+  --accent-foreground: oklch(0.18 0 0);
 
-  --destructive: oklch(0.62 0.22 25);
-  --destructive-foreground: oklch(0.99 0.005 0);
+  --destructive: oklch(0.52 0.16 28);
+  --destructive-foreground: oklch(0.99 0 0);
 
-  --border: oklch(0.29 0.06 265);
-  --input: oklch(0.26 0.06 265);
-  --ring: oklch(0.70 0.27 350);
-
-  --gradient-aurora: radial-gradient(
-      ellipse 80% 60% at 15% 0%,
-      oklch(0.45 0.25 350 / 0.45),
-      transparent 60%
-    ),
-    radial-gradient(
-      ellipse 70% 55% at 100% 10%,
-      oklch(0.40 0.22 290 / 0.50),
-      transparent 65%
-    );
-
-  --shadow-glow: 0 0 24px oklch(0.78 0.24 350 / 0.55),
-    0 10px 40px -12px oklch(0.70 0.27 350 / 0.55);
-  --shadow-neon: 0 0 6px oklch(0.92 0.18 350 / 0.95),
-    0 0 18px oklch(0.78 0.26 350 / 0.9),
-    0 0 36px oklch(0.70 0.28 350 / 0.65);
+  --border: oklch(0.18 0 0);            /* hard black border */
+  --input: oklch(0.99 0 0);
+  --ring: oklch(0.18 0 0);
 }
 
 @layer base {
@@ -103,18 +86,12 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
-    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
   }
 }
 
 @layer utilities {
-  .bg-aurora {
-    background-image: var(--gradient-aurora);
-  }
-  .shadow-glow {
-    box-shadow: var(--shadow-glow);
-  }
   .text-balance {
     text-wrap: balance;
   }
@@ -124,12 +101,25 @@
   .font-display {
     font-family: var(--font-display);
   }
-  .neon-text {
-    color: oklch(0.78 0.25 350);
-    text-shadow:
-      0 0 4px oklch(0.96 0.15 350 / 0.95),
-      0 0 10px oklch(0.85 0.24 350 / 0.9),
-      0 0 22px oklch(0.72 0.28 350 / 0.75),
-      0 0 40px oklch(0.65 0.28 350 / 0.5);
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  /* Subtle photocopy noise — pure CSS, no images */
+  .bg-paper {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+      radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    background-size: 3px 3px, 7px 7px;
+    background-position: 0 0, 1px 2px;
+  }
+
+  /* Hard offset shadow — newspaper/zine stamp */
+  .shadow-stamp {
+    box-shadow: 4px 4px 0 0 var(--foreground);
+  }
+  .shadow-stamp-sm {
+    box-shadow: 3px 3px 0 0 var(--foreground);
   }
 }
