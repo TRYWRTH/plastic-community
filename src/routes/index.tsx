@@ -220,7 +220,7 @@ function FilterSelect({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-9 w-auto min-w-[8rem] rounded-none border-2 border-foreground bg-background font-mono text-xs uppercase tracking-wider">
+      <SelectTrigger className="h-11 w-full rounded-none border-2 border-foreground bg-background font-mono text-xs uppercase tracking-wider sm:h-9 sm:w-auto sm:min-w-[8rem]">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className="rounded-none border-2 border-foreground">
