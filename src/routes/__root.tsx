@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { initOneSignal } from "@/lib/onesignal";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -155,32 +156,18 @@ function RootComponent() {
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
 
-  // PWA service worker — disabled inside Lovable preview iframes
+  // Unregister any legacy /sw.js, then initialize OneSignal (which registers
+  // its own service worker). OneSignal init no-ops inside Lovable previews.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!("serviceWorker" in navigator)) return;
-
-    const inIframe = (() => {
-      try {
-        return window.self !== window.top;
-      } catch {
-        return true;
-      }
-    })();
-    const host = window.location.hostname;
-    const isPreviewHost =
-      host.includes("lovableproject.com") || host.includes("id-preview--");
-
-    if (inIframe || isPreviewHost) {
+    if ("serviceWorker" in navigator) {
       navigator.serviceWorker.getRegistrations().then((regs) => {
-        regs.forEach((r) => r.unregister());
+        regs.forEach((r) => {
+          if (r.active?.scriptURL.endsWith("/sw.js")) r.unregister();
+        });
       });
-      return;
     }
-
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      /* ignore registration failures */
-    });
+    initOneSignal();
   }, []);
 
   if (!mounted) return null;
