@@ -69,12 +69,12 @@ export function SaveButtons({ eventId }: { eventId: string }) {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" size="sm" onClick={() => setSignInOpen(true)}>
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+        <Button variant="outline" onClick={() => setSignInOpen(true)} className="w-full sm:w-auto">
           <Check className="h-4 w-4" />
           Going
         </Button>
-        <Button variant="outline" size="sm" onClick={() => setSignInOpen(true)}>
+        <Button variant="outline" onClick={() => setSignInOpen(true)} className="w-full sm:w-auto">
           <Star className="h-4 w-4" />
           Interested
         </Button>
@@ -90,23 +90,23 @@ export function SaveButtons({ eventId }: { eventId: string }) {
   const current = save?.status as SaveStatus | undefined;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
       <Button
         variant={current === "going" ? "default" : "outline"}
-        size="sm"
         onClick={() => mutate.mutate(current === "going" ? null : "going")}
         disabled={mutate.isPending}
+        className="w-full sm:w-auto"
       >
         <Check className="h-4 w-4" />
         Going
       </Button>
       <Button
         variant={current === "interested" ? "default" : "outline"}
-        size="sm"
         onClick={() =>
           mutate.mutate(current === "interested" ? null : "interested")
         }
         disabled={mutate.isPending}
+        className="w-full sm:w-auto"
       >
         <Star className="h-4 w-4" />
         Interested
