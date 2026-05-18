@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export const Route = createFileRoute("/event/$eventId/edit")({
+export const Route = createFileRoute("/event/$eventId_/edit")({
   component: EditEvent,
 });
 
