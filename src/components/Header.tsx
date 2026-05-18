@@ -26,17 +26,17 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b-2 border-foreground bg-background">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <Link to="/" className="flex items-baseline gap-2">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-3 sm:px-4">
+        <Link to="/" className="flex min-w-0 items-baseline gap-2">
           <span className="font-brand text-base uppercase tracking-[0.12em] text-foreground">
             Plastic
           </span>
-          <span className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
+          <span className="hidden font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground sm:inline">
             productions
           </span>
         </Link>
 
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-1 sm:gap-2">
           {isAuthenticated && (
             <Button asChild size="sm" variant="ghost">
               <Link to="/saved">

@@ -241,14 +241,14 @@ function EditEvent() {
             />
           </Field>
 
-          <div className="flex items-center gap-2 pt-2">
-            <Button type="submit" disabled={saving} className="shadow-glow">
-              {saving ? "Saving…" : "Save changes"}
-            </Button>
-            <Button type="button" variant="ghost" asChild>
+          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center">
+            <Button type="button" variant="ghost" asChild className="w-full sm:w-auto">
               <Link to="/event/$eventId" params={{ eventId }}>
                 Cancel
               </Link>
+            </Button>
+            <Button type="submit" disabled={saving} className="w-full shadow-glow sm:w-auto">
+              {saving ? "Saving…" : "Save changes"}
             </Button>
           </div>
         </form>
