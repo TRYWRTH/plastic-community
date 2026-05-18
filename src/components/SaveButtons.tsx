@@ -69,7 +69,27 @@ export function SaveButtons({ eventId }: { eventId: string }) {
   const toggleNotify = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Sign in first");
-      const next = !(save?.notify ?? true);
+      const currentNotify = save?.notify ?? true;
+      const next = !currentNotify;
+
+      // If turning ON and we don't yet have browser permission, ask first.
+      if (next) {
+        const perm = getNotificationPermission();
+        if (perm === "denied") {
+          throw new Error(
+            "Notifications are blocked. Enable them in your browser or phone settings to get updates.",
+          );
+        }
+        if (perm === "default") {
+          const granted = await requestPushPermission();
+          if (!granted) {
+            throw new Error(
+              "Notification permission not granted. You can enable it later in your browser or phone settings.",
+            );
+          }
+        }
+      }
+
       const { error } = await supabase
         .from("event_saves")
         .update({ notify: next })
