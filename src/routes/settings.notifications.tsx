@@ -158,17 +158,17 @@ function NotificationSettingsPage() {
                     return (
                       <li
                         key={s.id}
-                        className="flex items-center justify-between gap-3 border-2 border-foreground bg-card p-3 sm:p-4"
+                        className="flex items-start justify-between gap-3 border-2 border-foreground bg-card p-4"
                       >
                         <Link
                           to="/event/$eventId"
                           params={{ eventId: ev.id }}
                           className="min-w-0 flex-1"
                         >
-                          <h3 className="truncate font-brand text-base uppercase text-foreground sm:text-lg">
+                          <h3 className="font-brand text-base uppercase text-foreground break-words sm:text-lg">
                             {ev.title}
                           </h3>
-                          <p className="mt-0.5 truncate font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
+                          <p className="mt-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground break-words">
                             {format(d, "EEE, MMM d · HH:mm")} · {ev.place}
                           </p>
                         </Link>
@@ -179,6 +179,7 @@ function NotificationSettingsPage() {
                             toggleNotify.mutate({ saveId: s.id, next })
                           }
                           aria-label={`Notifications for ${ev.title}`}
+                          className="mt-1 shrink-0"
                         />
                       </li>
                     );
