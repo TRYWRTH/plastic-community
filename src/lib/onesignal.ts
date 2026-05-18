@@ -47,23 +47,7 @@ export function initOneSignal(): Promise<void> {
           serviceWorkerPath: "/OneSignalSDKWorker.js",
           serviceWorkerParam: { scope: "/" },
           notifyButton: { enable: false },
-          promptOptions: {
-            slidedown: {
-              prompts: [
-                {
-                  type: "push",
-                  autoPrompt: true,
-                  text: {
-                    actionMessage:
-                      "Get notified when new performance events are added in Berlin.",
-                    acceptButton: "Allow",
-                    cancelButton: "Not now",
-                  },
-                  delay: { pageViews: 1, timeDelay: 5 },
-                },
-              ],
-            },
-          },
+          autoResubscribe: true,
         });
       } catch (err) {
         console.error("OneSignal init failed", err);
@@ -74,6 +58,61 @@ export function initOneSignal(): Promise<void> {
   });
 
   return initPromise;
+}
+
+// Returns the current browser notification permission ("granted" | "denied" | "default" | "unsupported").
+export function getNotificationPermission(): NotificationPermission | "unsupported" {
+  if (typeof window === "undefined" || !("Notification" in window)) return "unsupported";
+  return Notification.permission;
+}
+
+// Prompt the user via OneSignal for push permission. Resolves to true if granted.
+export async function requestPushPermission(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  if (!("Notification" in window)) return false;
+
+  // Ensure SDK initialized
+  await initOneSignal();
+
+  return new Promise<boolean>((resolve) => {
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(async (OneSignal: any) => {
+      try {
+        const current = Notification.permission;
+        if (current === "granted") {
+          try { await OneSignal.User?.PushSubscription?.optIn?.(); } catch {}
+          resolve(true);
+          return;
+        }
+        if (current === "denied") {
+          resolve(false);
+          return;
+        }
+        // Use native browser prompt via OneSignal
+        await OneSignal.Notifications.requestPermission();
+        const granted = Notification.permission === "granted";
+        if (granted) {
+          try { await OneSignal.User?.PushSubscription?.optIn?.(); } catch {}
+        }
+        resolve(granted);
+      } catch (err) {
+        console.error("Push permission request failed", err);
+        resolve(false);
+      }
+    });
+
+    // Fallback if SDK didn't load (e.g. preview iframe): native prompt
+    setTimeout(async () => {
+      if (!window.OneSignal) {
+        try {
+          const result = await Notification.requestPermission();
+          resolve(result === "granted");
+        } catch {
+          resolve(false);
+        }
+      }
+    }, 3000);
+  });
 }
 
 // Associate the current Supabase user id with OneSignal as the external_id
