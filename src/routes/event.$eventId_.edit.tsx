@@ -8,6 +8,7 @@ import { Header } from "@/components/Header";
 import { QrScanButton } from "@/components/QrScanButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
+import { sendEventUpdateNotification } from "@/lib/notifications";
 import {
   EVENT_TYPES,
   NEIGHBORHOODS,
@@ -90,6 +91,24 @@ function EditEvent() {
       return;
     }
     toast.success("Event updated");
+
+    // Notify only saved users who opted in (notify=true), excluding the editor.
+    const { data: saves } = await supabase
+      .from("event_saves")
+      .select("user_id")
+      .eq("event_id", eventId)
+      .eq("notify", true);
+    const externalUserIds = (saves ?? [])
+      .map((s) => s.user_id)
+      .filter((id) => id !== user.id);
+    const eventUrl = `${window.location.origin}/event/${eventId}`;
+    void sendEventUpdateNotification({
+      title: "Event updated",
+      message: `${title.trim()} — ${place.trim()}, ${neighborhood}`,
+      url: eventUrl,
+      externalUserIds,
+    });
+
     navigate({ to: "/event/$eventId", params: { eventId } });
   };
 
