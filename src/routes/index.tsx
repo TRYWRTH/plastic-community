@@ -77,16 +77,16 @@ function Home() {
 
       {/* Hero */}
       <section className="border-b-2 border-foreground">
-        <div className="mx-auto max-w-5xl px-4 pb-10 pt-12 sm:pt-16">
-          <div className="inline-flex items-center gap-2 border-2 border-foreground bg-background px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-foreground">
+        <div className="mx-auto max-w-5xl px-4 pb-8 pt-8 sm:pb-10 sm:pt-16">
+          <div className="inline-flex items-center gap-2 border-2 border-foreground bg-background px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground sm:text-[11px]">
             Plastic Productions · Berlin
           </div>
-          <h1 className="mt-6 font-brand text-6xl uppercase leading-[0.95] text-foreground text-balance sm:text-[7.5rem]">
+          <h1 className="mt-5 font-brand text-[3rem] uppercase leading-[0.95] text-foreground text-balance sm:mt-6 sm:text-[7.5rem]">
             The poster
             <br />
             said so.
           </h1>
-          <p className="mt-6 max-w-xl text-balance font-mono text-sm uppercase tracking-wide text-foreground sm:text-base">
+          <p className="mt-5 max-w-xl text-balance font-mono text-xs uppercase tracking-wide text-foreground sm:mt-6 sm:text-base">
             Spot a poster, add the event, share it.
           </p>
         </div>
@@ -94,39 +94,41 @@ function Home() {
 
       {/* Filters */}
       <section className="sticky top-14 z-30 border-b-2 border-foreground bg-background">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-2 px-4 py-3">
-          <FilterSelect
-            value={dateFilter}
-            onChange={(v) => setDateFilter(v as DateFilter)}
-            placeholder="When"
-            options={[
-              { value: "upcoming", label: "Upcoming" },
-              { value: "today", label: "Today" },
-              { value: "tomorrow", label: "Tomorrow" },
-              { value: "week", label: "This week" },
-              { value: "all", label: "Any time" },
-            ]}
-          />
-          <FilterSelect
-            value={neighborhood}
-            onChange={(v) => setNeighborhood(v as Neighborhood | "all")}
-            placeholder="Area"
-            options={[
-              { value: "all", label: "All areas" },
-              ...NEIGHBORHOODS.map((n) => ({ value: n.value, label: n.label })),
-            ]}
-          />
-          <FilterSelect
-            value={eventType}
-            onChange={(v) => setEventType(v as EventType | "all")}
-            placeholder="Type"
-            options={[
-              { value: "all", label: "All types" },
-              ...EVENT_TYPES.map((t) => ({ value: t.value, label: `${t.emoji}  ${t.label}` })),
-            ]}
-          />
-          <div className="ml-auto font-mono text-xs uppercase tracking-widest text-foreground">
-            {filtered.length} / {events.length}
+        <div className="mx-auto max-w-5xl px-4 py-3">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+            <FilterSelect
+              value={dateFilter}
+              onChange={(v) => setDateFilter(v as DateFilter)}
+              placeholder="When"
+              options={[
+                { value: "upcoming", label: "Upcoming" },
+                { value: "today", label: "Today" },
+                { value: "tomorrow", label: "Tomorrow" },
+                { value: "week", label: "This week" },
+                { value: "all", label: "Any time" },
+              ]}
+            />
+            <FilterSelect
+              value={neighborhood}
+              onChange={(v) => setNeighborhood(v as Neighborhood | "all")}
+              placeholder="Area"
+              options={[
+                { value: "all", label: "All areas" },
+                ...NEIGHBORHOODS.map((n) => ({ value: n.value, label: n.label })),
+              ]}
+            />
+            <FilterSelect
+              value={eventType}
+              onChange={(v) => setEventType(v as EventType | "all")}
+              placeholder="Type"
+              options={[
+                { value: "all", label: "All types" },
+                ...EVENT_TYPES.map((t) => ({ value: t.value, label: `${t.emoji}  ${t.label}` })),
+              ]}
+            />
+            <div className="col-span-2 text-right font-mono text-[11px] uppercase tracking-widest text-foreground sm:col-auto sm:ml-auto sm:text-xs">
+              {filtered.length} / {events.length}
+            </div>
           </div>
         </div>
       </section>
