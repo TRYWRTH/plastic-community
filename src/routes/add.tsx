@@ -8,6 +8,7 @@ import { QrScanButton } from "@/components/QrScanButton";
 import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
+import { sendNewEventNotification } from "@/lib/notifications.functions";
 import {
   EVENT_TYPES,
   NEIGHBORHOODS,
@@ -68,6 +69,17 @@ function AddEvent() {
       return;
     }
     toast.success("Event added");
+
+    // Fire-and-forget push broadcast to all subscribers
+    const eventUrl = `${window.location.origin}/event/${data.id}`;
+    sendNewEventNotification({
+      data: {
+        title: "New event posted",
+        message: `${title.trim()} — ${place.trim()}, ${neighborhood}`,
+        url: eventUrl,
+      },
+    }).catch((err) => console.error("Notification failed", err));
+
     navigate({ to: "/event/$eventId", params: { eventId: data.id } });
   };
 
