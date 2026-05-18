@@ -65,6 +65,25 @@ export function SaveButtons({ eventId }: { eventId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const toggleNotify = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("Sign in first");
+      const next = !(save?.notify ?? true);
+      const { error } = await supabase
+        .from("event_saves")
+        .update({ notify: next })
+        .eq("event_id", eventId)
+        .eq("user_id", user.id);
+      if (error) throw error;
+      return next;
+    },
+    onSuccess: (next) => {
+      qc.invalidateQueries({ queryKey: ["event_save", eventId, user?.id] });
+      toast.success(next ? "Notifications on for this event" : "Muted this event");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (loading) return null;
 
   if (!isAuthenticated) {
@@ -89,24 +108,6 @@ export function SaveButtons({ eventId }: { eventId: string }) {
 
   const current = save?.status as SaveStatus | undefined;
   const notify = save?.notify ?? true;
-
-  const toggleNotify = useMutation({
-    mutationFn: async () => {
-      if (!user) throw new Error("Sign in first");
-      const { error } = await supabase
-        .from("event_saves")
-        .update({ notify: !notify })
-        .eq("event_id", eventId)
-        .eq("user_id", user.id);
-      if (error) throw error;
-      return !notify;
-    },
-    onSuccess: (next) => {
-      qc.invalidateQueries({ queryKey: ["event_save", eventId, user?.id] });
-      toast.success(next ? "Notifications on for this event" : "Muted this event");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   return (
     <div className="space-y-3">
