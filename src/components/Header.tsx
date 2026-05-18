@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Plus, LogOut, Bookmark, UserRound } from "lucide-react";
+import { Plus, LogOut, Bookmark, UserRound, Bell } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
@@ -68,6 +68,11 @@ export function Header() {
                   {user?.email ?? "Account"}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/settings/notifications">
+                    <Bell className="mr-2 h-4 w-4" /> Notification settings
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onSelect={signOut}>
                   <LogOut className="mr-2 h-4 w-4" /> Sign out
                 </DropdownMenuItem>

@@ -66,6 +66,55 @@ export function getNotificationPermission(): NotificationPermission | "unsupport
   return Notification.permission;
 }
 
+// Read whether the user is currently opted in to OneSignal push subscription.
+export async function getPushOptedIn(): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  await initOneSignal();
+  return new Promise<boolean>((resolve) => {
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(async (OneSignal: any) => {
+      try {
+        const optedIn = OneSignal?.User?.PushSubscription?.optedIn;
+        resolve(Boolean(optedIn));
+      } catch {
+        resolve(false);
+      }
+    });
+    setTimeout(() => resolve(false), 3000);
+  });
+}
+
+// Opt the user in/out of OneSignal push subscription globally.
+export async function setPushOptIn(next: boolean): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  await initOneSignal();
+  return new Promise<boolean>((resolve) => {
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(async (OneSignal: any) => {
+      try {
+        if (next) {
+          if (Notification.permission !== "granted") {
+            await OneSignal.Notifications.requestPermission();
+            if ((Notification.permission as string) !== "granted") {
+              resolve(false);
+              return;
+            }
+          }
+          await OneSignal.User.PushSubscription.optIn();
+          resolve(true);
+        } else {
+          await OneSignal.User.PushSubscription.optOut();
+          resolve(false);
+        }
+      } catch (err) {
+        console.error("setPushOptIn failed", err);
+        resolve(false);
+      }
+    });
+    setTimeout(() => resolve(next), 5000);
+  });
+}
+
 // Prompt the user via OneSignal for push permission. Resolves to true if granted.
 export async function requestPushPermission(): Promise<boolean> {
   if (typeof window === "undefined") return false;

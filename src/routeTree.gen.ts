@@ -13,6 +13,7 @@ import { Route as SavedRouteImport } from './routes/saved'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AddRouteImport } from './routes/add'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
 import { Route as EventEventIdRouteImport } from './routes/event.$eventId'
 import { Route as EventEventIdEditRouteImport } from './routes/event.$eventId_.edit'
 
@@ -36,6 +37,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
+  id: '/settings/notifications',
+  path: '/settings/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventEventIdRoute = EventEventIdRouteImport.update({
   id: '/event/$eventId',
   path: '/event/$eventId',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/saved': typeof SavedRoute
   '/event/$eventId': typeof EventEventIdRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/event/$eventId/edit': typeof EventEventIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/saved': typeof SavedRoute
   '/event/$eventId': typeof EventEventIdRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/event/$eventId/edit': typeof EventEventIdEditRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/saved': typeof SavedRoute
   '/event/$eventId': typeof EventEventIdRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/event/$eventId_/edit': typeof EventEventIdEditRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/saved'
     | '/event/$eventId'
+    | '/settings/notifications'
     | '/event/$eventId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/saved'
     | '/event/$eventId'
+    | '/settings/notifications'
     | '/event/$eventId/edit'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/saved'
     | '/event/$eventId'
+    | '/settings/notifications'
     | '/event/$eventId_/edit'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SavedRoute: typeof SavedRoute
   EventEventIdRoute: typeof EventEventIdRoute
+  SettingsNotificationsRoute: typeof SettingsNotificationsRoute
   EventEventIdEditRoute: typeof EventEventIdEditRoute
 }
 
@@ -138,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/notifications': {
+      id: '/settings/notifications'
+      path: '/settings/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof SettingsNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/event/$eventId': {
       id: '/event/$eventId'
       path: '/event/$eventId'
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SavedRoute: SavedRoute,
   EventEventIdRoute: EventEventIdRoute,
+  SettingsNotificationsRoute: SettingsNotificationsRoute,
   EventEventIdEditRoute: EventEventIdEditRoute,
 }
 export const routeTree = rootRouteImport
