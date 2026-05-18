@@ -14,7 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AddRouteImport } from './routes/add'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventEventIdRouteImport } from './routes/event.$eventId'
-import { Route as EventEventIdEditRouteImport } from './routes/event.$eventId.edit'
+import { Route as EventEventIdEditRouteImport } from './routes/event.$eventId_.edit'
 
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
@@ -42,9 +42,9 @@ const EventEventIdRoute = EventEventIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventEventIdEditRoute = EventEventIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => EventEventIdRoute,
+  id: '/event/$eventId_/edit',
+  path: '/event/$eventId/edit',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -52,7 +52,7 @@ export interface FileRoutesByFullPath {
   '/add': typeof AddRoute
   '/login': typeof LoginRoute
   '/saved': typeof SavedRoute
-  '/event/$eventId': typeof EventEventIdRouteWithChildren
+  '/event/$eventId': typeof EventEventIdRoute
   '/event/$eventId/edit': typeof EventEventIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -60,7 +60,7 @@ export interface FileRoutesByTo {
   '/add': typeof AddRoute
   '/login': typeof LoginRoute
   '/saved': typeof SavedRoute
-  '/event/$eventId': typeof EventEventIdRouteWithChildren
+  '/event/$eventId': typeof EventEventIdRoute
   '/event/$eventId/edit': typeof EventEventIdEditRoute
 }
 export interface FileRoutesById {
@@ -69,8 +69,8 @@ export interface FileRoutesById {
   '/add': typeof AddRoute
   '/login': typeof LoginRoute
   '/saved': typeof SavedRoute
-  '/event/$eventId': typeof EventEventIdRouteWithChildren
-  '/event/$eventId/edit': typeof EventEventIdEditRoute
+  '/event/$eventId': typeof EventEventIdRoute
+  '/event/$eventId_/edit': typeof EventEventIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -96,7 +96,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/saved'
     | '/event/$eventId'
-    | '/event/$eventId/edit'
+    | '/event/$eventId_/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -104,7 +104,8 @@ export interface RootRouteChildren {
   AddRoute: typeof AddRoute
   LoginRoute: typeof LoginRoute
   SavedRoute: typeof SavedRoute
-  EventEventIdRoute: typeof EventEventIdRouteWithChildren
+  EventEventIdRoute: typeof EventEventIdRoute
+  EventEventIdEditRoute: typeof EventEventIdEditRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -144,35 +145,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventEventIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/event/$eventId/edit': {
-      id: '/event/$eventId/edit'
-      path: '/edit'
+    '/event/$eventId_/edit': {
+      id: '/event/$eventId_/edit'
+      path: '/event/$eventId/edit'
       fullPath: '/event/$eventId/edit'
       preLoaderRoute: typeof EventEventIdEditRouteImport
-      parentRoute: typeof EventEventIdRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface EventEventIdRouteChildren {
-  EventEventIdEditRoute: typeof EventEventIdEditRoute
-}
-
-const EventEventIdRouteChildren: EventEventIdRouteChildren = {
-  EventEventIdEditRoute: EventEventIdEditRoute,
-}
-
-const EventEventIdRouteWithChildren = EventEventIdRoute._addFileChildren(
-  EventEventIdRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AddRoute: AddRoute,
   LoginRoute: LoginRoute,
   SavedRoute: SavedRoute,
-  EventEventIdRoute: EventEventIdRouteWithChildren,
+  EventEventIdRoute: EventEventIdRoute,
+  EventEventIdEditRoute: EventEventIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
