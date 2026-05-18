@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { MapPin, Calendar, ExternalLink, Trash2, ArrowLeft } from "lucide-react";
+import { MapPin, Calendar, ExternalLink, Trash2, Pencil, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 import { Header } from "@/components/Header";
@@ -98,7 +98,12 @@ function EventDetail() {
                 </a>
               )}
               {user?.id === event.created_by && (
-                <div className="border-t-2 border-foreground pt-4">
+                <div className="flex flex-wrap gap-2 border-t-2 border-foreground pt-4">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/event/$eventId/edit" params={{ eventId: event.id }}>
+                      <Pencil className="h-4 w-4" /> Edit event
+                    </Link>
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"

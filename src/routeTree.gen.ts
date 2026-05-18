@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AddRouteImport } from './routes/add'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventEventIdRouteImport } from './routes/event.$eventId'
+import { Route as EventEventIdEditRouteImport } from './routes/event.$eventId.edit'
 
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
@@ -40,20 +41,27 @@ const EventEventIdRoute = EventEventIdRouteImport.update({
   path: '/event/$eventId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventEventIdEditRoute = EventEventIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => EventEventIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
   '/login': typeof LoginRoute
   '/saved': typeof SavedRoute
-  '/event/$eventId': typeof EventEventIdRoute
+  '/event/$eventId': typeof EventEventIdRouteWithChildren
+  '/event/$eventId/edit': typeof EventEventIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
   '/login': typeof LoginRoute
   '/saved': typeof SavedRoute
-  '/event/$eventId': typeof EventEventIdRoute
+  '/event/$eventId': typeof EventEventIdRouteWithChildren
+  '/event/$eventId/edit': typeof EventEventIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -61,14 +69,34 @@ export interface FileRoutesById {
   '/add': typeof AddRoute
   '/login': typeof LoginRoute
   '/saved': typeof SavedRoute
-  '/event/$eventId': typeof EventEventIdRoute
+  '/event/$eventId': typeof EventEventIdRouteWithChildren
+  '/event/$eventId/edit': typeof EventEventIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/add' | '/login' | '/saved' | '/event/$eventId'
+  fullPaths:
+    | '/'
+    | '/add'
+    | '/login'
+    | '/saved'
+    | '/event/$eventId'
+    | '/event/$eventId/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/add' | '/login' | '/saved' | '/event/$eventId'
-  id: '__root__' | '/' | '/add' | '/login' | '/saved' | '/event/$eventId'
+  to:
+    | '/'
+    | '/add'
+    | '/login'
+    | '/saved'
+    | '/event/$eventId'
+    | '/event/$eventId/edit'
+  id:
+    | '__root__'
+    | '/'
+    | '/add'
+    | '/login'
+    | '/saved'
+    | '/event/$eventId'
+    | '/event/$eventId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,7 +104,7 @@ export interface RootRouteChildren {
   AddRoute: typeof AddRoute
   LoginRoute: typeof LoginRoute
   SavedRoute: typeof SavedRoute
-  EventEventIdRoute: typeof EventEventIdRoute
+  EventEventIdRoute: typeof EventEventIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -116,16 +144,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventEventIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/event/$eventId/edit': {
+      id: '/event/$eventId/edit'
+      path: '/edit'
+      fullPath: '/event/$eventId/edit'
+      preLoaderRoute: typeof EventEventIdEditRouteImport
+      parentRoute: typeof EventEventIdRoute
+    }
   }
 }
+
+interface EventEventIdRouteChildren {
+  EventEventIdEditRoute: typeof EventEventIdEditRoute
+}
+
+const EventEventIdRouteChildren: EventEventIdRouteChildren = {
+  EventEventIdEditRoute: EventEventIdEditRoute,
+}
+
+const EventEventIdRouteWithChildren = EventEventIdRoute._addFileChildren(
+  EventEventIdRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AddRoute: AddRoute,
   LoginRoute: LoginRoute,
   SavedRoute: SavedRoute,
-  EventEventIdRoute: EventEventIdRoute,
+  EventEventIdRoute: EventEventIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
