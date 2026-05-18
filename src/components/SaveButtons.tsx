@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Check, Star } from "lucide-react";
+import { Check, Star, Bell, BellOff } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -21,7 +21,7 @@ export function SaveButtons({ eventId }: { eventId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("event_saves")
-        .select("id, status")
+        .select("id, status, notify")
         .eq("event_id", eventId)
         .eq("user_id", user!.id)
         .maybeSingle();
@@ -88,29 +88,68 @@ export function SaveButtons({ eventId }: { eventId: string }) {
   }
 
   const current = save?.status as SaveStatus | undefined;
+  const notify = save?.notify ?? true;
+
+  const toggleNotify = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("Sign in first");
+      const { error } = await supabase
+        .from("event_saves")
+        .update({ notify: !notify })
+        .eq("event_id", eventId)
+        .eq("user_id", user.id);
+      if (error) throw error;
+      return !notify;
+    },
+    onSuccess: (next) => {
+      qc.invalidateQueries({ queryKey: ["event_save", eventId, user?.id] });
+      toast.success(next ? "Notifications on for this event" : "Muted this event");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
-      <Button
-        variant={current === "going" ? "default" : "outline"}
-        onClick={() => mutate.mutate(current === "going" ? null : "going")}
-        disabled={mutate.isPending}
-        className="w-full sm:w-auto"
-      >
-        <Check className="h-4 w-4" />
-        Going
-      </Button>
-      <Button
-        variant={current === "interested" ? "default" : "outline"}
-        onClick={() =>
-          mutate.mutate(current === "interested" ? null : "interested")
-        }
-        disabled={mutate.isPending}
-        className="w-full sm:w-auto"
-      >
-        <Star className="h-4 w-4" />
-        Interested
-      </Button>
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+        <Button
+          variant={current === "going" ? "default" : "outline"}
+          onClick={() => mutate.mutate(current === "going" ? null : "going")}
+          disabled={mutate.isPending}
+          className="w-full sm:w-auto"
+        >
+          <Check className="h-4 w-4" />
+          Going
+        </Button>
+        <Button
+          variant={current === "interested" ? "default" : "outline"}
+          onClick={() =>
+            mutate.mutate(current === "interested" ? null : "interested")
+          }
+          disabled={mutate.isPending}
+          className="w-full sm:w-auto"
+        >
+          <Star className="h-4 w-4" />
+          Interested
+        </Button>
+      </div>
+      {current && (
+        <Button
+          variant={notify ? "default" : "outline"}
+          onClick={() => toggleNotify.mutate()}
+          disabled={toggleNotify.isPending}
+          className="w-full sm:w-auto"
+        >
+          {notify ? (
+            <>
+              <Bell className="h-4 w-4" /> 🔔 Notify me
+            </>
+          ) : (
+            <>
+              <BellOff className="h-4 w-4" /> 🔕 Muted
+            </>
+          )}
+        </Button>
+      )}
     </div>
   );
 }

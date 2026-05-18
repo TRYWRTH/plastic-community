@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { initOneSignal } from "@/lib/onesignal";
+import { initOneSignal, setOneSignalExternalId } from "@/lib/onesignal";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -149,9 +149,10 @@ function RootComponent() {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       router.invalidate();
       queryClient.invalidateQueries();
+      setOneSignalExternalId(session?.user?.id ?? null);
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
@@ -168,6 +169,9 @@ function RootComponent() {
       });
     }
     initOneSignal();
+    supabase.auth.getSession().then(({ data }) => {
+      setOneSignalExternalId(data.session?.user?.id ?? null);
+    });
   }, []);
 
   if (!mounted) return null;

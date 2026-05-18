@@ -1,0 +1,1 @@
+ALTER TABLE public.event_saves ADD COLUMN notify boolean NOT NULL DEFAULT true;

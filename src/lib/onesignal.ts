@@ -75,3 +75,18 @@ export function initOneSignal(): Promise<void> {
 
   return initPromise;
 }
+
+// Associate the current Supabase user id with OneSignal as the external_id
+// so we can target notifications to specific users.
+export function setOneSignalExternalId(userId: string | null) {
+  if (typeof window === "undefined") return;
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  window.OneSignalDeferred.push(async (OneSignal: any) => {
+    try {
+      if (userId) await OneSignal.login(userId);
+      else await OneSignal.logout();
+    } catch (err) {
+      console.error("OneSignal login/logout failed", err);
+    }
+  });
+}
