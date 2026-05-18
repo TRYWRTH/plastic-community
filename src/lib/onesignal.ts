@@ -47,23 +47,7 @@ export function initOneSignal(): Promise<void> {
           serviceWorkerPath: "/OneSignalSDKWorker.js",
           serviceWorkerParam: { scope: "/" },
           notifyButton: { enable: false },
-          promptOptions: {
-            slidedown: {
-              prompts: [
-                {
-                  type: "push",
-                  autoPrompt: true,
-                  text: {
-                    actionMessage:
-                      "Get notified when new performance events are added in Berlin.",
-                    acceptButton: "Allow",
-                    cancelButton: "Not now",
-                  },
-                  delay: { pageViews: 1, timeDelay: 5 },
-                },
-              ],
-            },
-          },
+          autoResubscribe: true,
         });
       } catch (err) {
         console.error("OneSignal init failed", err);
