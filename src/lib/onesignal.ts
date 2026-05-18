@@ -95,7 +95,7 @@ export async function setPushOptIn(next: boolean): Promise<boolean> {
         if (next) {
           if (Notification.permission !== "granted") {
             await OneSignal.Notifications.requestPermission();
-            if (Notification.permission !== "granted") {
+            if ((Notification.permission as string) !== "granted") {
               resolve(false);
               return;
             }
