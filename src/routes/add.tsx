@@ -5,6 +5,7 @@ import { format } from "date-fns";
 
 import { Header } from "@/components/Header";
 import { QrScanButton } from "@/components/QrScanButton";
+import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
 import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
@@ -38,6 +39,7 @@ function AddEvent() {
 
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("");
+  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
   const [neighborhood, setNeighborhood] = useState<Neighborhood>("Mitte");
   const [eventType, setEventType] = useState<EventType>("music");
   const [date, setDate] = useState(format(new Date(Date.now() + 86400000), "yyyy-MM-dd'T'HH:mm"));
@@ -60,6 +62,8 @@ function AddEvent() {
         link: link.trim() || null,
         description: description.trim() || null,
         created_by: user.id,
+        lat: coords.lat,
+        lng: coords.lng,
       })
       .select("id")
       .single();
@@ -164,12 +168,16 @@ function AddEvent() {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Place" required>
-              <Input
+              <PlaceAutocompleteInput
                 value={place}
-                onChange={(e) => setPlace(e.target.value)}
+                onChange={(v) => {
+                  setPlace(v);
+                  setCoords({ lat: null, lng: null });
+                }}
+                onPlaceSelected={(p) => setCoords({ lat: p.lat, lng: p.lng })}
                 placeholder="Venue or address"
                 required
-                maxLength={120}
+                maxLength={200}
               />
             </Field>
             <Field label="Area" required>

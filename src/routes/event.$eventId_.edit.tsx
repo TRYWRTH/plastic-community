@@ -6,6 +6,7 @@ import { format } from "date-fns";
 
 import { Header } from "@/components/Header";
 import { QrScanButton } from "@/components/QrScanButton";
+import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendEventUpdateNotification } from "@/lib/notifications";
@@ -51,6 +52,7 @@ function EditEvent() {
 
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("");
+  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
   const [neighborhood, setNeighborhood] = useState<Neighborhood>("Mitte");
   const [eventType, setEventType] = useState<EventType>("music");
   const [date, setDate] = useState("");
@@ -62,6 +64,7 @@ function EditEvent() {
     if (!event) return;
     setTitle(event.title);
     setPlace(event.place);
+    setCoords({ lat: (event as any).lat ?? null, lng: (event as any).lng ?? null });
     setNeighborhood(event.neighborhood as Neighborhood);
     setEventType(event.event_type as EventType);
     setDate(format(new Date(event.event_date), "yyyy-MM-dd'T'HH:mm"));
@@ -83,6 +86,8 @@ function EditEvent() {
         event_date: new Date(date).toISOString(),
         link: link.trim() || null,
         description: description.trim() || null,
+        lat: coords.lat,
+        lng: coords.lng,
       })
       .eq("id", eventId);
     setSaving(false);
@@ -207,11 +212,15 @@ function EditEvent() {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Place" required>
-              <Input
+              <PlaceAutocompleteInput
                 value={place}
-                onChange={(e) => setPlace(e.target.value)}
+                onChange={(v) => {
+                  setPlace(v);
+                  setCoords({ lat: null, lng: null });
+                }}
+                onPlaceSelected={(p) => setCoords({ lat: p.lat, lng: p.lng })}
                 required
-                maxLength={120}
+                maxLength={200}
               />
             </Field>
             <Field label="Area" required>
