@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { refreshAuthSession } from "@/lib/use-auth";
 import { initOneSignal, setOneSignalExternalId } from "@/lib/onesignal";
 import { OpenInAppBanner } from "@/components/OpenInAppBanner";
 import appCss from "../styles.css?url";
@@ -167,6 +168,42 @@ function RootComponent() {
       }
     });
     return () => subscription.unsubscribe();
+  }, [router, queryClient]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+
+    const handleVisibleSession = async () => {
+      const session = await refreshAuthSession();
+      if (!session?.user) return;
+
+      router.invalidate();
+      queryClient.invalidateQueries();
+
+      const path = window.location.pathname;
+      if (!path.startsWith("/login")) {
+        initOneSignal().then(() => {
+          setOneSignalExternalId(session.user.id);
+        });
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void handleVisibleSession();
+      }
+    };
+    const handleFocus = () => {
+      void handleVisibleSession();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [router, queryClient]);
 
   // Register the app's service worker. This is required on iOS so the
