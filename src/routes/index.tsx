@@ -263,9 +263,9 @@ function Home() {
                           {e.title}
                         </h3>
                         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs uppercase tracking-wide text-foreground">
-                          <span className="inline-flex items-center gap-1">
-                            <MapPin className="h-3.5 w-3.5" />
-                            <span>
+                          <span className="inline-flex min-w-0 max-w-full items-start gap-1">
+                            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                            <span className="min-w-0 break-words">
                               {stripNeighborhoodSuffix(e.place, n.label)}
                               {" · "}
                               <span className="text-neighborhood">{n.label}</span>
