@@ -123,6 +123,7 @@ function EditEventForm({
   const [saving, setSaving] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
   const [place, setPlace] = useState(event.place);
+  const [neighborhoodAutoDetected, setNeighborhoodAutoDetected] = useState(false);
   const [neighborhood, setNeighborhood] = useState<Neighborhood>(event.neighborhood);
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
     lat: event.lat,
@@ -260,29 +261,39 @@ function EditEventForm({
                   setPlace(v);
                   if (v !== event.place) setCoords({ lat: null, lng: null });
                 }}
-                onPlaceSelected={(p) => {
-                  setCoords({ lat: p.lat, lng: p.lng });
-                  if (p.neighborhood) setNeighborhood(p.neighborhood as Neighborhood);
-                }}
+               onPlaceSelected={(p) => {
+  setCoords({ lat: p.lat, lng: p.lng });
+  if (p.neighborhood) {
+    setNeighborhood(p.neighborhood as Neighborhood);
+    setNeighborhoodAutoDetected(true);
+  } else {
+    setNeighborhoodAutoDetected(false);
+  }
+}}
                 placeholder="Venue or address"
                 required
                 maxLength={200}
               />
             </Field>
-            <Field label="Area" required>
-              <Select value={neighborhood} onValueChange={(v) => setNeighborhood(v as Neighborhood)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {NEIGHBORHOODS.map((n) => (
-                    <SelectItem key={n.value} value={n.value}>
-                      {n.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+           {!neighborhoodAutoDetected && (
+  <Field label="Area" required>
+    <Select
+      value={neighborhood}
+      onValueChange={(v) => setNeighborhood(v as Neighborhood)}
+    >
+      <SelectTrigger>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {NEIGHBORHOODS.map((n) => (
+          <SelectItem key={n.value} value={n.value}>
+            {n.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </Field>
+)}
           </div>
 
           <Field label="Type">
