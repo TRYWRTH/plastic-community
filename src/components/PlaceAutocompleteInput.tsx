@@ -87,16 +87,11 @@ export function PlaceAutocompleteInput({
   "bezirk lichtenberg": "Lichtenberg",
   "bezirk marzahn-hellersdorf": "Marzahn",
   "bezirk treptow-köpenick": "Lichtenberg",
-   "bezirk steglitz-zehlendorf": "Steglitz-Zehlendorf",
-"steglitz-zehlendorf": "Steglitz-Zehlendorf",
-"bezirk reinickendorf": "Reinickendorf",
-"reinickendorf": "Reinickendorf",
-"bezirk treptow-köpenick": "Treptow-Köpenick",
-"treptow-köpenick": "Treptow-Köpenick",
 };
 let detectedNeighborhood: string | null = null;
-const components = place.address_components || [];
-          console.log("Address components:", components.map(c => c.long_name));
+const components: any[] = place.address_components || [];
+          console.log("Address components:", components.map((c: any) => c.long_name));
+
 for (const component of components) {
   const longName = component.long_name.toLowerCase();
   if (neighborhoodMap[longName]) {
