@@ -46,10 +46,17 @@ export function PlaceAutocompleteInput({
           return;
         }
 
+        // Berlin bounding box (SW / NE corners)
+        const berlinBounds = new window.google.maps.LatLngBounds(
+          { lat: 52.3382, lng: 13.0883 },
+          { lat: 52.6755, lng: 13.7612 },
+        );
         const ac = new places.Autocomplete(inputRef.current, {
-        fields: ["name", "formatted_address", "geometry", "address_components"],
+          fields: ["name", "formatted_address", "geometry", "address_components"],
           componentRestrictions: { country: "de" },
           types: ["establishment", "geocode"],
+          bounds: berlinBounds,
+          strictBounds: true,
         });
         autocompleteRef.current = ac;
 
@@ -58,12 +65,14 @@ export function PlaceAutocompleteInput({
           if (!place) return;
           const displayName: string = place.name || "";
           const address: string = place.formatted_address || "";
-          const name =
-            displayName && address
-              ? displayName === address
-                ? address
-                : `${displayName}, ${address}`
-              : displayName || address;
+          // If the name is already part of the address (typical for street addresses),
+          // just use the address. Otherwise prepend the venue name.
+          const name = address
+            ? displayName && !address.toLowerCase().includes(displayName.toLowerCase())
+              ? `${displayName}, ${address}`
+              : address
+            : displayName;
+
           const loc = place.geometry?.location;
           const lat = loc ? loc.lat() : null;
           const lng = loc ? loc.lng() : null;
