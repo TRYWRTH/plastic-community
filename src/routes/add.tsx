@@ -128,16 +128,19 @@ function AddEvent() {
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="mx-auto max-w-xl px-3 py-4 sm:px-4 sm:py-8">
-        <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
+      <main className="mx-auto max-w-xl px-3 py-2 sm:px-4 sm:py-6">
+        <Link to="/" className="text-xs text-muted-foreground hover:text-foreground sm:text-sm">
           ← Back
         </Link>
-        <h1 className="mt-2 font-display text-2xl font-bold sm:text-3xl">Add an event</h1>
-        <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+        <h1 className="mt-1 font-display text-xl font-bold sm:text-3xl">Add an event</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground sm:text-base">
           Saw a poster or heard a whisper? Add it here.
         </p>
 
-        <form onSubmit={submit} className="mt-6 space-y-4 sm:mt-8 sm:space-y-5">
+        <form
+          onSubmit={submit}
+          className="mt-3 space-y-2.5 sm:mt-6 sm:space-y-4 [&_input]:h-9 [&_input]:py-1 [&_input]:text-sm sm:[&_input]:h-10 sm:[&_input]:text-base [&_button[role=combobox]]:h-9 sm:[&_button[role=combobox]]:h-10"
+        >
           <Field label="Title" required>
             <Input
               value={title}
@@ -148,7 +151,7 @@ function AddEvent() {
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-3 sm:gap-5">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
             <Field label="Date" required>
               <Input
                 type="date"
@@ -166,6 +169,7 @@ function AddEvent() {
               />
             </Field>
           </div>
+
           <Field label="Place" required>
             <PlaceAutocompleteInput
               value={place}
@@ -183,9 +187,6 @@ function AddEvent() {
             />
           </Field>
 
-
-
-
           <Field label="Type">
             <Select value={eventType} onValueChange={(v) => setEventType(v as EventType)}>
               <SelectTrigger>
@@ -201,7 +202,7 @@ function AddEvent() {
             </Select>
           </Field>
 
-          <Field label="Link" hint="Paste a URL or scan a QR code from the poster">
+          <Field label="Link">
             <div className="flex gap-2">
               <Input
                 value={link}
@@ -219,21 +220,22 @@ function AddEvent() {
             </div>
           </Field>
 
-          <Field label="Short description" hint="Optional — a line or two">
+          <Field label="Description">
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+              rows={2}
               maxLength={500}
               placeholder="What makes it worth showing up?"
+              className="min-h-0 py-1.5 text-sm sm:text-base"
             />
           </Field>
 
-          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center">
-            <Button type="button" variant="ghost" asChild className="w-full sm:w-auto">
+          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:items-center">
+            <Button type="button" variant="ghost" asChild size="sm" className="w-full sm:w-auto">
               <Link to="/">Cancel</Link>
             </Button>
-            <Button type="submit" disabled={saving} className="w-full shadow-glow sm:w-auto">
+            <Button type="submit" disabled={saving} size="sm" className="w-full shadow-glow sm:w-auto">
               {saving ? "Saving…" : "Save event"}
             </Button>
           </div>
@@ -242,6 +244,7 @@ function AddEvent() {
     </div>
   );
 }
+
 
 function Field({
   label,
