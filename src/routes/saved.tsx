@@ -123,7 +123,7 @@ function SavedPage() {
                                 )}
                                 {status}
                               </span>
-                              <span>{t.emoji}</span>
+                              <i className={`ti ${t.icon}`} aria-hidden="true" />
                               <span>{t.label}</span>
                             </div>
                             <h3 className="mt-1 truncate font-brand text-xl uppercase text-foreground group-hover:text-primary">

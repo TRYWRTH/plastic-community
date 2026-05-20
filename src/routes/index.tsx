@@ -209,7 +209,7 @@ function Home() {
               placeholder="Type"
               options={[
                 { value: "all", label: "All types" },
-                ...EVENT_TYPES.map((t) => ({ value: t.value, label: `${t.emoji}  ${t.label}` })),
+                ...EVENT_TYPES.map((t) => ({ value: t.value, label: t.label })),
               ]}
             />
           </div>
@@ -256,7 +256,7 @@ function Home() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-foreground">
-                          <span>{t.emoji}</span>
+                          <i className={`ti ${t.icon}`} aria-hidden="true" />
                           <span>{t.label}</span>
                         </div>
                         <h3 className="mt-1 truncate font-brand text-xl uppercase text-foreground group-hover:text-primary">

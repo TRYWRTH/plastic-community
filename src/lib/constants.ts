@@ -3,18 +3,19 @@ import type { Database } from "@/integrations/supabase/types";
 export type EventType = Database["public"]["Enums"]["event_type"];
 export type Neighborhood = Database["public"]["Enums"]["neighborhood"];
 
-export const EVENT_TYPES: { value: EventType; label: string; emoji: string }[] = [
-  { value: "music", label: "Music", emoji: "🎵" },
-  { value: "theater", label: "Theater", emoji: "🎭" },
-  { value: "food", label: "Food", emoji: "🍜" },
-  { value: "art", label: "Art", emoji: "🎨" },
-  { value: "film", label: "Film", emoji: "🎬" },
-  { value: "sports", label: "Sports", emoji: "⚽" },
-  { value: "workshop", label: "Workshop", emoji: "🛠" },
-  { value: "community", label: "Community", emoji: "🤝" },
-  { value: "nightlife", label: "Nightlife", emoji: "🌙" },
-  { value: "other", label: "Other", emoji: "✨" },
+export const EVENT_TYPES: { value: EventType; label: string; icon: string }[] = [
+  { value: "music", label: "Music", icon: "ti-vinyl" },
+  { value: "theater", label: "Theater", icon: "ti-masks-theater" },
+  { value: "food", label: "Food", icon: "ti-tools-kitchen-2" },
+  { value: "art", label: "Art", icon: "ti-palette" },
+  { value: "film", label: "Film", icon: "ti-movie" },
+  { value: "sports", label: "Sports", icon: "ti-ball-football" },
+  { value: "workshop", label: "Workshop", icon: "ti-tools" },
+  { value: "community", label: "Community", icon: "ti-users-group" },
+  { value: "nightlife", label: "Nightlife", icon: "ti-glass-full" },
+  { value: "other", label: "Other", icon: "ti-dots" },
 ];
+
 
 export const NEIGHBORHOODS: { value: Neighborhood; label: string }[] = [
   { value: "Mitte", label: "Mitte" },

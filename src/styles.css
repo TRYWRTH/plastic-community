@@ -131,6 +131,29 @@
   }
 }
 
+/* Normalize native date/time inputs on iOS Safari — strip the inner
+   webkit pseudo-element artifacts that create a double-border / extra
+   line, so time inputs match date inputs visually. */
+input[type="time"],
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 0;
+}
+input[type="time"]::-webkit-date-and-time-value,
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.5em;
+  padding: 0;
+  margin: 0;
+}
+input[type="time"]::-webkit-inner-spin-button,
+input[type="time"]::-webkit-clear-button {
+  display: none;
+  -webkit-appearance: none;
+}
+
+
 gmp-place-autocomplete {
   color-scheme: light;
   position: relative;
