@@ -91,7 +91,7 @@ export function AddToCalendarButton({
   };
 
   return (
-    <Button variant="outline" onClick={onClick} className="w-full sm:w-auto">
+    <Button variant="outline" onClick={onClick}>
       <CalendarPlus className="h-4 w-4" />
       Add to calendar
     </Button>

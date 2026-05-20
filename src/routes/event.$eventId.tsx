@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { MapPin, Calendar, ExternalLink, Trash2, Pencil, ArrowLeft } from "lucide-react";
+import { MapPin, Calendar, ExternalLink, Trash2, Pencil, ArrowLeft, Check } from "lucide-react";
 import { toast } from "sonner";
 
 import { Header } from "@/components/Header";
@@ -76,6 +76,24 @@ function EventDetail() {
   const { user } = useAuth();
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [savedBannerVisible, setSavedBannerVisible] = useState(false);
+  const [savedBannerFading, setSavedBannerFading] = useState(false);
+
+  useEffect(() => {
+    try {
+      const flag = sessionStorage.getItem("event-just-saved");
+      if (flag && flag === eventId) {
+        sessionStorage.removeItem("event-just-saved");
+        setSavedBannerVisible(true);
+        const fade = setTimeout(() => setSavedBannerFading(true), 1700);
+        const hide = setTimeout(() => setSavedBannerVisible(false), 2200);
+        return () => {
+          clearTimeout(fade);
+          clearTimeout(hide);
+        };
+      }
+    } catch {}
+  }, [eventId]);
 
   const { data: event, isLoading } = useQuery({
     queryKey: ["events", eventId],
@@ -103,7 +121,21 @@ function EventDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-paper pb-28 sm:pb-0">
+    <div className="min-h-screen bg-paper">
+      {savedBannerVisible && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`fixed inset-x-0 top-0 z-50 border-b-2 border-foreground bg-foreground text-primary shadow-stamp transition-opacity duration-500 ${
+            savedBannerFading ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <div className="mx-auto flex max-w-2xl items-center justify-center gap-2 px-4 py-3 font-brand text-sm uppercase tracking-widest sm:text-base">
+            <Check className="h-4 w-4" aria-hidden="true" />
+            Changes saved
+          </div>
+        </div>
+      )}
       <Header />
       <main className="mx-auto max-w-2xl px-3 py-3 sm:px-4 sm:py-8">
         <Link
@@ -150,21 +182,20 @@ function EventDetail() {
               />
             </div>
             <div className="space-y-4 p-4 sm:space-y-5 sm:p-8">
-              {/* On desktop the save buttons live inline; on mobile they're pinned at the bottom for thumb reach. */}
-              <div className="hidden sm:block">
+              <div className="flex flex-wrap items-center gap-2">
                 <SaveButtons eventId={event.id} />
+                {event.event_date && (
+                  <AddToCalendarButton
+                    title={event.title}
+                    start={event.event_date}
+                    location={[event.place, neighborhoodMeta(event.neighborhood).label]
+                      .filter(Boolean)
+                      .join(", ")}
+                    description={event.description ?? undefined}
+                    uid={`${event.id}@whisperer-ring`}
+                  />
+                )}
               </div>
-              {event.event_date && (
-                <AddToCalendarButton
-                  title={event.title}
-                  start={event.event_date}
-                  location={[event.place, neighborhoodMeta(event.neighborhood).label]
-                    .filter(Boolean)
-                    .join(", ")}
-                  description={event.description ?? undefined}
-                  uid={`${event.id}@whisperer-ring`}
-                />
-              )}
               {event.description && (
                 <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground sm:text-sm">
                   {event.description}
@@ -182,8 +213,8 @@ function EventDetail() {
                 </a>
               )}
               {user?.id === event.created_by && (
-                <div className="grid grid-cols-1 gap-2 border-t-2 border-foreground pt-4 sm:flex sm:flex-wrap">
-                  <Button variant="outline" asChild className="w-full sm:w-auto">
+                <div className="flex flex-wrap items-center gap-2 border-t-2 border-foreground pt-4">
+                  <Button variant="outline" asChild>
                     <Link to="/event/$eventId/edit" params={{ eventId: event.id }}>
                       <Pencil className="h-4 w-4" /> Edit event
                     </Link>
@@ -191,7 +222,7 @@ function EventDetail() {
                   <Button
                     variant="outline"
                     onClick={() => setConfirmDeleteOpen(true)}
-                    className="w-full text-destructive sm:w-auto"
+                    className="text-destructive"
                   >
                     <Trash2 className="h-4 w-4" /> Delete event
                   </Button>
@@ -202,15 +233,7 @@ function EventDetail() {
         )}
       </main>
 
-      {/* Sticky save bar — mobile only. Sits above the iOS safe area. */}
-      {event && (
-        <div
-          className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-foreground bg-card px-3 py-3 shadow-stamp sm:hidden"
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
-        >
-          <SaveButtons eventId={event.id} />
-        </div>
-      )}
+
 
       <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
         <AlertDialogContent>

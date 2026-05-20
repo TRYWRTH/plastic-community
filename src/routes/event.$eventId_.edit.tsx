@@ -183,7 +183,9 @@ function EditEventForm({
       toast.error("Couldn't save — you may not have permission to edit this event.");
       return;
     }
-    toast.success("Event updated");
+    try {
+      sessionStorage.setItem("event-just-saved", eventId);
+    } catch {}
 
     await queryClient.invalidateQueries({ queryKey: ["event-edit", eventId] });
     await queryClient.invalidateQueries({ queryKey: ["events", eventId] });
