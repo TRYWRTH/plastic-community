@@ -265,8 +265,13 @@ function Home() {
                         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs uppercase tracking-wide text-foreground">
                           <span className="inline-flex items-center gap-1">
                             <MapPin className="h-3.5 w-3.5" />
-                            {e.place} · {n.label}
+                            <span>
+                              {stripNeighborhoodSuffix(e.place, n.label)}
+                              {" · "}
+                              <span className="text-neighborhood">{n.label}</span>
+                            </span>
                           </span>
+
                           <span className="inline-flex items-center gap-1">
                             <Calendar className="h-3.5 w-3.5" />
                             {d ? format(d, "EEE, HH:mm") : "Date TBA"}
