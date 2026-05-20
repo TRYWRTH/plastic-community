@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Header } from "@/components/Header";
 import { SaveButtons } from "@/components/SaveButtons";
+import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
