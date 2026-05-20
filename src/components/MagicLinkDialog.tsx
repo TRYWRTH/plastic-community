@@ -38,6 +38,18 @@ export function MagicLinkDialog({
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const { isAuthenticated } = useAuth();
+
+  // Auto-close the dialog as soon as a valid session is detected — covers
+  // the case where the user returns to the PWA after clicking the magic
+  // link in Safari and Supabase restores the session on the next visit.
+  useEffect(() => {
+    if (open && isAuthenticated) {
+      setSent(false);
+      setEmail("");
+      onOpenChange(false);
+    }
+  }, [open, isAuthenticated, onOpenChange]);
 
   const fromPWA = useMemo(() => isStandalonePWA(), []);
 
