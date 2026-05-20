@@ -227,15 +227,22 @@ export function SaveButtons({ eventId }: { eventId: string }) {
           variant={notify ? "default" : "outline"}
           onClick={onNotifyClick}
           disabled={toggleNotify.isPending}
-          className="w-full sm:w-auto"
+          aria-pressed={notify}
+          className={
+            notify
+              ? "w-full sm:w-auto border-2 border-primary bg-primary text-primary-foreground hover:bg-primary/90 shadow-stamp"
+              : "w-full sm:w-auto border-2 border-dashed border-muted-foreground/40 text-muted-foreground hover:text-foreground"
+          }
         >
           {notify ? (
             <>
-              <Bell className="h-4 w-4" /> 🔔 Notify me
+              <Bell className="h-4 w-4 fill-current" />
+              Notifying me
             </>
           ) : (
             <>
-              <BellOff className="h-4 w-4" /> 🔕 Muted
+              <BellOff className="h-4 w-4" />
+              Notify me
             </>
           )}
         </Button>
