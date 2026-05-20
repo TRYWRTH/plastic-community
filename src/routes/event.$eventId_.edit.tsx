@@ -121,7 +121,8 @@ function EditEventForm({
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
-  const initialDate = format(new Date(event.event_date), "yyyy-MM-dd'T'HH:mm");
+  const initialDateOnly = format(new Date(event.event_date), "yyyy-MM-dd");
+  const initialTimeOnly = format(new Date(event.event_date), "HH:mm");
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -130,16 +131,17 @@ function EditEventForm({
     const nextPlace = String(form.get("place") ?? "").trim();
     const nextNeighborhood = String(form.get("neighborhood") ?? event.neighborhood) as Neighborhood;
     const nextEventType = String(form.get("event_type") ?? event.event_type) as EventType;
-    const nextDate = String(form.get("event_date") ?? "");
+    const nextDay = String(form.get("event_day") ?? "");
+    const nextTime = String(form.get("event_time") ?? "");
     const nextLink = String(form.get("link") ?? "").trim();
     const nextDescription = String(form.get("description") ?? "").trim();
 
-    if (!nextTitle || !nextPlace || !nextDate) {
+    if (!nextTitle || !nextPlace || !nextDay || !nextTime) {
       toast.error("Please fill in the required fields.");
       return;
     }
 
-    const parsedDate = new Date(nextDate);
+    const parsedDate = new Date(`${nextDay}T${nextTime}`);
     if (Number.isNaN(parsedDate.getTime())) {
       toast.error("Please choose a valid date and time.");
       return;
@@ -223,11 +225,19 @@ function EditEventForm({
           </Field>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Date & time" required>
+            <Field label="Date" required>
               <Input
-                type="datetime-local"
-                name="event_date"
-                defaultValue={initialDate}
+                type="date"
+                name="event_day"
+                defaultValue={initialDateOnly}
+                required
+              />
+            </Field>
+            <Field label="Time" required>
+              <Input
+                type="time"
+                name="event_time"
+                defaultValue={initialTimeOnly}
                 required
               />
             </Field>
