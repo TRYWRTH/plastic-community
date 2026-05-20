@@ -76,6 +76,24 @@ function EventDetail() {
   const { user } = useAuth();
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [savedBannerVisible, setSavedBannerVisible] = useState(false);
+  const [savedBannerFading, setSavedBannerFading] = useState(false);
+
+  useEffect(() => {
+    try {
+      const flag = sessionStorage.getItem("event-just-saved");
+      if (flag && flag === eventId) {
+        sessionStorage.removeItem("event-just-saved");
+        setSavedBannerVisible(true);
+        const fade = setTimeout(() => setSavedBannerFading(true), 1700);
+        const hide = setTimeout(() => setSavedBannerVisible(false), 2200);
+        return () => {
+          clearTimeout(fade);
+          clearTimeout(hide);
+        };
+      }
+    } catch {}
+  }, [eventId]);
 
   const { data: event, isLoading } = useQuery({
     queryKey: ["events", eventId],
