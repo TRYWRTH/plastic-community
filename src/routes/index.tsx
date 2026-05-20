@@ -256,7 +256,7 @@ function Home() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-foreground">
-                          <i className={`ti ${t.icon}`} aria-hidden="true" />
+                          <t.Icon className="h-3.5 w-3.5" aria-hidden="true" />
                           <span>{t.label}</span>
                         </div>
                         <h3 className="mt-1 truncate font-brand text-xl uppercase text-foreground group-hover:text-primary">
