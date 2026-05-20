@@ -177,10 +177,48 @@ export function setOneSignalExternalId(userId: string | null) {
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   window.OneSignalDeferred.push(async (OneSignal: any) => {
     try {
-      if (userId) await OneSignal.login(userId);
-      else await OneSignal.logout();
+      if (userId) {
+        await OneSignal.login(userId);
+        // Try to persist the device's push subscription id (OneSignal v16
+        // "player id" replacement) so server-side reminders can target it.
+        void savePlayerIdForCurrentUser();
+      } else {
+        await OneSignal.logout();
+      }
     } catch (err) {
       console.error("OneSignal login/logout failed", err);
     }
   });
+}
+
+// Read the current device's OneSignal subscription id and upsert it into
+// public.user_push_subscriptions for the logged-in user. Safe to call
+// repeatedly; uniqueness is enforced at the DB level.
+export async function savePlayerIdForCurrentUser(): Promise<void> {
+  if (typeof window === "undefined") return;
+  try {
+    // Lazy import so server bundles don't pull the browser supabase client.
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user?.id;
+    if (!userId) return;
+
+    // Wait briefly for OneSignal to populate the subscription id.
+    let playerId: string | undefined;
+    for (let i = 0; i < 10; i++) {
+      playerId = window.OneSignal?.User?.PushSubscription?.id;
+      if (playerId) break;
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    if (!playerId) return;
+
+    await supabase
+      .from("user_push_subscriptions")
+      .upsert(
+        { user_id: userId, player_id: playerId },
+        { onConflict: "user_id,player_id" },
+      );
+  } catch (err) {
+    console.error("savePlayerIdForCurrentUser failed", err);
+  }
 }
