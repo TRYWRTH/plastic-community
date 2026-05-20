@@ -6,6 +6,7 @@ import { format } from "date-fns";
 
 import { Header } from "@/components/Header";
 import { QrScanButton } from "@/components/QrScanButton";
+import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendEventUpdateNotification } from "@/lib/notifications";
@@ -121,6 +122,11 @@ function EditEventForm({
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
+  const [place, setPlace] = useState(event.place);
+  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
+    lat: event.lat,
+    lng: event.lng,
+  });
   const initialDateOnly = format(new Date(event.event_date), "yyyy-MM-dd");
   const initialTimeOnly = format(new Date(event.event_date), "HH:mm");
 
@@ -128,7 +134,7 @@ function EditEventForm({
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const nextTitle = String(form.get("title") ?? "").trim();
-    const nextPlace = String(form.get("place") ?? "").trim();
+    const nextPlace = place.trim();
     const nextNeighborhood = String(form.get("neighborhood") ?? event.neighborhood) as Neighborhood;
     const nextEventType = String(form.get("event_type") ?? event.event_type) as EventType;
     const nextDay = String(form.get("event_day") ?? "");
@@ -158,8 +164,8 @@ function EditEventForm({
         event_date: parsedDate.toISOString(),
         link: nextLink || null,
         description: nextDescription || null,
-        lat: nextPlace === event.place ? event.lat : null,
-        lng: nextPlace === event.place ? event.lng : null,
+        lat: coords.lat,
+        lng: coords.lng,
       })
       .eq("id", eventId)
       .eq("created_by", userId)
@@ -203,18 +209,20 @@ function EditEventForm({
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="mx-auto max-w-xl px-3 pb-24 pt-4 sm:px-4 sm:py-8">
+      <main className="mx-auto max-w-xl px-3 py-4 sm:px-4 sm:py-8">
         <Link
           to="/event/$eventId"
           params={{ eventId }}
-          className="text-xs text-muted-foreground hover:text-foreground sm:text-sm"
+          className="text-sm text-muted-foreground hover:text-foreground"
         >
           ← Back
         </Link>
-        <h1 className="mt-1 font-display text-2xl font-bold sm:mt-2 sm:text-3xl">Edit event</h1>
-        <p className="mt-1 hidden text-muted-foreground sm:block">Update the details below.</p>
+        <h1 className="mt-2 font-display text-2xl font-bold sm:text-3xl">Edit event</h1>
+        <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+          Update the details below.
+        </p>
 
-        <form id="edit-event-form" onSubmit={submit} className="mt-4 space-y-3.5 sm:mt-8 sm:space-y-5">
+        <form onSubmit={submit} className="mt-6 space-y-4 sm:mt-8 sm:space-y-5">
           <Field label="Title" required>
             <Input
               name="title"
@@ -224,7 +232,7 @@ function EditEventForm({
             />
           </Field>
 
-          <div className="grid gap-3.5 sm:grid-cols-2 sm:gap-5">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5">
             <Field label="Date" required>
               <Input
                 type="date"
@@ -243,20 +251,22 @@ function EditEventForm({
             </Field>
           </div>
 
-          <div className="grid gap-3.5 sm:grid-cols-2 sm:gap-5">
+          <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Place" required>
-              <Input
-                name="place"
-                defaultValue={event.place}
+              <PlaceAutocompleteInput
+                value={place}
+                onChange={(v) => {
+                  setPlace(v);
+                  if (v !== event.place) setCoords({ lat: null, lng: null });
+                }}
+                onPlaceSelected={(p) => setCoords({ lat: p.lat, lng: p.lng })}
+                placeholder="Venue or address"
                 required
                 maxLength={200}
               />
             </Field>
             <Field label="Area" required>
-              <Select
-                name="neighborhood"
-                defaultValue={event.neighborhood}
-              >
+              <Select name="neighborhood" defaultValue={event.neighborhood}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -314,7 +324,7 @@ function EditEventForm({
             />
           </Field>
 
-          <div className="hidden gap-2 pt-2 sm:flex sm:flex-row sm:items-center">
+          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center">
             <Button type="button" variant="ghost" asChild className="w-full sm:w-auto">
               <Link to="/event/$eventId" params={{ eventId }}>
                 Cancel
@@ -325,18 +335,6 @@ function EditEventForm({
             </Button>
           </div>
         </form>
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 px-3 py-2 backdrop-blur sm:hidden">
-          <div className="mx-auto flex max-w-xl gap-2">
-            <Button type="button" variant="ghost" asChild className="h-11 flex-1">
-              <Link to="/event/$eventId" params={{ eventId }}>
-                Cancel
-              </Link>
-            </Button>
-            <Button type="submit" form="edit-event-form" disabled={saving} className="h-11 flex-1 shadow-glow">
-              {saving ? "Saving…" : "Save changes"}
-            </Button>
-          </div>
-        </div>
       </main>
     </div>
   );

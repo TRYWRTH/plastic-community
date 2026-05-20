@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Check, Star, Bell, BellOff } from "lucide-react";
+import { Check, Star, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -241,7 +241,7 @@ export function SaveButtons({ eventId }: { eventId: string }) {
             </>
           ) : (
             <>
-              <BellOff className="h-4 w-4" />
+              <Bell className="h-4 w-4" />
               Notify me
             </>
           )}
