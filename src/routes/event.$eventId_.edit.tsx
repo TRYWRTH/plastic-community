@@ -211,20 +211,23 @@ function EditEventForm({
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="mx-auto max-w-xl px-3 py-4 sm:px-4 sm:py-8">
+      <main className="mx-auto max-w-xl px-3 py-2 sm:px-4 sm:py-6">
         <Link
           to="/event/$eventId"
           params={{ eventId }}
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="text-xs text-muted-foreground hover:text-foreground sm:text-sm"
         >
           ← Back
         </Link>
-        <h1 className="mt-2 font-display text-2xl font-bold sm:text-3xl">Edit event</h1>
-        <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+        <h1 className="mt-1 font-display text-xl font-bold sm:text-3xl">Edit event</h1>
+        <p className="mt-0.5 text-xs text-muted-foreground sm:text-base">
           Update the details below.
         </p>
 
-        <form onSubmit={submit} className="mt-6 space-y-4 sm:mt-8 sm:space-y-5">
+        <form
+          onSubmit={submit}
+          className="mt-3 space-y-2.5 sm:mt-6 sm:space-y-4 [&_input]:h-9 [&_input]:py-1 [&_input]:text-sm sm:[&_input]:h-10 sm:[&_input]:text-base [&_button[role=combobox]]:h-9 sm:[&_button[role=combobox]]:h-10"
+        >
           <Field label="Title" required>
             <Input
               name="title"
@@ -234,7 +237,7 @@ function EditEventForm({
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-3 sm:gap-5">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
             <Field label="Date" required>
               <Input
                 type="date"
@@ -270,7 +273,6 @@ function EditEventForm({
             />
           </Field>
 
-
           <Field label="Type">
             <Select name="event_type" defaultValue={event.event_type}>
               <SelectTrigger>
@@ -286,7 +288,7 @@ function EditEventForm({
             </Select>
           </Field>
 
-          <Field label="Link" hint="Paste a URL or scan a QR code from the poster">
+          <Field label="Link">
             <div className="flex gap-2">
               <Input
                 name="link"
@@ -305,22 +307,23 @@ function EditEventForm({
             </div>
           </Field>
 
-          <Field label="Short description" hint="Optional — a line or two">
+          <Field label="Description">
             <Textarea
               name="description"
               defaultValue={event.description ?? ""}
-              rows={3}
+              rows={2}
               maxLength={500}
+              className="min-h-0 py-1.5 text-sm sm:text-base"
             />
           </Field>
 
-          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center">
-            <Button type="button" variant="ghost" asChild className="w-full sm:w-auto">
+          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:items-center">
+            <Button type="button" variant="ghost" asChild size="sm" className="w-full sm:w-auto">
               <Link to="/event/$eventId" params={{ eventId }}>
                 Cancel
               </Link>
             </Button>
-            <Button type="submit" disabled={saving} className="w-full shadow-glow sm:w-auto">
+            <Button type="submit" disabled={saving} size="sm" className="w-full shadow-glow sm:w-auto">
               {saving ? "Saving…" : "Save changes"}
             </Button>
           </div>
@@ -342,13 +345,14 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
-      <Label className="text-sm font-medium">
+    <div className="space-y-1">
+      <Label className="text-xs font-medium sm:text-sm">
         {label}
         {required && <span className="text-primary"> *</span>}
       </Label>
       {children}
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {hint && <p className="text-[11px] text-muted-foreground sm:text-xs">{hint}</p>}
     </div>
   );
 }
+
