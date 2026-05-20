@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { Header } from "@/components/Header";
 import { SaveButtons } from "@/components/SaveButtons";
+import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
@@ -125,6 +126,17 @@ function EventDetail() {
               <div className="hidden sm:block">
                 <SaveButtons eventId={event.id} />
               </div>
+              {event.event_date && (
+                <AddToCalendarButton
+                  title={event.title}
+                  start={event.event_date}
+                  location={[event.place, neighborhoodMeta(event.neighborhood).label]
+                    .filter(Boolean)
+                    .join(", ")}
+                  description={event.description ?? undefined}
+                  uid={`${event.id}@whisperer-ring`}
+                />
+              )}
               {event.description && (
                 <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground sm:text-sm">
                   {event.description}
