@@ -34,6 +34,11 @@ function AuthCallbackPage() {
         }
 
         await refreshAuthSession();
+        try {
+          window.localStorage.setItem("auth_just_completed", "true");
+        } catch {
+          // ignore storage failures (private mode, etc.)
+        }
         if (cancelled) return;
         setStatus("ok");
       } catch (e) {
@@ -62,9 +67,14 @@ function AuthCallbackPage() {
         </p>
 
         {status === "ok" && (
-          <Button asChild className="mt-6 w-full rounded-none" size="lg">
-            <a href={APP_URL}>Open The Poster Said So</a>
-          </Button>
+          <a
+            href={APP_URL}
+            target="_self"
+            rel="noopener"
+            className="mt-6 flex w-full items-center justify-center rounded-none border-2 border-foreground bg-primary px-6 py-5 text-center font-brand text-lg uppercase tracking-wide text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 active:bg-primary/80"
+          >
+            Open The Poster Said So
+          </a>
         )}
 
         {status === "error" && (
