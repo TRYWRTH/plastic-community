@@ -122,6 +122,11 @@ function EditEventForm({
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
+  const [place, setPlace] = useState(event.place);
+  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
+    lat: event.lat,
+    lng: event.lng,
+  });
   const initialDateOnly = format(new Date(event.event_date), "yyyy-MM-dd");
   const initialTimeOnly = format(new Date(event.event_date), "HH:mm");
 
