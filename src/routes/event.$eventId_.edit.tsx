@@ -120,6 +120,7 @@ function EditEventForm({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
+  const [link, setLink] = useState(event.link ?? "");
   const initialDate = format(new Date(event.event_date), "yyyy-MM-dd'T'HH:mm");
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -248,21 +249,17 @@ function EditEventForm({
 
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Place" required>
-              <PlaceAutocompleteInput
-                value={place}
-                onChange={(v) => {
-                  setPlace(v);
-                  setCoords({ lat: null, lng: null });
-                }}
-                onPlaceSelected={(p) => setCoords({ lat: p.lat, lng: p.lng })}
+              <Input
+                name="place"
+                defaultValue={event.place}
                 required
                 maxLength={200}
               />
             </Field>
             <Field label="Area" required>
               <Select
-                value={neighborhood}
-                onValueChange={(v) => setNeighborhood(v as Neighborhood)}
+                name="neighborhood"
+                defaultValue={event.neighborhood}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -281,6 +278,7 @@ function EditEventForm({
           <Field label="Link" hint="Paste a URL or scan a QR code from the poster">
             <div className="flex gap-2">
               <Input
+                name="link"
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
                 placeholder="https://…"
@@ -298,8 +296,8 @@ function EditEventForm({
 
           <Field label="Short description" hint="Optional — a line or two">
             <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              name="description"
+              defaultValue={event.description ?? ""}
               rows={3}
               maxLength={500}
             />
