@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { loadGooglePlaces } from "@/lib/google-places";
 
 export type PlaceResult = {
@@ -68,6 +69,38 @@ const NEIGHBORHOOD_MAP: Record<string, string> = {
   "bezirk reinickendorf": "Reinickendorf",
 };
 
+// Normalize for substring comparison: lowercase, strip punctuation/whitespace.
+function normalize(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9äöüß]/g, "");
+}
+
+// Decide if displayName adds new info beyond formatted_address.
+// Google often returns place.name === street + number for plain addresses,
+// which then gets concatenated and duplicated. Avoid that by also checking
+// place.types — address-like types should never prepend the name.
+function shouldPrependName(
+  displayName: string,
+  address: string,
+  types: string[] | undefined,
+): boolean {
+  if (!displayName || !address) return false;
+  const addrTypes = new Set([
+    "street_address",
+    "route",
+    "premise",
+    "subpremise",
+    "postal_code",
+    "geocode",
+    "plus_code",
+    "intersection",
+  ]);
+  if (types && types.length > 0 && types.every((t) => addrTypes.has(t))) {
+    return false;
+  }
+  if (normalize(address).includes(normalize(displayName))) return false;
+  return true;
+}
+
 export function PlaceAutocompleteInput({
   value,
   onChange,
@@ -83,7 +116,11 @@ export function PlaceAutocompleteInput({
   const onPlaceSelectedRef = useRef(onPlaceSelected);
   onPlaceSelectedRef.current = onPlaceSelected;
 
+  // "selected" = show read-only multi-line view; otherwise show typing input.
+  const [selected, setSelected] = useState<boolean>(() => Boolean(value));
+
   useEffect(() => {
+    if (selected) return;
     let cancelled = false;
     let listener: any = null;
 
@@ -101,7 +138,7 @@ export function PlaceAutocompleteInput({
           { lat: 52.6755, lng: 13.7612 },
         );
         const ac = new places.Autocomplete(inputRef.current, {
-          fields: ["name", "formatted_address", "geometry", "address_components"],
+          fields: ["name", "formatted_address", "geometry", "address_components", "types"],
           componentRestrictions: { country: "de" },
           types: ["establishment", "geocode"],
           bounds: berlinBounds,
@@ -114,8 +151,9 @@ export function PlaceAutocompleteInput({
           if (!place) return;
           const displayName: string = place.name || "";
           const address: string = place.formatted_address || "";
+          const types: string[] | undefined = place.types;
           const name = address
-            ? displayName && !address.toLowerCase().includes(displayName.toLowerCase())
+            ? shouldPrependName(displayName, address, types)
               ? `${displayName}, ${address}`
               : address
             : displayName;
@@ -154,6 +192,7 @@ export function PlaceAutocompleteInput({
             neighborhood: detectedNeighborhood,
           });
 
+          setSelected(true);
           inputRef.current?.blur();
           (document.activeElement as HTMLElement | null)?.blur?.();
         });
@@ -170,19 +209,54 @@ export function PlaceAutocompleteInput({
       }
       autocompleteRef.current = null;
     };
-  }, []);
+  }, [selected]);
 
   useEffect(() => {
-    if (inputRef.current && inputRef.current.value !== value) {
+    if (!selected && inputRef.current && inputRef.current.value !== value) {
       inputRef.current.value = value ?? "";
     }
-  }, [value]);
+  }, [value, selected]);
 
   const handleClear = () => {
-    if (inputRef.current) inputRef.current.value = "";
     onChange("");
-    inputRef.current?.focus();
+    setSelected(false);
+    // Focus the input once it re-mounts.
+    setTimeout(() => inputRef.current?.focus(), 0);
   };
+
+  if (selected) {
+    return (
+      <div className="relative w-full">
+        <Textarea
+          value={value}
+          readOnly
+          rows={2}
+          aria-label="Selected place"
+          className="min-h-0 resize-none py-1.5 pr-8 text-sm leading-snug sm:text-base"
+        />
+        <button
+          type="button"
+          onClick={handleClear}
+          aria-label="Clear place"
+          className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        {required && (
+          <input
+            type="text"
+            value={value}
+            required
+            readOnly
+            tabIndex={-1}
+            aria-hidden="true"
+            className="sr-only"
+            onChange={() => {}}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full">
@@ -198,8 +272,7 @@ export function PlaceAutocompleteInput({
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
-        title={value || undefined}
-        className="pr-8 text-ellipsis"
+        className="pr-8"
       />
       {value && (
         <button
