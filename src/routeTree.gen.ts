@@ -15,7 +15,6 @@ import { Route as AddRouteImport } from './routes/add'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
 import { Route as EventEventIdRouteImport } from './routes/event.$eventId'
-import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as EventEventIdEditRouteImport } from './routes/event.$eventId_.edit'
 
 const SavedRoute = SavedRouteImport.update({
@@ -48,11 +47,6 @@ const EventEventIdRoute = EventEventIdRouteImport.update({
   path: '/event/$eventId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthCallbackRoute = AuthCallbackRouteImport.update({
-  id: '/auth/callback',
-  path: '/auth/callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const EventEventIdEditRoute = EventEventIdEditRouteImport.update({
   id: '/event/$eventId_/edit',
   path: '/event/$eventId/edit',
@@ -64,7 +58,6 @@ export interface FileRoutesByFullPath {
   '/add': typeof AddRoute
   '/login': typeof LoginRoute
   '/saved': typeof SavedRoute
-  '/auth/callback': typeof AuthCallbackRoute
   '/event/$eventId': typeof EventEventIdRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/event/$eventId/edit': typeof EventEventIdEditRoute
@@ -74,7 +67,6 @@ export interface FileRoutesByTo {
   '/add': typeof AddRoute
   '/login': typeof LoginRoute
   '/saved': typeof SavedRoute
-  '/auth/callback': typeof AuthCallbackRoute
   '/event/$eventId': typeof EventEventIdRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/event/$eventId/edit': typeof EventEventIdEditRoute
@@ -85,7 +77,6 @@ export interface FileRoutesById {
   '/add': typeof AddRoute
   '/login': typeof LoginRoute
   '/saved': typeof SavedRoute
-  '/auth/callback': typeof AuthCallbackRoute
   '/event/$eventId': typeof EventEventIdRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/event/$eventId_/edit': typeof EventEventIdEditRoute
@@ -97,7 +88,6 @@ export interface FileRouteTypes {
     | '/add'
     | '/login'
     | '/saved'
-    | '/auth/callback'
     | '/event/$eventId'
     | '/settings/notifications'
     | '/event/$eventId/edit'
@@ -107,7 +97,6 @@ export interface FileRouteTypes {
     | '/add'
     | '/login'
     | '/saved'
-    | '/auth/callback'
     | '/event/$eventId'
     | '/settings/notifications'
     | '/event/$eventId/edit'
@@ -117,7 +106,6 @@ export interface FileRouteTypes {
     | '/add'
     | '/login'
     | '/saved'
-    | '/auth/callback'
     | '/event/$eventId'
     | '/settings/notifications'
     | '/event/$eventId_/edit'
@@ -128,7 +116,6 @@ export interface RootRouteChildren {
   AddRoute: typeof AddRoute
   LoginRoute: typeof LoginRoute
   SavedRoute: typeof SavedRoute
-  AuthCallbackRoute: typeof AuthCallbackRoute
   EventEventIdRoute: typeof EventEventIdRoute
   SettingsNotificationsRoute: typeof SettingsNotificationsRoute
   EventEventIdEditRoute: typeof EventEventIdEditRoute
@@ -178,13 +165,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventEventIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/callback': {
-      id: '/auth/callback'
-      path: '/auth/callback'
-      fullPath: '/auth/callback'
-      preLoaderRoute: typeof AuthCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/event/$eventId_/edit': {
       id: '/event/$eventId_/edit'
       path: '/event/$eventId/edit'
@@ -200,7 +180,6 @@ const rootRouteChildren: RootRouteChildren = {
   AddRoute: AddRoute,
   LoginRoute: LoginRoute,
   SavedRoute: SavedRoute,
-  AuthCallbackRoute: AuthCallbackRoute,
   EventEventIdRoute: EventEventIdRoute,
   SettingsNotificationsRoute: SettingsNotificationsRoute,
   EventEventIdEditRoute: EventEventIdEditRoute,
