@@ -241,20 +241,6 @@ function EditEventForm({
                 required
               />
             </Field>
-            <Field label="Type" required>
-              <Select name="event_type" defaultValue={event.event_type}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {EVENT_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.emoji} {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
           </div>
 
           <div className="grid gap-3.5 sm:grid-cols-2 sm:gap-5">
@@ -284,6 +270,21 @@ function EditEventForm({
               </Select>
             </Field>
           </div>
+
+          <Field label="Type">
+            <Select name="event_type" defaultValue={event.event_type}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EVENT_TYPES.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.emoji} {t.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
 
           <Field label="Link" hint="Paste a URL or scan a QR code from the poster">
             <div className="flex gap-2">

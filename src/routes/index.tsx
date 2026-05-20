@@ -44,6 +44,17 @@ const searchSchema = z.object({
   ).default("all"),
 });
 
+type HomeSearch = z.infer<typeof searchSchema>;
+
+// Strip default values so the URL stays clean (e.g. `/` instead of `/?date=upcoming&...`).
+function cleanSearch(s: HomeSearch): Partial<HomeSearch> {
+  const out: Partial<HomeSearch> = {};
+  if (s.date !== "upcoming") out.date = s.date;
+  if (s.neighborhood !== "all") out.neighborhood = s.neighborhood;
+  if (s.type !== "all") out.type = s.type;
+  return out;
+}
+
 export const Route = createFileRoute("/")({
   validateSearch: zodValidator(searchSchema),
   component: Home,
@@ -69,11 +80,11 @@ function Home() {
   const navigate = useNavigate({ from: "/" });
 
   const setDateFilter = (v: DateFilter) =>
-    navigate({ search: { ...search, date: v }, replace: true });
+    navigate({ search: cleanSearch({ ...search, date: v }), replace: true });
   const setNeighborhood = (v: Neighborhood | "all") =>
-    navigate({ search: { ...search, neighborhood: v }, replace: true });
+    navigate({ search: cleanSearch({ ...search, neighborhood: v }), replace: true });
   const setEventType = (v: EventType | "all") =>
-    navigate({ search: { ...search, type: v }, replace: true });
+    navigate({ search: cleanSearch({ ...search, type: v }), replace: true });
 
 
 
@@ -143,9 +154,14 @@ function Home() {
       {/* Hero */}
       <section className="border-b-2 border-foreground">
         <div className="mx-auto max-w-5xl px-4 pb-8 pt-8 sm:pb-10 sm:pt-16">
-          <div className="inline-flex items-center gap-2 border-2 border-foreground bg-background px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground sm:text-[11px]">
-            Plastic Productions · Berlin
-          </div>
+          <a
+            href="https://www.instagram.com/plastic_productions_/"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex items-center gap-2 border-2 border-foreground bg-background px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground hover:bg-foreground hover:text-background sm:text-[11px]"
+          >
+            Brought to you by Plastic Productions
+          </a>
           <h1 className="mt-5 font-brand text-[3rem] uppercase leading-[0.95] text-foreground text-balance sm:mt-6 sm:text-[7.5rem]">
             Whisper
             <br />
@@ -192,9 +208,6 @@ function Home() {
                 ...EVENT_TYPES.map((t) => ({ value: t.value, label: `${t.emoji}  ${t.label}` })),
               ]}
             />
-            <div className="col-span-2 text-right font-mono text-[11px] uppercase tracking-widest text-foreground sm:col-auto sm:ml-auto sm:text-xs">
-              {filtered.length} / {events.length}
-            </div>
           </div>
         </div>
       </section>
