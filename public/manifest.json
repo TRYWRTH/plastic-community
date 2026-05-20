@@ -1,6 +1,6 @@
 {
-  "name": "The Poster Said So",
-  "short_name": "Poster Said So",
+  "name": "Whisper Ring",
+  "short_name": "Whisper Ring",
   "description": "Performance events in Berlin, collected from the posters on the street.",
   "start_url": "/",
   "scope": "/",

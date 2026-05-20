@@ -81,9 +81,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-      { name: "apple-mobile-web-app-title", content: "Poster Said So" },
-      { name: "application-name", content: "The Poster Said So" },
-      { title: "The Poster Said So — Performance events in Berlin" },
+      { name: "apple-mobile-web-app-title", content: "Whisper Ring" },
+      { name: "application-name", content: "Whisper Ring" },
+      { title: "Whisper Ring — Performance events in Berlin" },
       {
         name: "description",
         content:
@@ -91,26 +91,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         property: "og:title",
-        content: "The Poster Said So — Performance events in Berlin",
+        content: "Whisper Ring — Performance events in Berlin",
       },
       {
         property: "og:description",
         content: "Spot a poster, add the event, share it.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:title", content: "The Poster Said So — Performance events in Berlin" },
-      { name: "twitter:title", content: "The Poster Said So — Performance events in Berlin" },
+      { property: "og:title", content: "Whisper Ring — Performance events in Berlin" },
+      { name: "twitter:title", content: "Whisper Ring — Performance events in Berlin" },
       {
         name: "description",
-        content: 'Discover and share local events with "The Poster Said So" app.',
+        content: 'Discover and share local events with the Whisper Ring app.',
       },
       {
         property: "og:description",
-        content: 'Discover and share local events with "The Poster Said So" app.',
+        content: 'Discover and share local events with the Whisper Ring app.',
       },
       {
         name: "twitter:description",
-        content: 'Discover and share local events with "The Poster Said So" app.',
+        content: 'Discover and share local events with the Whisper Ring app.',
       },
       { name: "twitter:card", content: "summary" },
     ],
