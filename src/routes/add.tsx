@@ -39,6 +39,7 @@ function AddEvent() {
 
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("");
+  const [neighborhoodAutoDetected, setNeighborhoodAutoDetected] = useState(false);
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
   const [neighborhood, setNeighborhood] = useState<Neighborhood>("Mitte");
   const [eventType, setEventType] = useState<EventType>("music");
@@ -174,31 +175,38 @@ function AddEvent() {
       setCoords({ lat: null, lng: null });
     }}
     onPlaceSelected={(p) => {
-      setCoords({ lat: p.lat, lng: p.lng });
-      if (p.neighborhood) setNeighborhood(p.neighborhood as Neighborhood);
-    }}
+  setCoords({ lat: p.lat, lng: p.lng });
+  if (p.neighborhood) {
+    setNeighborhood(p.neighborhood as Neighborhood);
+    setNeighborhoodAutoDetected(true);
+  } else {
+    setNeighborhoodAutoDetected(false);
+  }
+}}
     placeholder="Venue or address"
     required
     maxLength={200}
   />
 </Field>
-            <Field label="Area" required>
-              <Select
-                value={neighborhood}
-                onValueChange={(v) => setNeighborhood(v as Neighborhood)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {NEIGHBORHOODS.map((n) => (
-                    <SelectItem key={n.value} value={n.value}>
-                      {n.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+           {!neighborhoodAutoDetected && (
+  <Field label="Area" required>
+    <Select
+      value={neighborhood}
+      onValueChange={(v) => setNeighborhood(v as Neighborhood)}
+    >
+      <SelectTrigger>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {NEIGHBORHOODS.map((n) => (
+          <SelectItem key={n.value} value={n.value}>
+            {n.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </Field>
+)}
           </div>
 
           <Field label="Type">
