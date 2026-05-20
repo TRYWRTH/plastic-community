@@ -95,6 +95,105 @@ function EditEvent() {
     );
   }
 
+  console.log("[edit-event] rendering form with fetched event data", {
+    id: event.id,
+    place: event.place,
+    neighborhood: event.neighborhood,
+    event_date: event.event_date,
+  });
+
+  return <EditEventForm event={event} eventId={eventId} userId={user.id} />;
+}
+
+function EditEventForm({
+  event,
+  eventId,
+  userId,
+}: {
+  event: NonNullable<Awaited<ReturnType<typeof fetchEventForEdit>>>;
+  eventId: string;
+  userId: string;
+}) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [saving, setSaving] = useState(false);
+  const initialDate = format(new Date(event.event_date), "yyyy-MM-dd'T'HH:mm");
+
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const nextTitle = String(form.get("title") ?? "").trim();
+    const nextPlace = String(form.get("place") ?? "").trim();
+    const nextNeighborhood = String(form.get("neighborhood") ?? event.neighborhood) as Neighborhood;
+    const nextEventType = String(form.get("event_type") ?? event.event_type) as EventType;
+    const nextDate = String(form.get("event_date") ?? "");
+    const nextLink = String(form.get("link") ?? "").trim();
+    const nextDescription = String(form.get("description") ?? "").trim();
+
+    if (!nextTitle || !nextPlace || !nextDate) {
+      toast.error("Please fill in the required fields.");
+      return;
+    }
+
+    const parsedDate = new Date(nextDate);
+    if (Number.isNaN(parsedDate.getTime())) {
+      toast.error("Please choose a valid date and time.");
+      return;
+    }
+
+    setSaving(true);
+    const { data: updated, error } = await supabase
+      .from("events")
+      .update({
+        title: nextTitle,
+        place: nextPlace,
+        neighborhood: nextNeighborhood,
+        event_type: nextEventType,
+        event_date: parsedDate.toISOString(),
+        link: nextLink || null,
+        description: nextDescription || null,
+        lat: event.lat,
+        lng: event.lng,
+      })
+      .eq("id", eventId)
+      .eq("created_by", userId)
+      .select("*")
+      .maybeSingle();
+    setSaving(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    if (!updated) {
+      toast.error("Couldn't save — you may not have permission to edit this event.");
+      return;
+    }
+    toast.success("Event updated");
+
+    await queryClient.invalidateQueries({ queryKey: ["event-edit", eventId] });
+    await queryClient.invalidateQueries({ queryKey: ["events", eventId] });
+    await queryClient.invalidateQueries({ queryKey: ["events"] });
+
+    const { data: saves } = await supabase
+      .from("event_saves")
+      .select("user_id")
+      .eq("event_id", eventId)
+      .eq("notify", true);
+    const externalUserIds = (saves ?? [])
+      .map((s) => s.user_id)
+      .filter((id) => id !== userId);
+    const eventUrl = `${window.location.origin}/event/${eventId}`;
+    void sendEventUpdateNotification({
+      title: "Event updated",
+      message: `${nextTitle} — ${nextPlace}, ${nextNeighborhood}`,
+      url: eventUrl,
+      externalUserIds,
+    });
+
+    navigate({ to: "/event/$eventId", params: { eventId } });
+  };
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -112,8 +211,8 @@ function EditEvent() {
         <form onSubmit={submit} className="mt-8 space-y-5">
           <Field label="Title" required>
             <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              name="title"
+              defaultValue={event.title}
               required
               maxLength={120}
             />
@@ -123,13 +222,13 @@ function EditEvent() {
             <Field label="Date & time" required>
               <Input
                 type="datetime-local"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                name="event_date"
+                defaultValue={initialDate}
                 required
               />
             </Field>
             <Field label="Type" required>
-              <Select value={eventType} onValueChange={(v) => setEventType(v as EventType)}>
+              <Select name="event_type" defaultValue={event.event_type}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
