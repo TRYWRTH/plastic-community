@@ -148,7 +148,8 @@ function Home() {
   return (
     <div className="min-h-screen bg-paper">
       <Header />
-      <EnablePushBanner />
+      {/* Notifications hidden temporarily — feature kept for later testing */}
+      {false && <EnablePushBanner />}
 
 
       {/* Hero */}
