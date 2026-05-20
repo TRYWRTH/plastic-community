@@ -43,8 +43,6 @@ export function EnablePushBanner() {
   const onEnable = async () => {
     setPending(true);
     try {
-      // Ensure SDK is loaded before requesting permission. initOneSignal
-      // resolves quickly if already initialized.
       await initOneSignal();
       const granted = await requestPushPermission();
       setPerm(getNotificationPermission());
@@ -53,6 +51,9 @@ export function EnablePushBanner() {
         toast.message(
           "Notifications not enabled. You can turn them on later in your browser settings.",
         );
+      // Hide permanently once the user has made a choice (grant or deny).
+      localStorage.setItem("pps:push-banner-dismissed", "1");
+      setDismissed(true);
     } finally {
       setPending(false);
     }
