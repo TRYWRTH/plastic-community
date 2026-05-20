@@ -42,47 +42,50 @@ function EventDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen bg-paper pb-28 sm:pb-0">
       <Header />
-      <main className="mx-auto max-w-2xl px-4 py-6 sm:py-8">
+      <main className="mx-auto max-w-2xl px-3 py-3 sm:px-4 sm:py-8">
         <Link
           to="/"
-          className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-widest text-foreground hover:text-primary"
+          className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-foreground hover:text-primary sm:text-xs"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back
         </Link>
 
         {isLoading ? (
-          <div className="mt-6 h-48 animate-pulse border-2 border-foreground bg-card" />
+          <div className="mt-4 h-48 animate-pulse border-2 border-foreground bg-card sm:mt-6" />
         ) : !event ? (
           <p className="mt-6 font-mono text-sm uppercase tracking-wide text-foreground">
             Event not found.
           </p>
         ) : (
-          <article className="mt-6 border-2 border-foreground bg-card shadow-stamp">
-            <div className="border-b-2 border-foreground p-5 sm:p-8">
-              <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-foreground">
+          <article className="mt-3 border-2 border-foreground bg-card shadow-stamp sm:mt-6">
+            <div className="border-b-2 border-foreground p-4 sm:p-8">
+              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-foreground sm:text-[11px]">
                 <span className="text-base">{eventTypeMeta(event.event_type).emoji}</span>
                 <span>{eventTypeMeta(event.event_type).label}</span>
               </div>
-              <h1 className="mt-3 font-brand text-2xl uppercase text-balance text-foreground sm:text-5xl">
+              <h1 className="mt-2 font-brand text-xl uppercase text-balance text-foreground sm:mt-3 sm:text-5xl">
                 {event.title}
               </h1>
-              <div className="mt-4 grid gap-2 font-mono text-[11px] uppercase tracking-wide text-foreground sm:mt-5 sm:grid-cols-2 sm:text-xs">
+              <div className="mt-3 grid gap-1.5 font-mono text-[10px] uppercase tracking-wide text-foreground sm:mt-5 sm:grid-cols-2 sm:gap-2 sm:text-xs">
                 <div className="inline-flex items-center gap-2">
-                  <Calendar className="h-4 w-4 shrink-0 text-primary" />
-                  {format(new Date(event.event_date), "EEEE, MMM d · HH:mm")}
+                  <Calendar className="h-3.5 w-3.5 shrink-0 text-primary sm:h-4 sm:w-4" />
+                  {format(new Date(event.event_date), "EEE, MMM d · HH:mm")}
                 </div>
                 <div className="inline-flex items-start gap-2">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary sm:h-4 sm:w-4" />
                   <span className="break-words">{event.place} · {neighborhoodMeta(event.neighborhood).label}</span>
                 </div>
               </div>
             </div>
-            <div className="space-y-5 p-5 sm:p-8">
-              <SaveButtons eventId={event.id} />
+            <div className="space-y-4 p-4 sm:space-y-5 sm:p-8">
+              {/* On desktop the save buttons live inline; on mobile they're pinned at the bottom for thumb reach. */}
+              <div className="hidden sm:block">
+                <SaveButtons eventId={event.id} />
+              </div>
               {event.description && (
-                <p className="whitespace-pre-wrap text-sm text-foreground">
+                <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground sm:text-sm">
                   {event.description}
                 </p>
               )}
@@ -91,7 +94,7 @@ function EventDetail() {
                   href={event.link}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="inline-flex items-center gap-2 break-all font-mono text-xs uppercase tracking-wide text-primary underline underline-offset-4"
+                  className="inline-flex items-center gap-2 break-all font-mono text-[11px] uppercase tracking-wide text-primary underline underline-offset-4 sm:text-xs"
                 >
                   <ExternalLink className="h-4 w-4 shrink-0" />
                   {event.link}
@@ -117,6 +120,16 @@ function EventDetail() {
           </article>
         )}
       </main>
+
+      {/* Sticky save bar — mobile only. Sits above the iOS safe area. */}
+      {event && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-foreground bg-card px-3 py-3 shadow-stamp sm:hidden"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
+        >
+          <SaveButtons eventId={event.id} />
+        </div>
+      )}
     </div>
   );
 }
