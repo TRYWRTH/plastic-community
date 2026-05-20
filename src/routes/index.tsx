@@ -5,6 +5,7 @@ import { format, isAfter, isBefore, startOfDay, endOfDay, addDays } from "date-f
 import { MapPin, Calendar, ExternalLink } from "lucide-react";
 
 import { Header } from "@/components/Header";
+import { EnablePushBanner } from "@/components/EnablePushBanner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   EVENT_TYPES,
@@ -74,6 +75,8 @@ function Home() {
   return (
     <div className="min-h-screen bg-paper">
       <Header />
+      <EnablePushBanner />
+
 
       {/* Hero */}
       <section className="border-b-2 border-foreground">
