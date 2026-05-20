@@ -86,6 +86,8 @@ function EditEvent() {
         event_date: new Date(date).toISOString(),
         link: link.trim() || null,
         description: description.trim() || null,
+        lat: coords.lat,
+        lng: coords.lng,
       })
       .eq("id", eventId);
     setSaving(false);
