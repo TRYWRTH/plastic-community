@@ -281,9 +281,13 @@ function EditEventForm({
               <SelectContent>
                 {EVENT_TYPES.map((t) => (
                   <SelectItem key={t.value} value={t.value}>
-                    {t.emoji} {t.label}
+                    <span className="inline-flex items-center gap-2">
+                      <i className={`ti ${t.icon}`} aria-hidden="true" />
+                      {t.label}
+                    </span>
                   </SelectItem>
                 ))}
+
               </SelectContent>
             </Select>
           </Field>

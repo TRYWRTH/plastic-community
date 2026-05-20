@@ -72,15 +72,10 @@ export function SaveButtons({ eventId }: { eventId: string }) {
       if (ctx?.prev !== undefined) qc.setQueryData(saveKey, ctx.prev);
       toast.error(e.message || "Couldn't save. Please try again.");
     },
-    onSuccess: (next) => {
-      toast.success(
-        next === "going"
-          ? "Marked as going"
-          : next === "interested"
-            ? "Saved as interested"
-            : "Removed from your list",
-      );
+    onSuccess: () => {
+      // No toast — the button state itself confirms the action.
     },
+
     onSettled: () => {
       qc.invalidateQueries({ queryKey: saveKey });
       qc.invalidateQueries({ queryKey: ["my_saved_events"] });

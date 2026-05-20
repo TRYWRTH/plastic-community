@@ -123,7 +123,7 @@ function EventDetail() {
           <article className="mt-3 border-2 border-foreground bg-card shadow-stamp sm:mt-6">
             <div className="border-b-2 border-foreground p-4 sm:p-8">
               <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-foreground sm:text-[11px]">
-                <span className="text-base">{eventTypeMeta(event.event_type).emoji}</span>
+                <i className={`ti ${eventTypeMeta(event.event_type).icon} text-base`} aria-hidden="true" />
                 <span>{eventTypeMeta(event.event_type).label}</span>
               </div>
               <h1 className="mt-2 font-brand text-xl uppercase text-balance text-foreground sm:mt-3 sm:text-5xl">
