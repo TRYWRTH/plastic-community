@@ -272,11 +272,12 @@ function Home() {
                             {d ? format(d, "EEE, HH:mm") : "Date TBA"}
                           </span>
                           {e.link && (
-                            <span className="inline-flex items-center gap-1 text-primary">
+                            <span className="inline-flex items-center gap-1 text-link">
                               <ExternalLink className="h-3.5 w-3.5" />
                               link
                             </span>
                           )}
+                          <SaveCountsLine counts={countsMap?.get(e.id)} />
                         </div>
                       </div>
                     </div>
