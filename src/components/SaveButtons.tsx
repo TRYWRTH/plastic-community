@@ -241,7 +241,7 @@ export function SaveButtons({ eventId }: { eventId: string }) {
             </>
           ) : (
             <>
-              <BellOff className="h-4 w-4" />
+              <Bell className="h-4 w-4" />
               Notify me
             </>
           )}
