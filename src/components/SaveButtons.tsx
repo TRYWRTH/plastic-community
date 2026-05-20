@@ -237,7 +237,7 @@ export function SaveButtons({ eventId }: { eventId: string }) {
           {notify ? (
             <>
               <Bell className="h-4 w-4 fill-current" />
-              Notifying me
+              Notifications on
             </>
           ) : (
             <>
