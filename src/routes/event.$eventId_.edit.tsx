@@ -1,12 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 import { Header } from "@/components/Header";
 import { QrScanButton } from "@/components/QrScanButton";
-import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendEventUpdateNotification } from "@/lib/notifications";
@@ -27,6 +26,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { Database } from "@/integrations/supabase/types";
+
+type EventForEdit = Database["public"]["Tables"]["events"]["Row"];
 
 export const Route = createFileRoute("/event/$eventId_/edit")({
   component: EditEvent,
@@ -34,12 +36,10 @@ export const Route = createFileRoute("/event/$eventId_/edit")({
 
 function EditEvent() {
   const { eventId } = Route.useParams();
-  const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const queryClient = useQueryClient();
 
   const { data: event, isLoading } = useQuery({
-    queryKey: ["events", eventId],
+    queryKey: ["event-edit", eventId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
@@ -47,92 +47,12 @@ function EditEvent() {
         .eq("id", eventId)
         .maybeSingle();
       if (error) throw error;
+      console.log("[edit-event] fetched event data before form render", data);
       return data;
     },
+    refetchOnMount: "always",
+    staleTime: 0,
   });
-
-  const [title, setTitle] = useState("");
-  const [place, setPlace] = useState("");
-  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
-  const [neighborhood, setNeighborhood] = useState<Neighborhood>("Mitte");
-  const [eventType, setEventType] = useState<EventType>("music");
-  const [date, setDate] = useState("");
-  const [link, setLink] = useState("");
-  const [description, setDescription] = useState("");
-  const [saving, setSaving] = useState(false);
-  const hydratedRef = useRef(false);
-
-  // Pre-fill the form ONCE when the event first loads. Re-running on every
-  // query refetch (window focus, cache invalidation) would clobber whatever
-  // the user is currently typing — including the date and place fields.
-  useEffect(() => {
-    if (!event || hydratedRef.current) return;
-    hydratedRef.current = true;
-    setTitle(event.title);
-    setPlace(event.place);
-    setCoords({ lat: (event as any).lat ?? null, lng: (event as any).lng ?? null });
-    setNeighborhood(event.neighborhood as Neighborhood);
-    setEventType(event.event_type as EventType);
-    setDate(format(new Date(event.event_date), "yyyy-MM-dd'T'HH:mm"));
-    setLink(event.link ?? "");
-    setDescription(event.description ?? "");
-  }, [event]);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !event) return;
-    setSaving(true);
-    const { data: updated, error } = await supabase
-      .from("events")
-      .update({
-        title: title.trim(),
-        place: place.trim(),
-        neighborhood,
-        event_type: eventType,
-        event_date: new Date(date).toISOString(),
-        link: link.trim() || null,
-        description: description.trim() || null,
-        lat: coords.lat,
-        lng: coords.lng,
-      })
-      .eq("id", eventId)
-      .select()
-      .maybeSingle();
-    setSaving(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    if (!updated) {
-      toast.error("Couldn't save — you may not have permission to edit this event.");
-      return;
-    }
-    toast.success("Event updated");
-
-    // Refresh cached event data so the detail page shows the new values.
-    await queryClient.invalidateQueries({ queryKey: ["events", eventId] });
-    await queryClient.invalidateQueries({ queryKey: ["events"] });
-
-
-    // Notify only saved users who opted in (notify=true), excluding the editor.
-    const { data: saves } = await supabase
-      .from("event_saves")
-      .select("user_id")
-      .eq("event_id", eventId)
-      .eq("notify", true);
-    const externalUserIds = (saves ?? [])
-      .map((s) => s.user_id)
-      .filter((id) => id !== user.id);
-    const eventUrl = `${window.location.origin}/event/${eventId}`;
-    void sendEventUpdateNotification({
-      title: "Event updated",
-      message: `${title.trim()} — ${place.trim()}, ${neighborhood}`,
-      url: eventUrl,
-      externalUserIds,
-    });
-
-    navigate({ to: "/event/$eventId", params: { eventId } });
-  };
 
   if (authLoading || isLoading) {
     return (
@@ -178,6 +98,106 @@ function EditEvent() {
     );
   }
 
+  console.log("[edit-event] rendering form with fetched event data", {
+    id: event.id,
+    place: event.place,
+    neighborhood: event.neighborhood,
+    event_date: event.event_date,
+  });
+
+  return <EditEventForm event={event} eventId={eventId} userId={user.id} />;
+}
+
+function EditEventForm({
+  event,
+  eventId,
+  userId,
+}: {
+  event: EventForEdit;
+  eventId: string;
+  userId: string;
+}) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [saving, setSaving] = useState(false);
+  const [link, setLink] = useState(event.link ?? "");
+  const initialDate = format(new Date(event.event_date), "yyyy-MM-dd'T'HH:mm");
+
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const nextTitle = String(form.get("title") ?? "").trim();
+    const nextPlace = String(form.get("place") ?? "").trim();
+    const nextNeighborhood = String(form.get("neighborhood") ?? event.neighborhood) as Neighborhood;
+    const nextEventType = String(form.get("event_type") ?? event.event_type) as EventType;
+    const nextDate = String(form.get("event_date") ?? "");
+    const nextLink = String(form.get("link") ?? "").trim();
+    const nextDescription = String(form.get("description") ?? "").trim();
+
+    if (!nextTitle || !nextPlace || !nextDate) {
+      toast.error("Please fill in the required fields.");
+      return;
+    }
+
+    const parsedDate = new Date(nextDate);
+    if (Number.isNaN(parsedDate.getTime())) {
+      toast.error("Please choose a valid date and time.");
+      return;
+    }
+
+    setSaving(true);
+    const { data: updated, error } = await supabase
+      .from("events")
+      .update({
+        title: nextTitle,
+        place: nextPlace,
+        neighborhood: nextNeighborhood,
+        event_type: nextEventType,
+        event_date: parsedDate.toISOString(),
+        link: nextLink || null,
+        description: nextDescription || null,
+        lat: nextPlace === event.place ? event.lat : null,
+        lng: nextPlace === event.place ? event.lng : null,
+      })
+      .eq("id", eventId)
+      .eq("created_by", userId)
+      .select("*")
+      .maybeSingle();
+    setSaving(false);
+
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    if (!updated) {
+      toast.error("Couldn't save — you may not have permission to edit this event.");
+      return;
+    }
+    toast.success("Event updated");
+
+    await queryClient.invalidateQueries({ queryKey: ["event-edit", eventId] });
+    await queryClient.invalidateQueries({ queryKey: ["events", eventId] });
+    await queryClient.invalidateQueries({ queryKey: ["events"] });
+
+    const { data: saves } = await supabase
+      .from("event_saves")
+      .select("user_id")
+      .eq("event_id", eventId)
+      .eq("notify", true);
+    const externalUserIds = (saves ?? [])
+      .map((s) => s.user_id)
+      .filter((id) => id !== userId);
+    const eventUrl = `${window.location.origin}/event/${eventId}`;
+    void sendEventUpdateNotification({
+      title: "Event updated",
+      message: `${nextTitle} — ${nextPlace}, ${nextNeighborhood}`,
+      url: eventUrl,
+      externalUserIds,
+    });
+
+    navigate({ to: "/event/$eventId", params: { eventId } });
+  };
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -195,8 +215,8 @@ function EditEvent() {
         <form onSubmit={submit} className="mt-8 space-y-5">
           <Field label="Title" required>
             <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              name="title"
+              defaultValue={event.title}
               required
               maxLength={120}
             />
@@ -206,13 +226,13 @@ function EditEvent() {
             <Field label="Date & time" required>
               <Input
                 type="datetime-local"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                name="event_date"
+                defaultValue={initialDate}
                 required
               />
             </Field>
             <Field label="Type" required>
-              <Select value={eventType} onValueChange={(v) => setEventType(v as EventType)}>
+              <Select name="event_type" defaultValue={event.event_type}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -229,21 +249,17 @@ function EditEvent() {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Place" required>
-              <PlaceAutocompleteInput
-                value={place}
-                onChange={(v) => {
-                  setPlace(v);
-                  setCoords({ lat: null, lng: null });
-                }}
-                onPlaceSelected={(p) => setCoords({ lat: p.lat, lng: p.lng })}
+              <Input
+                name="place"
+                defaultValue={event.place}
                 required
                 maxLength={200}
               />
             </Field>
             <Field label="Area" required>
               <Select
-                value={neighborhood}
-                onValueChange={(v) => setNeighborhood(v as Neighborhood)}
+                name="neighborhood"
+                defaultValue={event.neighborhood}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -262,6 +278,7 @@ function EditEvent() {
           <Field label="Link" hint="Paste a URL or scan a QR code from the poster">
             <div className="flex gap-2">
               <Input
+                name="link"
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
                 placeholder="https://…"
@@ -279,8 +296,8 @@ function EditEvent() {
 
           <Field label="Short description" hint="Optional — a line or two">
             <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              name="description"
+              defaultValue={event.description ?? ""}
               rows={3}
               maxLength={500}
             />
