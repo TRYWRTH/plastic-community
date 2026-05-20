@@ -129,7 +129,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_event_save_counts: {
+        Args: never
+        Returns: {
+          event_id: string
+          going_count: number
+          interested_count: number
+        }[]
+      }
     }
     Enums: {
       event_type:
