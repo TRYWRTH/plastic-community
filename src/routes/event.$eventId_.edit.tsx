@@ -60,9 +60,14 @@ function EditEvent() {
   const [link, setLink] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
+  const hydratedRef = useRef(false);
 
+  // Pre-fill the form ONCE when the event first loads. Re-running on every
+  // query refetch (window focus, cache invalidation) would clobber whatever
+  // the user is currently typing — including the date and place fields.
   useEffect(() => {
-    if (!event) return;
+    if (!event || hydratedRef.current) return;
+    hydratedRef.current = true;
     setTitle(event.title);
     setPlace(event.place);
     setCoords({ lat: (event as any).lat ?? null, lng: (event as any).lng ?? null });
