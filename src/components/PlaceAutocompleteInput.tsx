@@ -87,6 +87,12 @@ export function PlaceAutocompleteInput({
   "bezirk lichtenberg": "Lichtenberg",
   "bezirk marzahn-hellersdorf": "Marzahn",
   "bezirk treptow-köpenick": "Lichtenberg",
+   "bezirk steglitz-zehlendorf": "Steglitz-Zehlendorf",
+"steglitz-zehlendorf": "Steglitz-Zehlendorf",
+"bezirk reinickendorf": "Reinickendorf",
+"reinickendorf": "Reinickendorf",
+"bezirk treptow-köpenick": "Treptow-Köpenick",
+"treptow-köpenick": "Treptow-Köpenick",
 };
 let detectedNeighborhood: string | null = null;
 const components = place.address_components || [];
