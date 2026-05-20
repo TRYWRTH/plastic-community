@@ -105,9 +105,11 @@ if (!detectedNeighborhood && address) {
     if (addressLower.includes(key)) { detectedNeighborhood = val; break; }
   }
 }
-if (name && inputRef.current) inputRef.current.value = name;
-if (name) onChangeRef.current(name);
-onPlaceSelectedRef.current({ name, lat, lng, neighborhood: detectedNeighborhood });
+const finalName = detectedNeighborhood ? `${name} · ${detectedNeighborhood}` : name;
+if (finalName && inputRef.current) inputRef.current.value = finalName;
+if (finalName) onChangeRef.current(finalName);
+onPlaceSelectedRef.current({ name: finalName, lat, lng, neighborhood: detectedNeighborhood });
+
           inputRef.current?.blur();
           (document.activeElement as HTMLElement | null)?.blur?.();
         });
