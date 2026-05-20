@@ -2,7 +2,16 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { MapPin, Calendar, ExternalLink, Trash2, Pencil, ArrowLeft, Check } from "lucide-react";
+import {
+  MapPin,
+  Calendar,
+  ExternalLink,
+  Trash2,
+  Pencil,
+  ArrowLeft,
+  Check,
+  MoreVertical,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Header } from "@/components/Header";
@@ -14,6 +23,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -110,6 +125,23 @@ function EventDetail() {
 
   const { data: counts } = useEventSaveCounts(eventId);
 
+  const { data: nearby } = useQuery({
+    queryKey: ["events", "nearby", event?.neighborhood, eventId],
+    enabled: !!event?.neighborhood,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select("id,title,place,neighborhood,event_date,event_type")
+        .eq("neighborhood", event!.neighborhood)
+        .neq("id", eventId)
+        .gte("event_date", new Date().toISOString())
+        .order("event_date", { ascending: true })
+        .limit(3);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const remove = async () => {
     setDeleting(true);
     const { error } = await supabase.from("events").delete().eq("id", eventId);
@@ -119,6 +151,9 @@ function EventDetail() {
     toast.success("Event deleted");
     navigate({ to: "/" });
   };
+
+  const isCreator = !!event && user?.id === event.created_by;
+  const neighborhoodLabel = event ? neighborhoodMeta(event.neighborhood).label : "";
 
   return (
     <div className="min-h-screen bg-paper">
@@ -138,107 +173,174 @@ function EventDetail() {
       )}
       <Header />
       <main className="mx-auto max-w-2xl px-3 py-3 sm:px-4 sm:py-8">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-foreground hover:text-primary sm:text-xs"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-foreground hover:text-primary sm:text-xs"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> Back
+          </Link>
+          {isCreator && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="Event actions"
+                  className="-mr-1 grid h-9 w-9 place-items-center rounded-none text-foreground hover:text-primary"
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="rounded-none border-2 border-foreground bg-card"
+              >
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/event/$eventId/edit"
+                    params={{ eventId: event!.id }}
+                    className="font-mono text-xs uppercase tracking-widest"
+                  >
+                    <Pencil className="mr-2 h-4 w-4" /> Edit event
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setConfirmDeleteOpen(true);
+                  }}
+                  className="font-mono text-xs uppercase tracking-widest text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete event
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
 
         {isLoading ? (
-          <div className="mt-4 h-48 animate-pulse border-2 border-foreground bg-card sm:mt-6" />
+          <div className="mt-4 h-48 animate-pulse border-0 bg-card sm:mt-6 sm:border-2 sm:border-foreground" />
         ) : !event ? (
           <p className="mt-6 font-mono text-sm uppercase tracking-wide text-foreground">
             Event not found.
           </p>
         ) : (
-          <article className="mt-3 border-2 border-foreground bg-card shadow-stamp sm:mt-6">
-            <div className="border-b-2 border-foreground p-4 sm:p-8">
-              {(() => {
-                const meta = eventTypeMeta(event.event_type);
-                return (
-                  <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-foreground sm:text-[11px]">
-                    <meta.Icon className="h-4 w-4" aria-hidden="true" />
-                    <span>{meta.label}</span>
+          <>
+            <article className="mt-3 sm:mt-6 sm:border-2 sm:border-foreground sm:bg-card sm:shadow-stamp">
+              <div className="pb-4 sm:border-b-2 sm:border-foreground sm:p-8 sm:pb-8">
+                {(() => {
+                  const meta = eventTypeMeta(event.event_type);
+                  return (
+                    <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-foreground sm:text-[11px]">
+                      <meta.Icon className="h-4 w-4" aria-hidden="true" />
+                      <span>{meta.label}</span>
+                    </div>
+                  );
+                })()}
+                <h1 className="mt-2 font-brand text-2xl uppercase text-balance text-foreground sm:mt-3 sm:text-5xl">
+                  {event.title}
+                </h1>
+                <div className="mt-3 grid gap-1.5 font-mono text-[11px] uppercase tracking-wide text-foreground sm:mt-5 sm:grid-cols-2 sm:gap-2 sm:text-xs">
+                  <div className="inline-flex items-center gap-2">
+                    <Calendar className="h-3.5 w-3.5 shrink-0 text-primary sm:h-4 sm:w-4" />
+                    {format(new Date(event.event_date), "EEE, MMM d · HH:mm")}
                   </div>
-                );
-              })()}
-              <h1 className="mt-2 font-brand text-xl uppercase text-balance text-foreground sm:mt-3 sm:text-5xl">
-                {event.title}
-              </h1>
-              <div className="mt-3 grid gap-1.5 font-mono text-[10px] uppercase tracking-wide text-foreground sm:mt-5 sm:grid-cols-2 sm:gap-2 sm:text-xs">
-                <div className="inline-flex items-center gap-2">
-                  <Calendar className="h-3.5 w-3.5 shrink-0 text-primary sm:h-4 sm:w-4" />
-                  {format(new Date(event.event_date), "EEE, MMM d · HH:mm")}
+                  <div className="inline-flex items-start gap-2">
+                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary sm:h-4 sm:w-4" />
+                    <span className="break-words">
+                      {stripNeighborhoodSuffix(event.place, neighborhoodLabel)}
+                      {" · "}
+                      <span className="text-neighborhood">{neighborhoodLabel}</span>
+                    </span>
+                  </div>
                 </div>
-                <div className="inline-flex items-start gap-2">
-                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary sm:h-4 sm:w-4" />
-                  <span className="break-words">
-                    {stripNeighborhoodSuffix(event.place, neighborhoodMeta(event.neighborhood).label)}
-                    {" · "}
-                    <span className="text-neighborhood">{neighborhoodMeta(event.neighborhood).label}</span>
-                  </span>
-                </div>
-
+                <SaveCountsLine
+                  counts={counts}
+                  className="mt-3 inline-block font-mono text-[10px] uppercase tracking-widest text-foreground sm:mt-4 sm:text-[11px]"
+                />
               </div>
-              <SaveCountsLine
-                counts={counts}
-                className="mt-3 inline-block font-mono text-[10px] uppercase tracking-widest text-foreground sm:mt-4 sm:text-[11px]"
-              />
-            </div>
-            <div className="space-y-4 p-4 sm:space-y-5 sm:p-8">
-              <div className="flex flex-wrap items-center gap-2">
-                <SaveButtons eventId={event.id} />
-                {event.event_date && (
-                  <AddToCalendarButton
-                    title={event.title}
-                    start={event.event_date}
-                    location={[event.place, neighborhoodMeta(event.neighborhood).label]
-                      .filter(Boolean)
-                      .join(", ")}
-                    description={event.description ?? undefined}
-                    uid={`${event.id}@whisperer-ring`}
-                  />
+              <div className="space-y-4 pt-4 sm:space-y-5 sm:p-8">
+                <div className="flex flex-wrap items-center gap-2">
+                  <SaveButtons eventId={event.id} />
+                  {event.event_date && (
+                    <AddToCalendarButton
+                      title={event.title}
+                      start={event.event_date}
+                      location={[event.place, neighborhoodLabel]
+                        .filter(Boolean)
+                        .join(", ")}
+                      description={event.description ?? undefined}
+                      uid={`${event.id}@whisperer-ring`}
+                    />
+                  )}
+                </div>
+                {event.description && (
+                  <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground sm:text-sm">
+                    {event.description}
+                  </p>
+                )}
+                {event.link && (
+                  <a
+                    href={event.link}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-link underline underline-offset-4 hover:text-foreground"
+                  >
+                    <ExternalLink className="h-4 w-4 shrink-0" />
+                    Website
+                  </a>
                 )}
               </div>
-              {event.description && (
-                <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground sm:text-sm">
-                  {event.description}
-                </p>
-              )}
-              {event.link && (
-                <a
-                  href={event.link}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="inline-flex items-center gap-2 text-sm font-medium text-link underline underline-offset-4 hover:text-foreground"
-                >
-                  <ExternalLink className="h-4 w-4 shrink-0" />
-                  Website
-                </a>
-              )}
-              {user?.id === event.created_by && (
-                <div className="flex flex-wrap items-center gap-2 border-t-2 border-foreground pt-4">
-                  <Button variant="outline" asChild>
-                    <Link to="/event/$eventId/edit" params={{ eventId: event.id }}>
-                      <Pencil className="h-4 w-4" /> Edit event
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setConfirmDeleteOpen(true)}
-                    className="text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" /> Delete event
-                  </Button>
-                </div>
-              )}
-            </div>
-          </article>
+            </article>
+
+            {nearby && nearby.length > 0 && (
+              <section className="mt-8 sm:mt-10">
+                <h2 className="font-mono text-[11px] uppercase tracking-widest text-foreground sm:text-xs">
+                  More in <span className="text-neighborhood">{neighborhoodLabel}</span>
+                </h2>
+                <ul className="mt-3 grid gap-3">
+                  {nearby.map((e) => {
+                    const t = eventTypeMeta(e.event_type);
+                    const d = e.event_date ? new Date(e.event_date) : null;
+                    const valid = d && !isNaN(d.getTime()) ? d : null;
+                    return (
+                      <li key={e.id}>
+                        <Link
+                          to="/event/$eventId"
+                          params={{ eventId: e.id }}
+                          className="group flex items-start gap-3 border-2 border-foreground bg-card p-3 transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
+                        >
+                          <div className="grid h-12 w-12 shrink-0 place-items-center border-2 border-foreground bg-background">
+                            <div className="text-center leading-tight">
+                              <div className="font-mono text-[9px] uppercase tracking-wider text-foreground">
+                                {valid ? format(valid, "MMM") : "—"}
+                              </div>
+                              <div className="font-brand text-lg text-foreground">
+                                {valid ? format(valid, "d") : "?"}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-foreground">
+                              <t.Icon className="h-3 w-3" aria-hidden="true" />
+                              <span>{t.label}</span>
+                            </div>
+                            <h3 className="mt-0.5 truncate font-brand text-base uppercase text-foreground group-hover:text-primary">
+                              {e.title}
+                            </h3>
+                            <p className="mt-0.5 truncate font-mono text-[10px] uppercase tracking-wide text-foreground">
+                              {valid ? format(valid, "EEE, HH:mm") : "Date TBA"}
+                            </p>
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
+          </>
         )}
       </main>
-
-
 
       <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
         <AlertDialogContent>
