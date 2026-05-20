@@ -126,6 +126,7 @@ export async function setPushOptIn(next: boolean): Promise<boolean> {
     if (OneSignal?.User?.PushSubscription?.optIn) {
       await OneSignal.User.PushSubscription.optIn();
     }
+    void savePlayerIdForCurrentUser();
   } catch (err) {
     console.error("OneSignal optIn failed", err);
   }
