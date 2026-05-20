@@ -167,6 +167,7 @@ export async function requestPushPermission(): Promise<boolean> {
     try {
       await window.OneSignal?.User?.PushSubscription?.optIn?.();
     } catch {}
+    void savePlayerIdForCurrentUser();
   }
   return granted;
 }
