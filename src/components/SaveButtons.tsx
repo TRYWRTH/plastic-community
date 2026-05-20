@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Check, Star, Bell } from "lucide-react";
+import { Check, Star } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
