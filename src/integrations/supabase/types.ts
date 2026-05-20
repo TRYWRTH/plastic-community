@@ -60,7 +60,9 @@ export type Database = {
           event_date: string
           event_type: Database["public"]["Enums"]["event_type"]
           id: string
+          lat: number | null
           link: string | null
+          lng: number | null
           neighborhood: Database["public"]["Enums"]["neighborhood"]
           place: string
           title: string
@@ -73,7 +75,9 @@ export type Database = {
           event_date: string
           event_type: Database["public"]["Enums"]["event_type"]
           id?: string
+          lat?: number | null
           link?: string | null
+          lng?: number | null
           neighborhood: Database["public"]["Enums"]["neighborhood"]
           place: string
           title: string
@@ -86,7 +90,9 @@ export type Database = {
           event_date?: string
           event_type?: Database["public"]["Enums"]["event_type"]
           id?: string
+          lat?: number | null
           link?: string | null
+          lng?: number | null
           neighborhood?: Database["public"]["Enums"]["neighborhood"]
           place?: string
           title?: string
