@@ -167,26 +167,32 @@ function AddEvent() {
             </Field>
           </div>
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Place" required>
+          <Field label="Place" required>
   <PlaceAutocompleteInput
     value={place}
     onChange={(v) => {
       setPlace(v);
       setCoords({ lat: null, lng: null });
+      setNeighborhoodAutoDetected(false);
     }}
     onPlaceSelected={(p) => {
-  setCoords({ lat: p.lat, lng: p.lng });
-  if (p.neighborhood) {
-    setNeighborhood(p.neighborhood as Neighborhood);
-    setNeighborhoodAutoDetected(true);
-  } else {
-    setNeighborhoodAutoDetected(false);
-  }
-}}
+      setCoords({ lat: p.lat, lng: p.lng });
+      if (p.neighborhood) {
+        setNeighborhood(p.neighborhood as Neighborhood);
+        setNeighborhoodAutoDetected(true);
+      } else {
+        setNeighborhoodAutoDetected(false);
+      }
+    }}
     placeholder="Venue or address"
     required
     maxLength={200}
   />
+  {neighborhoodAutoDetected && (
+    <p className="text-xs text-muted-foreground mt-1">
+      Area detected: <span className="font-medium text-foreground">{neighborhood}</span>
+    </p>
+  )}
 </Field>
            {!neighborhoodAutoDetected && (
   <Field label="Area" required>
