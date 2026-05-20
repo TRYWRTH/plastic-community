@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#F2F0EB"/>
-  <rect x="24" y="24" width="464" height="464" fill="none" stroke="#1A1A1A" stroke-width="16"/>
-  <text x="256" y="210" text-anchor="middle" font-family="Archivo Black, Impact, sans-serif" font-size="120" fill="#1A1A1A">POSTER</text>
-  <text x="256" y="330" text-anchor="middle" font-family="Archivo Black, Impact, sans-serif" font-size="120" fill="#1A1A1A">SAID</text>
-  <text x="256" y="450" text-anchor="middle" font-family="Archivo Black, Impact, sans-serif" font-size="120" fill="#B94040">SO.</text>
-</svg>
