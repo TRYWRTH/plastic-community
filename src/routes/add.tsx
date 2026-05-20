@@ -166,7 +166,6 @@ function AddEvent() {
               />
             </Field>
           </div>
-          <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Place" required>
             <PlaceAutocompleteInput
               value={place}
@@ -183,6 +182,8 @@ function AddEvent() {
               maxLength={200}
             />
           </Field>
+
+
 
 
           <Field label="Type">
