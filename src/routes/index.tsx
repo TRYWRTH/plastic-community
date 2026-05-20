@@ -64,15 +64,17 @@ function Home() {
     queryFn: fetchEvents,
   });
 
-  const { date: dateFilter, neighborhood, type: eventType } = Route.useSearch();
+  const search = Route.useSearch();
+  const { date: dateFilter, neighborhood, type: eventType } = search;
   const navigate = useNavigate({ from: "/" });
 
   const setDateFilter = (v: DateFilter) =>
-    navigate({ search: (prev) => ({ ...prev, date: v }), replace: true });
+    navigate({ search: { ...search, date: v }, replace: true });
   const setNeighborhood = (v: Neighborhood | "all") =>
-    navigate({ search: (prev) => ({ ...prev, neighborhood: v }), replace: true });
+    navigate({ search: { ...search, neighborhood: v }, replace: true });
   const setEventType = (v: EventType | "all") =>
-    navigate({ search: (prev) => ({ ...prev, type: v }), replace: true });
+    navigate({ search: { ...search, type: v }, replace: true });
+
 
 
   const filtered = useMemo(() => {
