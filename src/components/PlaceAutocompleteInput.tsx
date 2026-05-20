@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { loadGooglePlaces } from "@/lib/google-places";
 
@@ -16,6 +17,55 @@ type Props = {
   placeholder?: string;
   required?: boolean;
   maxLength?: number;
+};
+
+// Berlin's 12 official districts — match Google Places address components.
+const NEIGHBORHOOD_MAP: Record<string, string> = {
+  "mitte": "Mitte",
+  "bezirk mitte": "Mitte",
+  "friedrichshain-kreuzberg": "Friedrichshain-Kreuzberg",
+  "bezirk friedrichshain-kreuzberg": "Friedrichshain-Kreuzberg",
+  "friedrichshain": "Friedrichshain-Kreuzberg",
+  "kreuzberg": "Friedrichshain-Kreuzberg",
+  "pankow": "Pankow",
+  "bezirk pankow": "Pankow",
+  "prenzlauer berg": "Pankow",
+  "charlottenburg-wilmersdorf": "Charlottenburg-Wilmersdorf",
+  "bezirk charlottenburg-wilmersdorf": "Charlottenburg-Wilmersdorf",
+  "charlottenburg": "Charlottenburg-Wilmersdorf",
+  "wilmersdorf": "Charlottenburg-Wilmersdorf",
+  "spandau": "Spandau",
+  "bezirk spandau": "Spandau",
+  "steglitz-zehlendorf": "Steglitz-Zehlendorf",
+  "bezirk steglitz-zehlendorf": "Steglitz-Zehlendorf",
+  "steglitz": "Steglitz-Zehlendorf",
+  "zehlendorf": "Steglitz-Zehlendorf",
+  "tempelhof-schöneberg": "Tempelhof-Schöneberg",
+  "tempelhof-schoneberg": "Tempelhof-Schöneberg",
+  "bezirk tempelhof-schöneberg": "Tempelhof-Schöneberg",
+  "bezirk tempelhof-schoneberg": "Tempelhof-Schöneberg",
+  "tempelhof": "Tempelhof-Schöneberg",
+  "schöneberg": "Tempelhof-Schöneberg",
+  "schoneberg": "Tempelhof-Schöneberg",
+  "neukölln": "Neukölln",
+  "neukolln": "Neukölln",
+  "bezirk neukölln": "Neukölln",
+  "bezirk neukolln": "Neukölln",
+  "treptow-köpenick": "Treptow-Köpenick",
+  "treptow-kopenick": "Treptow-Köpenick",
+  "bezirk treptow-köpenick": "Treptow-Köpenick",
+  "bezirk treptow-kopenick": "Treptow-Köpenick",
+  "treptow": "Treptow-Köpenick",
+  "köpenick": "Treptow-Köpenick",
+  "kopenick": "Treptow-Köpenick",
+  "marzahn-hellersdorf": "Marzahn-Hellersdorf",
+  "bezirk marzahn-hellersdorf": "Marzahn-Hellersdorf",
+  "marzahn": "Marzahn-Hellersdorf",
+  "hellersdorf": "Marzahn-Hellersdorf",
+  "lichtenberg": "Lichtenberg",
+  "bezirk lichtenberg": "Lichtenberg",
+  "reinickendorf": "Reinickendorf",
+  "bezirk reinickendorf": "Reinickendorf",
 };
 
 export function PlaceAutocompleteInput({
@@ -46,7 +96,6 @@ export function PlaceAutocompleteInput({
           return;
         }
 
-        // Berlin bounding box (SW / NE corners)
         const berlinBounds = new window.google.maps.LatLngBounds(
           { lat: 52.3382, lng: 13.0883 },
           { lat: 52.6755, lng: 13.7612 },
@@ -65,8 +114,6 @@ export function PlaceAutocompleteInput({
           if (!place) return;
           const displayName: string = place.name || "";
           const address: string = place.formatted_address || "";
-          // If the name is already part of the address (typical for street addresses),
-          // just use the address. Otherwise prepend the venue name.
           const name = address
             ? displayName && !address.toLowerCase().includes(displayName.toLowerCase())
               ? `${displayName}, ${address}`
@@ -76,48 +123,36 @@ export function PlaceAutocompleteInput({
           const loc = place.geometry?.location;
           const lat = loc ? loc.lat() : null;
           const lng = loc ? loc.lng() : null;
-      const neighborhoodMap: Record<string, string> = {
-  "mitte": "Mitte", "prenzlauer berg": "Prenzlauer Berg",
-  "friedrichshain": "Friedrichshain", "kreuzberg": "Kreuzberg",
-  "neukölln": "Neukölln", "neukolln": "Neukölln",
-  "tempelhof": "Tempelhof", "schöneberg": "Schöneberg",
-  "schoneberg": "Schöneberg", "charlottenburg": "Charlottenburg",
-  "marzahn": "Marzahn", "spandau": "Spandau",
-  "pankow": "Pankow", "lichtenberg": "Lichtenberg",
-  "bezirk neukölln": "Neukölln", "bezirk neukolln": "Neukölln",
-  "bezirk mitte": "Mitte",
-  "bezirk friedrichshain-kreuzberg": "Friedrichshain",
-  "bezirk pankow": "Pankow",
-  "bezirk charlottenburg-wilmersdorf": "Charlottenburg",
-  "bezirk spandau": "Spandau",
-  "bezirk steglitz-zehlendorf": "Tempelhof",
-  "bezirk tempelhof-schöneberg": "Schöneberg",
-  "bezirk tempelhof-schoneberg": "Schöneberg",
-  "bezirk lichtenberg": "Lichtenberg",
-  "bezirk marzahn-hellersdorf": "Marzahn",
-  "bezirk treptow-köpenick": "Lichtenberg",
-};
-let detectedNeighborhood: string | null = null;
-const components: any[] = place.address_components || [];
-          console.log("Address components:", components.map((c: any) => c.long_name));
 
-for (const component of components) {
-  const longName = component.long_name.toLowerCase();
-  if (neighborhoodMap[longName]) {
-    detectedNeighborhood = neighborhoodMap[longName];
-    break;
-  }
-}
-if (!detectedNeighborhood && address) {
-  const addressLower = address.toLowerCase();
-  for (const [key, val] of Object.entries(neighborhoodMap)) {
-    if (addressLower.includes(key)) { detectedNeighborhood = val; break; }
-  }
-}
-const finalName = detectedNeighborhood ? `${name} · ${detectedNeighborhood}` : name;
-if (finalName && inputRef.current) inputRef.current.value = finalName;
-if (finalName) onChangeRef.current(finalName);
-onPlaceSelectedRef.current({ name: finalName, lat, lng, neighborhood: detectedNeighborhood });
+          let detectedNeighborhood: string | null = null;
+          const components: any[] = place.address_components || [];
+
+          for (const component of components) {
+            const longName = (component.long_name || "").toLowerCase();
+            if (NEIGHBORHOOD_MAP[longName]) {
+              detectedNeighborhood = NEIGHBORHOOD_MAP[longName];
+              break;
+            }
+          }
+          if (!detectedNeighborhood && address) {
+            const addressLower = address.toLowerCase();
+            for (const [key, val] of Object.entries(NEIGHBORHOOD_MAP)) {
+              if (addressLower.includes(key)) {
+                detectedNeighborhood = val;
+                break;
+              }
+            }
+          }
+
+          const finalName = detectedNeighborhood ? `${name} · ${detectedNeighborhood}` : name;
+          if (finalName && inputRef.current) inputRef.current.value = finalName;
+          if (finalName) onChangeRef.current(finalName);
+          onPlaceSelectedRef.current({
+            name: finalName,
+            lat,
+            lng,
+            neighborhood: detectedNeighborhood,
+          });
 
           inputRef.current?.blur();
           (document.activeElement as HTMLElement | null)?.blur?.();
@@ -143,16 +178,36 @@ onPlaceSelectedRef.current({ name: finalName, lat, lng, neighborhood: detectedNe
     }
   }, [value]);
 
+  const handleClear = () => {
+    if (inputRef.current) inputRef.current.value = "";
+    onChange("");
+    inputRef.current?.focus();
+  };
+
   return (
-    <Input
-      ref={inputRef}
-      type="text"
-      defaultValue={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      required={required}
-      maxLength={maxLength}
-      autoComplete="off"
-    />
+    <div className="relative w-full">
+      <Input
+        ref={inputRef}
+        type="text"
+        defaultValue={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        required={required}
+        maxLength={maxLength}
+        autoComplete="off"
+        title={value || undefined}
+        className="pr-8 text-ellipsis"
+      />
+      {value && (
+        <button
+          type="button"
+          onClick={handleClear}
+          aria-label="Clear place"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center text-muted-foreground hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+    </div>
   );
 }

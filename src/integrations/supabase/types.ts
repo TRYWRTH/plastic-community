@@ -152,17 +152,17 @@ export type Database = {
         | "other"
       neighborhood:
         | "Mitte"
-        | "Prenzlauer Berg"
-        | "Friedrichshain"
-        | "Kreuzberg"
-        | "Neukölln"
-        | "Tempelhof"
-        | "Schöneberg"
-        | "Charlottenburg"
-        | "Marzahn"
-        | "Spandau"
+        | "Friedrichshain-Kreuzberg"
         | "Pankow"
+        | "Charlottenburg-Wilmersdorf"
+        | "Spandau"
+        | "Steglitz-Zehlendorf"
+        | "Tempelhof-Schöneberg"
+        | "Neukölln"
+        | "Treptow-Köpenick"
+        | "Marzahn-Hellersdorf"
         | "Lichtenberg"
+        | "Reinickendorf"
       save_status: "going" | "interested"
     }
     CompositeTypes: {
@@ -305,17 +305,17 @@ export const Constants = {
       ],
       neighborhood: [
         "Mitte",
-        "Prenzlauer Berg",
-        "Friedrichshain",
-        "Kreuzberg",
-        "Neukölln",
-        "Tempelhof",
-        "Schöneberg",
-        "Charlottenburg",
-        "Marzahn",
-        "Spandau",
+        "Friedrichshain-Kreuzberg",
         "Pankow",
+        "Charlottenburg-Wilmersdorf",
+        "Spandau",
+        "Steglitz-Zehlendorf",
+        "Tempelhof-Schöneberg",
+        "Neukölln",
+        "Treptow-Köpenick",
+        "Marzahn-Hellersdorf",
         "Lichtenberg",
+        "Reinickendorf",
       ],
       save_status: ["going", "interested"],
     },
