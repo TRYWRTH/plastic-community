@@ -51,24 +51,42 @@ function Home() {
 
   const filtered = useMemo(() => {
     const now = new Date();
-    return events.filter((e) => {
-      const d = new Date(e.event_date);
-      if (dateFilter === "today" && !(isAfter(d, startOfDay(now)) && isBefore(d, endOfDay(now))))
-        return false;
-      if (
-        dateFilter === "tomorrow" &&
-        !(
-          isAfter(d, startOfDay(addDays(now, 1))) &&
-          isBefore(d, endOfDay(addDays(now, 1)))
+    const result = events.filter((e) => {
+      const hasDate = !!e.event_date && !isNaN(new Date(e.event_date).getTime());
+      const d = hasDate ? new Date(e.event_date) : null;
+      if (dateFilter === "today") {
+        if (!d) return false;
+        if (!(isAfter(d, startOfDay(now)) && isBefore(d, endOfDay(now)))) return false;
+      }
+      if (dateFilter === "tomorrow") {
+        if (!d) return false;
+        if (
+          !(
+            isAfter(d, startOfDay(addDays(now, 1))) &&
+            isBefore(d, endOfDay(addDays(now, 1)))
+          )
         )
-      )
-        return false;
-      if (dateFilter === "week" && !(isAfter(d, now) && isBefore(d, addDays(now, 7))))
-        return false;
-      if (dateFilter === "upcoming" && isBefore(d, startOfDay(now))) return false;
+          return false;
+      }
+      if (dateFilter === "week") {
+        if (!d) return false;
+        if (!(isAfter(d, now) && isBefore(d, addDays(now, 7)))) return false;
+      }
+      if (dateFilter === "upcoming" && d && isBefore(d, startOfDay(now))) return false;
       if (neighborhood !== "all" && e.neighborhood !== neighborhood) return false;
       if (eventType !== "all" && e.event_type !== eventType) return false;
       return true;
+    });
+    // Sort dated events ascending, undated at the bottom
+    return [...result].sort((a, b) => {
+      const ta = a.event_date ? new Date(a.event_date).getTime() : NaN;
+      const tb = b.event_date ? new Date(b.event_date).getTime() : NaN;
+      const aBad = isNaN(ta);
+      const bBad = isNaN(tb);
+      if (aBad && bBad) return 0;
+      if (aBad) return 1;
+      if (bBad) return -1;
+      return ta - tb;
     });
   }, [events, dateFilter, neighborhood, eventType]);
 
@@ -154,7 +172,8 @@ function Home() {
             {filtered.map((e) => {
               const t = eventTypeMeta(e.event_type);
               const n = neighborhoodMeta(e.neighborhood);
-              const d = new Date(e.event_date);
+              const rawDate = e.event_date ? new Date(e.event_date) : null;
+              const d = rawDate && !isNaN(rawDate.getTime()) ? rawDate : null;
               return (
                 <li key={e.id}>
                   <Link
@@ -166,10 +185,10 @@ function Home() {
                       <div className="grid h-16 w-16 shrink-0 place-items-center border-2 border-foreground bg-background">
                         <div className="text-center leading-tight">
                           <div className="font-mono text-[10px] uppercase tracking-wider text-foreground">
-                            {format(d, "MMM")}
+                            {d ? format(d, "MMM") : "—"}
                           </div>
                           <div className="font-brand text-2xl text-foreground">
-                            {format(d, "d")}
+                            {d ? format(d, "d") : "?"}
                           </div>
                         </div>
                       </div>
@@ -188,7 +207,7 @@ function Home() {
                           </span>
                           <span className="inline-flex items-center gap-1">
                             <Calendar className="h-3.5 w-3.5" />
-                            {format(d, "EEE, HH:mm")}
+                            {d ? format(d, "EEE, HH:mm") : "Date TBA"}
                           </span>
                           {e.link && (
                             <span className="inline-flex items-center gap-1 text-primary">
