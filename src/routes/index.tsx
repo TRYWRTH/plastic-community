@@ -51,24 +51,42 @@ function Home() {
 
   const filtered = useMemo(() => {
     const now = new Date();
-    return events.filter((e) => {
-      const d = new Date(e.event_date);
-      if (dateFilter === "today" && !(isAfter(d, startOfDay(now)) && isBefore(d, endOfDay(now))))
-        return false;
-      if (
-        dateFilter === "tomorrow" &&
-        !(
-          isAfter(d, startOfDay(addDays(now, 1))) &&
-          isBefore(d, endOfDay(addDays(now, 1)))
+    const result = events.filter((e) => {
+      const hasDate = !!e.event_date && !isNaN(new Date(e.event_date).getTime());
+      const d = hasDate ? new Date(e.event_date) : null;
+      if (dateFilter === "today") {
+        if (!d) return false;
+        if (!(isAfter(d, startOfDay(now)) && isBefore(d, endOfDay(now)))) return false;
+      }
+      if (dateFilter === "tomorrow") {
+        if (!d) return false;
+        if (
+          !(
+            isAfter(d, startOfDay(addDays(now, 1))) &&
+            isBefore(d, endOfDay(addDays(now, 1)))
+          )
         )
-      )
-        return false;
-      if (dateFilter === "week" && !(isAfter(d, now) && isBefore(d, addDays(now, 7))))
-        return false;
-      if (dateFilter === "upcoming" && isBefore(d, startOfDay(now))) return false;
+          return false;
+      }
+      if (dateFilter === "week") {
+        if (!d) return false;
+        if (!(isAfter(d, now) && isBefore(d, addDays(now, 7)))) return false;
+      }
+      if (dateFilter === "upcoming" && d && isBefore(d, startOfDay(now))) return false;
       if (neighborhood !== "all" && e.neighborhood !== neighborhood) return false;
       if (eventType !== "all" && e.event_type !== eventType) return false;
       return true;
+    });
+    // Sort dated events ascending, undated at the bottom
+    return [...result].sort((a, b) => {
+      const ta = a.event_date ? new Date(a.event_date).getTime() : NaN;
+      const tb = b.event_date ? new Date(b.event_date).getTime() : NaN;
+      const aBad = isNaN(ta);
+      const bBad = isNaN(tb);
+      if (aBad && bBad) return 0;
+      if (aBad) return 1;
+      if (bBad) return -1;
+      return ta - tb;
     });
   }, [events, dateFilter, neighborhood, eventType]);
 
