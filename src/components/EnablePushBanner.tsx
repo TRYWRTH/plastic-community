@@ -22,15 +22,21 @@ export function EnablePushBanner() {
   );
   const [pending, setPending] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     setPerm(getNotificationPermission());
     if (typeof window !== "undefined") {
       setDismissed(localStorage.getItem("pps:push-banner-dismissed") === "1");
+      const standalone =
+        window.matchMedia?.("(display-mode: standalone)").matches ||
+        (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+      setIsStandalone(!!standalone);
     }
   }, [isAuthenticated]);
 
   if (loading || !isAuthenticated) return null;
+  if (!isStandalone) return null;
   if (perm !== "default") return null;
   if (dismissed) return null;
 
