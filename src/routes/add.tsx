@@ -42,7 +42,8 @@ function AddEvent() {
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
   const [neighborhood, setNeighborhood] = useState<Neighborhood>("Mitte");
   const [eventType, setEventType] = useState<EventType>("music");
-  const [date, setDate] = useState(format(new Date(Date.now() + 86400000), "yyyy-MM-dd'T'HH:mm"));
+  const [eventDay, setEventDay] = useState(format(new Date(Date.now() + 86400000), "yyyy-MM-dd"));
+  const [eventTime, setEventTime] = useState("20:00");
   const [link, setLink] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
@@ -50,6 +51,11 @@ function AddEvent() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    const parsedDate = new Date(`${eventDay}T${eventTime}`);
+    if (Number.isNaN(parsedDate.getTime())) {
+      toast.error("Please choose a valid date and time.");
+      return;
+    }
     setSaving(true);
     const { data, error } = await supabase
       .from("events")
@@ -58,7 +64,7 @@ function AddEvent() {
         place: place.trim(),
         neighborhood,
         event_type: eventType,
-        event_date: new Date(date).toISOString(),
+        event_date: parsedDate.toISOString(),
         link: link.trim() || null,
         description: description.trim() || null,
         created_by: user.id,
