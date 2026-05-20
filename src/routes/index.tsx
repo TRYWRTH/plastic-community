@@ -158,7 +158,7 @@ function Home() {
             href="https://www.instagram.com/plastic_productions_/"
             target="_blank"
             rel="noreferrer noopener"
-            className="inline-flex items-center gap-2 border-2 border-foreground bg-background px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground hover:bg-foreground hover:text-background sm:text-[11px]"
+            className="inline-flex items-center gap-2 border-2 border-foreground bg-background px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground hover:bg-primary hover:text-primary-foreground sm:text-[11px]"
           >
             Brought to you by Plastic Productions
           </a>
