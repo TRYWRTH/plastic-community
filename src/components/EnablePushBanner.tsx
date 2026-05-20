@@ -71,7 +71,7 @@ export function EnablePushBanner() {
           <Bell className="mt-0.5 h-5 w-5 shrink-0" />
           <div>
             <p className="font-mono text-xs uppercase tracking-wide">
-              Get notified about new & updated events
+              🔔 Enable notifications to stay in the loop
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               You'll only be asked once. You can change this any time in
