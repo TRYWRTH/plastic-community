@@ -136,8 +136,13 @@ function EventDetail() {
                 </div>
                 <div className="inline-flex items-start gap-2">
                   <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary sm:h-4 sm:w-4" />
-                  <span className="break-words">{event.place} · {neighborhoodMeta(event.neighborhood).label}</span>
+                  <span className="break-words">
+                    {stripNeighborhoodSuffix(event.place, neighborhoodMeta(event.neighborhood).label)}
+                    {" · "}
+                    <span className="text-neighborhood">{neighborhoodMeta(event.neighborhood).label}</span>
+                  </span>
                 </div>
+
               </div>
               <SaveCountsLine
                 counts={counts}
