@@ -168,12 +168,16 @@ function AddEvent() {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Place" required>
-              <Input
+              <PlaceAutocompleteInput
                 value={place}
-                onChange={(e) => setPlace(e.target.value)}
+                onChange={(v) => {
+                  setPlace(v);
+                  setCoords({ lat: null, lng: null });
+                }}
+                onPlaceSelected={(p) => setCoords({ lat: p.lat, lng: p.lng })}
                 placeholder="Venue or address"
                 required
-                maxLength={120}
+                maxLength={200}
               />
             </Field>
             <Field label="Area" required>
