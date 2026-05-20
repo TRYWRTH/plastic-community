@@ -253,54 +253,23 @@ function EditEventForm({
             </Field>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-           <Field label="Place" required>
-  <PlaceAutocompleteInput
-    value={place}
-    onChange={(v) => {
-      setPlace(v);
-      setCoords({ lat: null, lng: null });
-      setNeighborhoodAutoDetected(false);
-    }}
-    onPlaceSelected={(p) => {
-      setCoords({ lat: p.lat, lng: p.lng });
-      if (p.neighborhood) {
-        setNeighborhood(p.neighborhood as Neighborhood);
-        setNeighborhoodAutoDetected(true);
-      } else {
-        setNeighborhoodAutoDetected(false);
-      }
-    }}
-    placeholder="Venue or address"
-    required
-    maxLength={200}
-  />
-  {neighborhoodAutoDetected && (
-    <p className="text-xs text-muted-foreground mt-1">
-      Area detected: <span className="font-medium text-foreground">{neighborhood}</span>
-    </p>
-  )}
-</Field>
-           {!neighborhoodAutoDetected && (
-  <Field label="Area" required>
-    <Select
-      value={neighborhood}
-      onValueChange={(v) => setNeighborhood(v as Neighborhood)}
-    >
-      <SelectTrigger>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {NEIGHBORHOODS.map((n) => (
-          <SelectItem key={n.value} value={n.value}>
-            {n.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </Field>
-)}
-          </div>
+          <Field label="Place" required>
+            <PlaceAutocompleteInput
+              value={place}
+              onChange={(v) => {
+                setPlace(v);
+                setCoords({ lat: null, lng: null });
+              }}
+              onPlaceSelected={(p) => {
+                setCoords({ lat: p.lat, lng: p.lng });
+                setNeighborhood((p.neighborhood as Neighborhood) ?? "Mitte");
+              }}
+              placeholder="Venue or address"
+              required
+              maxLength={200}
+            />
+          </Field>
+
 
           <Field label="Type">
             <Select name="event_type" defaultValue={event.event_type}>
