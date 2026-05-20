@@ -188,7 +188,7 @@ export function PlaceAutocompleteInput({
     <div className="relative w-full">
       <Input
         ref={inputRef}
-        type="text"
+        type="search"
         defaultValue={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
