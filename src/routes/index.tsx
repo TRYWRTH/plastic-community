@@ -149,7 +149,7 @@ function Home() {
   }, [events, dateFilter, neighborhood, eventType]);
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen overflow-x-hidden bg-paper">
       <Header />
       {/* Notifications hidden temporarily — feature kept for later testing */}
       {false && <EnablePushBanner />}
