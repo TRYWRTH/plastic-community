@@ -64,6 +64,7 @@ function EditEvent() {
     if (!event) return;
     setTitle(event.title);
     setPlace(event.place);
+    setCoords({ lat: (event as any).lat ?? null, lng: (event as any).lng ?? null });
     setNeighborhood(event.neighborhood as Neighborhood);
     setEventType(event.event_type as EventType);
     setDate(format(new Date(event.event_date), "yyyy-MM-dd'T'HH:mm"));
