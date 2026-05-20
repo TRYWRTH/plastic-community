@@ -136,6 +136,7 @@ function EventDetail() {
                   description={event.description ?? undefined}
                   uid={`${event.id}@whisperer-ring`}
                 />
+              )}
               {event.description && (
                 <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground sm:text-sm">
                   {event.description}
