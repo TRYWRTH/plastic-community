@@ -169,18 +169,38 @@ function RootComponent() {
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
 
-  // Unregister any legacy /sw.js. Do NOT auto-init OneSignal here — init is
-  // deferred until the user is authenticated (see auth listener above) and
-  // they explicitly enable push from a user gesture.
+  // Register the app's service worker. This is required on iOS so the
+  // installed PWA shares the same origin storage (and therefore the
+  // Supabase session) with Safari after a magic-link round trip — without
+  // a registered SW, the standalone PWA gets isolated storage and the user
+  // appears logged out. Skipped inside Lovable preview iframes.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if ("serviceWorker" in navigator) {
+    if (!("serviceWorker" in navigator)) return;
+
+    const inIframe = (() => {
+      try {
+        return window.self !== window.top;
+      } catch {
+        return true;
+      }
+    })();
+    const host = window.location.hostname;
+    const isPreviewHost =
+      host.includes("lovableproject.com") || host.includes("id-preview--");
+
+    if (inIframe || isPreviewHost) {
       navigator.serviceWorker.getRegistrations().then((regs) => {
         regs.forEach((r) => {
           if (r.active?.scriptURL.endsWith("/sw.js")) r.unregister();
         });
       });
+    } else {
+      navigator.serviceWorker.register("/sw.js").catch(() => {
+        /* ignore registration failures */
+      });
     }
+
     // If the user is already signed in on a non-login page, init OneSignal.
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session?.user) return;
@@ -191,6 +211,7 @@ function RootComponent() {
       });
     });
   }, []);
+
 
   if (!mounted) return null;
 
