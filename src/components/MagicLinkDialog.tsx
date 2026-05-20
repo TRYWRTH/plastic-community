@@ -57,14 +57,13 @@ export function MagicLinkDialog({
     e.preventDefault();
     setBusy(true);
 
-    // Build a clean redirect URL on the same origin so Supabase auth accepts
-    // it without extra allowlist configuration. We tag it with ?pwa=1 when
-    // the request was started from the installed home-screen app, so the
-    // landing page knows to nudge the user back into the PWA (iOS opens
-    // links from Mail/Gmail in Safari, not in the PWA container).
-    const url = new URL(window.location.href);
-    if (fromPWA) url.searchParams.set("pwa", "1");
-    const emailRedirectTo = url.toString();
+    // Always send users through the dedicated callback route on the canonical
+    // production URL. This keeps the redirect target stable (one entry in the
+    // Supabase allow-list) and lets /auth/callback run exchangeCodeForSession
+    // before bouncing the user back into the app.
+    const callbackUrl = new URL("https://plastic-community.vercel.app/auth/callback");
+    if (fromPWA) callbackUrl.searchParams.set("pwa", "1");
+    const emailRedirectTo = callbackUrl.toString();
 
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
