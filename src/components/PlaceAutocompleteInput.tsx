@@ -67,7 +67,7 @@ export function PlaceAutocompleteInput({
           const loc = place.geometry?.location;
           const lat = loc ? loc.lat() : null;
           const lng = loc ? loc.lng() : null;
-        const neighborhoodMap: Record<string, string> = {
+      const neighborhoodMap: Record<string, string> = {
   "mitte": "Mitte", "prenzlauer berg": "Prenzlauer Berg",
   "friedrichshain": "Friedrichshain", "kreuzberg": "Kreuzberg",
   "neukölln": "Neukölln", "neukolln": "Neukölln",
@@ -75,6 +75,18 @@ export function PlaceAutocompleteInput({
   "schoneberg": "Schöneberg", "charlottenburg": "Charlottenburg",
   "marzahn": "Marzahn", "spandau": "Spandau",
   "pankow": "Pankow", "lichtenberg": "Lichtenberg",
+  "bezirk neukölln": "Neukölln", "bezirk neukolln": "Neukölln",
+  "bezirk mitte": "Mitte",
+  "bezirk friedrichshain-kreuzberg": "Friedrichshain",
+  "bezirk pankow": "Pankow",
+  "bezirk charlottenburg-wilmersdorf": "Charlottenburg",
+  "bezirk spandau": "Spandau",
+  "bezirk steglitz-zehlendorf": "Tempelhof",
+  "bezirk tempelhof-schöneberg": "Schöneberg",
+  "bezirk tempelhof-schoneberg": "Schöneberg",
+  "bezirk lichtenberg": "Lichtenberg",
+  "bezirk marzahn-hellersdorf": "Marzahn",
+  "bezirk treptow-köpenick": "Lichtenberg",
 };
 let detectedNeighborhood: string | null = null;
 const components = place.address_components || [];
