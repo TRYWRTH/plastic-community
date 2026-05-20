@@ -1,12 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 import { Header } from "@/components/Header";
 import { QrScanButton } from "@/components/QrScanButton";
-import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendEventUpdateNotification } from "@/lib/notifications";
@@ -34,12 +33,10 @@ export const Route = createFileRoute("/event/$eventId_/edit")({
 
 function EditEvent() {
   const { eventId } = Route.useParams();
-  const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const queryClient = useQueryClient();
 
   const { data: event, isLoading } = useQuery({
-    queryKey: ["events", eventId],
+    queryKey: ["event-edit", eventId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
@@ -47,92 +44,12 @@ function EditEvent() {
         .eq("id", eventId)
         .maybeSingle();
       if (error) throw error;
+      console.log("[edit-event] fetched event data before form render", data);
       return data;
     },
+    refetchOnMount: "always",
+    staleTime: 0,
   });
-
-  const [title, setTitle] = useState("");
-  const [place, setPlace] = useState("");
-  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
-  const [neighborhood, setNeighborhood] = useState<Neighborhood>("Mitte");
-  const [eventType, setEventType] = useState<EventType>("music");
-  const [date, setDate] = useState("");
-  const [link, setLink] = useState("");
-  const [description, setDescription] = useState("");
-  const [saving, setSaving] = useState(false);
-  const hydratedRef = useRef(false);
-
-  // Pre-fill the form ONCE when the event first loads. Re-running on every
-  // query refetch (window focus, cache invalidation) would clobber whatever
-  // the user is currently typing — including the date and place fields.
-  useEffect(() => {
-    if (!event || hydratedRef.current) return;
-    hydratedRef.current = true;
-    setTitle(event.title);
-    setPlace(event.place);
-    setCoords({ lat: (event as any).lat ?? null, lng: (event as any).lng ?? null });
-    setNeighborhood(event.neighborhood as Neighborhood);
-    setEventType(event.event_type as EventType);
-    setDate(format(new Date(event.event_date), "yyyy-MM-dd'T'HH:mm"));
-    setLink(event.link ?? "");
-    setDescription(event.description ?? "");
-  }, [event]);
-
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !event) return;
-    setSaving(true);
-    const { data: updated, error } = await supabase
-      .from("events")
-      .update({
-        title: title.trim(),
-        place: place.trim(),
-        neighborhood,
-        event_type: eventType,
-        event_date: new Date(date).toISOString(),
-        link: link.trim() || null,
-        description: description.trim() || null,
-        lat: coords.lat,
-        lng: coords.lng,
-      })
-      .eq("id", eventId)
-      .select()
-      .maybeSingle();
-    setSaving(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    if (!updated) {
-      toast.error("Couldn't save — you may not have permission to edit this event.");
-      return;
-    }
-    toast.success("Event updated");
-
-    // Refresh cached event data so the detail page shows the new values.
-    await queryClient.invalidateQueries({ queryKey: ["events", eventId] });
-    await queryClient.invalidateQueries({ queryKey: ["events"] });
-
-
-    // Notify only saved users who opted in (notify=true), excluding the editor.
-    const { data: saves } = await supabase
-      .from("event_saves")
-      .select("user_id")
-      .eq("event_id", eventId)
-      .eq("notify", true);
-    const externalUserIds = (saves ?? [])
-      .map((s) => s.user_id)
-      .filter((id) => id !== user.id);
-    const eventUrl = `${window.location.origin}/event/${eventId}`;
-    void sendEventUpdateNotification({
-      title: "Event updated",
-      message: `${title.trim()} — ${place.trim()}, ${neighborhood}`,
-      url: eventUrl,
-      externalUserIds,
-    });
-
-    navigate({ to: "/event/$eventId", params: { eventId } });
-  };
 
   if (authLoading || isLoading) {
     return (
