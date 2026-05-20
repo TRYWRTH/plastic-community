@@ -5,6 +5,7 @@ import { format } from "date-fns";
 
 import { Header } from "@/components/Header";
 import { QrScanButton } from "@/components/QrScanButton";
+import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
 import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
