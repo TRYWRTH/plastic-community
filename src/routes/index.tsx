@@ -185,10 +185,10 @@ function Home() {
                       <div className="grid h-16 w-16 shrink-0 place-items-center border-2 border-foreground bg-background">
                         <div className="text-center leading-tight">
                           <div className="font-mono text-[10px] uppercase tracking-wider text-foreground">
-                            {format(d, "MMM")}
+                            {d ? format(d, "MMM") : "—"}
                           </div>
                           <div className="font-brand text-2xl text-foreground">
-                            {format(d, "d")}
+                            {d ? format(d, "d") : "?"}
                           </div>
                         </div>
                       </div>
