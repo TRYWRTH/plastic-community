@@ -39,6 +39,7 @@ function AddEvent() {
 
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("");
+  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
   const [neighborhood, setNeighborhood] = useState<Neighborhood>("Mitte");
   const [eventType, setEventType] = useState<EventType>("music");
   const [date, setDate] = useState(format(new Date(Date.now() + 86400000), "yyyy-MM-dd'T'HH:mm"));
