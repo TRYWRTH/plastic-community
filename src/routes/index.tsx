@@ -8,6 +8,8 @@ import { MapPin, Calendar, ExternalLink } from "lucide-react";
 
 import { Header } from "@/components/Header";
 import { EnablePushBanner } from "@/components/EnablePushBanner";
+import { SaveCountsLine } from "@/components/SaveCountsLine";
+import { useAllEventSaveCounts } from "@/lib/use-event-save-counts";
 import { supabase } from "@/integrations/supabase/client";
 import {
   EVENT_TYPES,
@@ -74,6 +76,7 @@ function Home() {
     queryKey: ["events"],
     queryFn: fetchEvents,
   });
+  const { data: countsMap } = useAllEventSaveCounts();
 
   const search = Route.useSearch();
   const { date: dateFilter, neighborhood, type: eventType } = search;
@@ -269,11 +272,12 @@ function Home() {
                             {d ? format(d, "EEE, HH:mm") : "Date TBA"}
                           </span>
                           {e.link && (
-                            <span className="inline-flex items-center gap-1 text-primary">
+                            <span className="inline-flex items-center gap-1 text-link">
                               <ExternalLink className="h-3.5 w-3.5" />
                               link
                             </span>
                           )}
+                          <SaveCountsLine counts={countsMap?.get(e.id)} />
                         </div>
                       </div>
                     </div>

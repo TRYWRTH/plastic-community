@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { format } from "date-fns";
 import { MapPin, Calendar, ExternalLink, Trash2, Pencil, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -7,10 +8,22 @@ import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { SaveButtons } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
+import { SaveCountsLine } from "@/components/SaveCountsLine";
+import { useEventSaveCounts } from "@/lib/use-event-save-counts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/event/$eventId")({
   component: EventDetail,
@@ -61,6 +74,8 @@ function EventDetail() {
   const { eventId } = Route.useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: event, isLoading } = useQuery({
     queryKey: ["events", eventId],
@@ -75,10 +90,14 @@ function EventDetail() {
     },
   });
 
+  const { data: counts } = useEventSaveCounts(eventId);
+
   const remove = async () => {
-    if (!confirm("Delete this event?")) return;
+    setDeleting(true);
     const { error } = await supabase.from("events").delete().eq("id", eventId);
+    setDeleting(false);
     if (error) return toast.error(error.message);
+    setConfirmDeleteOpen(false);
     toast.success("Event deleted");
     navigate({ to: "/" });
   };
@@ -120,6 +139,10 @@ function EventDetail() {
                   <span className="break-words">{event.place} · {neighborhoodMeta(event.neighborhood).label}</span>
                 </div>
               </div>
+              <SaveCountsLine
+                counts={counts}
+                className="mt-3 inline-block font-mono text-[10px] uppercase tracking-widest text-foreground sm:mt-4 sm:text-[11px]"
+              />
             </div>
             <div className="space-y-4 p-4 sm:space-y-5 sm:p-8">
               {/* On desktop the save buttons live inline; on mobile they're pinned at the bottom for thumb reach. */}
@@ -147,7 +170,7 @@ function EventDetail() {
                   href={event.link}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="inline-flex items-center gap-2 text-sm font-medium text-primary underline underline-offset-4 hover:text-foreground"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-link underline underline-offset-4 hover:text-foreground"
                 >
                   <ExternalLink className="h-4 w-4 shrink-0" />
                   {(() => {
@@ -169,7 +192,7 @@ function EventDetail() {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={remove}
+                    onClick={() => setConfirmDeleteOpen(true)}
                     className="w-full text-destructive sm:w-auto"
                   >
                     <Trash2 className="h-4 w-4" /> Delete event
@@ -190,6 +213,30 @@ function EventDetail() {
           <SaveButtons eventId={event.id} />
         </div>
       )}
+
+      <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this event?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this event? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                void remove();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

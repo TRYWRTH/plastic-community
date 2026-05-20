@@ -30,6 +30,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-glow: var(--primary);
+  --color-link: var(--link);
   --font-display: "Archivo Black", "Helvetica Neue", Arial, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-brand: "Archivo Black", "Helvetica Neue", Arial, sans-serif;
@@ -67,6 +68,8 @@
   --border: oklch(0.18 0 0);            /* hard black border */
   --input: oklch(0.99 0 0);
   --ring: oklch(0.18 0 0);
+
+  --link: oklch(0.35 0.15 134);         /* dark green, readable on concrete */
 }
 
 @layer base {
