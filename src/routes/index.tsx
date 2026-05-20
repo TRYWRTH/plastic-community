@@ -241,7 +241,7 @@ function Home() {
                   <Link
                     to="/event/$eventId"
                     params={{ eventId: e.id }}
-                    className="group block border-2 border-foreground bg-card p-4 transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
+                    className="group block overflow-hidden border-2 border-foreground bg-card p-4 transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
                   >
                     <div className="flex items-start gap-4">
                       <div className="grid h-16 w-16 shrink-0 place-items-center border-2 border-foreground bg-background">
