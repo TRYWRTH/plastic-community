@@ -173,48 +173,13 @@ function EventDetail() {
       )}
       <Header />
       <main className="mx-auto max-w-2xl px-3 py-3 sm:px-4 sm:py-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <Link
             to="/"
             className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-foreground hover:text-primary sm:text-xs"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back
           </Link>
-          {isCreator && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  aria-label="Event actions"
-                  className="-mr-1 grid h-9 w-9 place-items-center rounded-none text-foreground hover:text-primary"
-                >
-                  <MoreVertical className="h-5 w-5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="rounded-none border-2 border-foreground bg-card"
-              >
-                <DropdownMenuItem asChild>
-                  <Link
-                    to="/event/$eventId/edit"
-                    params={{ eventId: event!.id }}
-                    className="font-mono text-xs uppercase tracking-widest"
-                  >
-                    <Pencil className="mr-2 h-4 w-4" /> Edit event
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    setConfirmDeleteOpen(true);
-                  }}
-                  className="font-mono text-xs uppercase tracking-widest text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" /> Delete event
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
         </div>
 
         {isLoading ? (
@@ -227,25 +192,62 @@ function EventDetail() {
           <>
             <article className="mt-3 sm:mt-6 sm:border-2 sm:border-foreground sm:bg-card sm:shadow-stamp">
               <div className="pb-4 sm:border-b-2 sm:border-foreground sm:p-8 sm:pb-8">
-                {(() => {
-                  const meta = eventTypeMeta(event.event_type);
-                  return (
-                    <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-foreground sm:text-[11px]">
-                      <meta.Icon className="h-4 w-4" aria-hidden="true" />
-                      <span>{meta.label}</span>
-                    </div>
-                  );
-                })()}
+                <div className="flex items-start justify-between gap-3">
+                  {(() => {
+                    const meta = eventTypeMeta(event.event_type);
+                    return (
+                      <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-foreground sm:text-xs">
+                        <meta.Icon className="h-4 w-4" aria-hidden="true" />
+                        <span>{meta.label}</span>
+                      </div>
+                    );
+                  })()}
+                  {isCreator && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          aria-label="Event actions"
+                          className="-mr-2 -mt-2 grid h-9 w-9 place-items-center rounded-none text-foreground hover:text-primary"
+                        >
+                          <MoreVertical className="h-5 w-5" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="rounded-none border-2 border-foreground bg-card"
+                      >
+                        <DropdownMenuItem asChild>
+                          <Link
+                            to="/event/$eventId/edit"
+                            params={{ eventId: event!.id }}
+                            className="font-mono text-xs uppercase tracking-widest"
+                          >
+                            <Pencil className="mr-2 h-4 w-4" /> Edit event
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            setConfirmDeleteOpen(true);
+                          }}
+                          className="font-mono text-xs uppercase tracking-widest text-destructive focus:text-destructive focus:bg-destructive/10"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> Delete event
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
                 <h1 className="mt-2 font-brand text-2xl uppercase text-balance text-foreground sm:mt-3 sm:text-5xl">
                   {event.title}
                 </h1>
-                <div className="mt-3 grid gap-1.5 font-mono text-[11px] uppercase tracking-wide text-foreground sm:mt-5 sm:grid-cols-2 sm:gap-2 sm:text-xs">
+                <div className="mt-3 grid gap-2 font-mono text-sm uppercase tracking-wide text-foreground sm:mt-5 sm:grid-cols-2 sm:text-xs">
                   <div className="inline-flex items-center gap-2">
-                    <Calendar className="h-3.5 w-3.5 shrink-0 text-primary sm:h-4 sm:w-4" />
+                    <Calendar className="h-4 w-4 shrink-0 text-primary" />
                     {format(new Date(event.event_date), "EEE, MMM d · HH:mm")}
                   </div>
                   <div className="inline-flex items-start gap-2">
-                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary sm:h-4 sm:w-4" />
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     <span className="break-words">
                       {stripNeighborhoodSuffix(event.place, neighborhoodLabel)}
                       {" · "}
@@ -255,7 +257,7 @@ function EventDetail() {
                 </div>
                 <SaveCountsLine
                   counts={counts}
-                  className="mt-3 inline-block font-mono text-[10px] uppercase tracking-widest text-foreground sm:mt-4 sm:text-[11px]"
+                  className="mt-3 inline-block font-mono text-[11px] uppercase tracking-widest text-foreground sm:mt-4"
                 />
               </div>
               <div className="space-y-4 pt-4 sm:space-y-5 sm:p-8">
@@ -274,7 +276,7 @@ function EventDetail() {
                   )}
                 </div>
                 {event.description && (
-                  <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground sm:text-sm">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
                     {event.description}
                   </p>
                 )}

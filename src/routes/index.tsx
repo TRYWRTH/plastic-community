@@ -230,18 +230,18 @@ function Home() {
         ) : filtered.length === 0 ? (
           <EmptyState />
         ) : (
-          <ul className="grid gap-4">
+          <ul className="grid w-full gap-4">
             {filtered.map((e) => {
               const t = eventTypeMeta(e.event_type);
               const n = neighborhoodMeta(e.neighborhood);
               const rawDate = e.event_date ? new Date(e.event_date) : null;
               const d = rawDate && !isNaN(rawDate.getTime()) ? rawDate : null;
               return (
-                <li key={e.id}>
+                <li key={e.id} className="min-w-0 w-full max-w-full">
                   <Link
                     to="/event/$eventId"
                     params={{ eventId: e.id }}
-                    className="group block overflow-hidden border-2 border-foreground bg-card p-4 transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
+                    className="group block w-full max-w-full overflow-hidden border-2 border-foreground bg-card p-4 transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
                   >
                     <div className="flex items-start gap-4">
                       <div className="grid h-16 w-16 shrink-0 place-items-center border-2 border-foreground bg-background">
