@@ -297,6 +297,12 @@ function Home() {
   );
 }
 
+function stripNeighborhoodSuffix(place: string, neighborhood: string) {
+  const suffix = ` · ${neighborhood}`;
+  return place.endsWith(suffix) ? place.slice(0, -suffix.length) : place;
+}
+
+
 function FilterSelect({
   value,
   onChange,
