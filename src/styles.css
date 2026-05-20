@@ -31,6 +31,8 @@
   --color-ring: var(--ring);
   --color-glow: var(--primary);
   --color-link: var(--link);
+  --color-neighborhood: var(--neighborhood);
+
   --font-display: "Archivo Black", "Helvetica Neue", Arial, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-brand: "Archivo Black", "Helvetica Neue", Arial, sans-serif;
@@ -70,6 +72,8 @@
   --ring: oklch(0.18 0 0);
 
   --link: oklch(0.35 0.15 134);         /* dark green, readable on concrete */
+  --neighborhood: #00CC00;              /* darker neon green for neighborhood tags */
+
 }
 
 @layer base {
