@@ -222,7 +222,8 @@ export function SaveButtons({ eventId }: { eventId: string }) {
           Interested
         </Button>
       </div>
-      {current && (
+      {/* Per-event notify toggle hidden temporarily — feature kept for later testing */}
+      {false && current && (
         <Button
           variant={notify ? "default" : "outline"}
           onClick={onNotifyClick}
