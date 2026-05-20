@@ -172,7 +172,8 @@ function Home() {
             {filtered.map((e) => {
               const t = eventTypeMeta(e.event_type);
               const n = neighborhoodMeta(e.neighborhood);
-              const d = new Date(e.event_date);
+              const rawDate = e.event_date ? new Date(e.event_date) : null;
+              const d = rawDate && !isNaN(rawDate.getTime()) ? rawDate : null;
               return (
                 <li key={e.id}>
                   <Link
