@@ -238,3 +238,8 @@ function EventDetail() {
     </div>
   );
 }
+
+function stripNeighborhoodSuffix(place: string, neighborhood: string) {
+  const suffix = ` · ${neighborhood}`;
+  return place.endsWith(suffix) ? place.slice(0, -suffix.length) : place;
+}
