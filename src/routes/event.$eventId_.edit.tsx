@@ -77,7 +77,7 @@ function EditEvent() {
     e.preventDefault();
     if (!user || !event) return;
     setSaving(true);
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from("events")
       .update({
         title: title.trim(),
@@ -90,13 +90,24 @@ function EditEvent() {
         lat: coords.lat,
         lng: coords.lng,
       })
-      .eq("id", eventId);
+      .eq("id", eventId)
+      .select()
+      .maybeSingle();
     setSaving(false);
     if (error) {
       toast.error(error.message);
       return;
     }
+    if (!updated) {
+      toast.error("Couldn't save — you may not have permission to edit this event.");
+      return;
+    }
     toast.success("Event updated");
+
+    // Refresh cached event data so the detail page shows the new values.
+    await queryClient.invalidateQueries({ queryKey: ["events", eventId] });
+    await queryClient.invalidateQueries({ queryKey: ["events"] });
+
 
     // Notify only saved users who opted in (notify=true), excluding the editor.
     const { data: saves } = await supabase
