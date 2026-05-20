@@ -12,6 +12,7 @@ import { Toaster } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { initOneSignal, setOneSignalExternalId } from "@/lib/onesignal";
+import { OpenInAppBanner } from "@/components/OpenInAppBanner";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
