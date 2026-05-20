@@ -1,5 +1,5 @@
-// Lazy-loads the Google Maps JS API (Places library) on demand and resolves
-// only once `window.google.maps.places` is actually available.
+// Lazy-loads the Google Maps JS API and ensures the new Places library
+// (including PlaceAutocompleteElement) is imported and ready.
 const GOOGLE_PLACES_API_KEY =
   import.meta.env.VITE_GOOGLE_PLACES_API_KEY ||
   "AIzaSyA5tkm_gjsdsja-aFDatefyf33l20DT9vw";
@@ -14,37 +14,40 @@ declare global {
 
 export function loadGooglePlaces(): Promise<void> {
   if (typeof window === "undefined") return Promise.resolve();
-  if (window.google?.maps?.places) return Promise.resolve();
   if (window.__gmapsLoader) return window.__gmapsLoader;
 
   window.__gmapsLoader = new Promise<void>((resolve, reject) => {
-    // Poll until the places library is ready — works whether the script was
-    // just injected or is already present in the document.
-    const waitForPlaces = () => {
-      const start = Date.now();
-      const tick = () => {
-        if (window.google?.maps?.places) return resolve();
-        if (Date.now() - start > 15000) {
-          return reject(new Error("Google Maps Places API timed out"));
-        }
-        setTimeout(tick, 50);
-      };
-      tick();
+    const importPlaces = async () => {
+      try {
+        // The new PlaceAutocompleteElement lives in the "places" library
+        // and must be imported via importLibrary before use.
+        await window.google.maps.importLibrary("places");
+        resolve();
+      } catch (err) {
+        reject(err as Error);
+      }
     };
+
+    if (window.google?.maps?.importLibrary) {
+      importPlaces();
+      return;
+    }
 
     const existing = document.querySelector<HTMLScriptElement>(
       "script[data-google-maps]",
     );
     if (existing) {
-      waitForPlaces();
+      const wait = () => {
+        if (window.google?.maps?.importLibrary) return importPlaces();
+        setTimeout(wait, 50);
+      };
+      wait();
       return;
     }
 
-    // Use the documented `callback` param so we know when the API has
-    // fully initialised (script `onload` fires too early with loading=async).
-    window.__gmapsInit = () => waitForPlaces();
+    window.__gmapsInit = () => importPlaces();
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_PLACES_API_KEY}&libraries=places&loading=async&callback=__gmapsInit`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_PLACES_API_KEY}&libraries=places&loading=async&callback=__gmapsInit&v=weekly`;
     script.async = true;
     script.defer = true;
     script.setAttribute("data-google-maps", "true");
