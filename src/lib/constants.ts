@@ -29,9 +29,7 @@ export const NEIGHBORHOODS: { value: Neighborhood; label: string }[] = [
   { value: "Spandau", label: "Spandau" },
   { value: "Pankow", label: "Pankow" },
   { value: "Lichtenberg", label: "Lichtenberg" },
-  { value: "Steglitz-Zehlendorf", label: "Steglitz-Zehlendorf" },
-{ value: "Reinickendorf", label: "Reinickendorf" },
-{ value: "Treptow-Köpenick", label: "Treptow-Köpenick" },
+
   
 ];
 
