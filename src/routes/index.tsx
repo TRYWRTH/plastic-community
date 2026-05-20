@@ -76,6 +76,7 @@ function Home() {
     queryKey: ["events"],
     queryFn: fetchEvents,
   });
+  const { data: countsMap } = useAllEventSaveCounts();
 
   const search = Route.useSearch();
   const { date: dateFilter, neighborhood, type: eventType } = search;
