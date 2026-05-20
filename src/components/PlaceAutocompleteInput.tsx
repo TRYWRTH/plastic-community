@@ -78,6 +78,7 @@ export function PlaceAutocompleteInput({
 };
 let detectedNeighborhood: string | null = null;
 const components = place.address_components || [];
+          console.log("Address components:", components.map(c => c.long_name));
 for (const component of components) {
   const longName = component.long_name.toLowerCase();
   if (neighborhoodMap[longName]) {
