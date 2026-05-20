@@ -72,6 +72,8 @@
   --ring: oklch(0.18 0 0);
 
   --link: oklch(0.35 0.15 134);         /* dark green, readable on concrete */
+  --neighborhood: #00CC00;              /* darker neon green for neighborhood tags */
+
 }
 
 @layer base {
