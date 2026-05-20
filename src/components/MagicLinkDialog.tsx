@@ -135,7 +135,6 @@ export function MagicLinkDialog({
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                 required
-                autoFocus
                 autoComplete="one-time-code"
                 placeholder="123456"
                 className="rounded-none border-2 border-foreground text-center text-2xl tracking-[0.5em] font-mono"
