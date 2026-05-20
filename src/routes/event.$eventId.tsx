@@ -139,6 +139,10 @@ function EventDetail() {
                   <span className="break-words">{event.place} · {neighborhoodMeta(event.neighborhood).label}</span>
                 </div>
               </div>
+              <SaveCountsLine
+                counts={counts}
+                className="mt-3 inline-block font-mono text-[10px] uppercase tracking-widest text-foreground sm:mt-4 sm:text-[11px]"
+              />
             </div>
             <div className="space-y-4 p-4 sm:space-y-5 sm:p-8">
               {/* On desktop the save buttons live inline; on mobile they're pinned at the bottom for thumb reach. */}
