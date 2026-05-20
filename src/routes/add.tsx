@@ -165,21 +165,23 @@ function AddEvent() {
               />
             </Field>
           </div>
-
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Place" required>
-              <PlaceAutocompleteInput
-                value={place}
-                onChange={(v) => {
-                  setPlace(v);
-                  setCoords({ lat: null, lng: null });
-                }}
-                onPlaceSelected={(p) => setCoords({ lat: p.lat, lng: p.lng })}
-                placeholder="Venue or address"
-                required
-                maxLength={200}
-              />
-            </Field>
+  <PlaceAutocompleteInput
+    value={place}
+    onChange={(v) => {
+      setPlace(v);
+      setCoords({ lat: null, lng: null });
+    }}
+    onPlaceSelected={(p) => {
+      setCoords({ lat: p.lat, lng: p.lng });
+      if (p.neighborhood) setNeighborhood(p.neighborhood as Neighborhood);
+    }}
+    placeholder="Venue or address"
+    required
+    maxLength={200}
+  />
+</Field>
             <Field label="Area" required>
               <Select
                 value={neighborhood}
