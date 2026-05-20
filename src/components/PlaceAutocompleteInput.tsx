@@ -103,12 +103,15 @@ export function PlaceAutocompleteInput({
             const loc = place.location;
             const lat = loc ? loc.lat() : null;
             const lng = loc ? loc.lng() : null;
+            const input = el.querySelector("input") as HTMLInputElement | null;
             if (name) {
               onChangeRef.current(name);
-              const input = el.querySelector("input") as HTMLInputElement | null;
               if (input) input.value = name;
             }
             onPlaceSelectedRef.current({ name, lat, lng });
+            // Dismiss the mobile keyboard after selection
+            input?.blur();
+            (document.activeElement as HTMLElement | null)?.blur?.();
           } catch (err) {
             console.error("Failed to resolve selected place", err);
           }
