@@ -1,5 +1,5 @@
 // Lazy-loads the Google Maps JS API (Places library) on demand.
-const GOOGLE_PLACES_API_KEY = "AIzaSyA5tkm_gjsdsja-aFDatefyf33l20DT9vw";
+const GOOGLE_PLACES_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
 
 declare global {
   interface Window {
