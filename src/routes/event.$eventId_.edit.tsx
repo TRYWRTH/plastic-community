@@ -134,7 +134,7 @@ function EditEventForm({
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const nextTitle = String(form.get("title") ?? "").trim();
-    const nextPlace = String(form.get("place") ?? "").trim();
+    const nextPlace = place.trim();
     const nextNeighborhood = String(form.get("neighborhood") ?? event.neighborhood) as Neighborhood;
     const nextEventType = String(form.get("event_type") ?? event.event_type) as EventType;
     const nextDay = String(form.get("event_day") ?? "");
@@ -164,8 +164,8 @@ function EditEventForm({
         event_date: parsedDate.toISOString(),
         link: nextLink || null,
         description: nextDescription || null,
-        lat: nextPlace === event.place ? event.lat : null,
-        lng: nextPlace === event.place ? event.lng : null,
+        lat: coords.lat,
+        lng: coords.lng,
       })
       .eq("id", eventId)
       .eq("created_by", userId)
