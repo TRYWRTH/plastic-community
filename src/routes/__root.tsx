@@ -75,8 +75,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       {
         name: "viewport",
-        content:
-          "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no",
+        content: "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no",
       },
       { name: "theme-color", content: "#F2F0EB" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
@@ -101,9 +100,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:title", content: "The Poster Said So — Performance events in Berlin" },
       { name: "twitter:title", content: "The Poster Said So — Performance events in Berlin" },
-      { name: "description", content: "Discover and share local events with \"The Poster Said So\" app." },
-      { property: "og:description", content: "Discover and share local events with \"The Poster Said So\" app." },
-      { name: "twitter:description", content: "Discover and share local events with \"The Poster Said So\" app." },
+      {
+        name: "description",
+        content: 'Discover and share local events with "The Poster Said So" app.',
+      },
+      {
+        property: "og:description",
+        content: 'Discover and share local events with "The Poster Said So" app.',
+      },
+      {
+        name: "twitter:description",
+        content: 'Discover and share local events with "The Poster Said So" app.',
+      },
       { name: "twitter:card", content: "summary" },
     ],
     links: [
@@ -158,8 +166,7 @@ function RootComponent() {
       // the /login route — initializing during the login flow can cause the
       // browser permission prompt to appear before the user is actually in.
       if (session?.user) {
-        const path =
-          typeof window !== "undefined" ? window.location.pathname : "";
+        const path = typeof window !== "undefined" ? window.location.pathname : "";
         if (!path.startsWith("/login")) {
           initOneSignal().then(() => {
             setOneSignalExternalId(session.user.id);
@@ -223,8 +230,7 @@ function RootComponent() {
       }
     })();
     const host = window.location.hostname;
-    const isPreviewHost =
-      host.includes("lovableproject.com") || host.includes("id-preview--");
+    const isPreviewHost = host.includes("lovableproject.com") || host.includes("id-preview--");
 
     if (inIframe || isPreviewHost) {
       navigator.serviceWorker.getRegistrations().then((regs) => {
@@ -248,7 +254,6 @@ function RootComponent() {
       });
     });
   }, []);
-
 
   if (!mounted) return null;
 
