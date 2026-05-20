@@ -95,7 +95,7 @@ export function EnablePushBanner() {
             className="flex-1 sm:flex-none"
           >
             <Bell className="h-4 w-4" />
-            Enable push notifications
+            Turn on
           </Button>
         </div>
       </div>
