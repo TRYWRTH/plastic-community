@@ -1,0 +1,3 @@
+ALTER TABLE public.user_push_subscriptions RENAME COLUMN player_id TO onesignal_player_id;
+ALTER TABLE public.user_push_subscriptions DROP CONSTRAINT IF EXISTS user_push_subscriptions_user_id_player_id_key;
+ALTER TABLE public.user_push_subscriptions ADD CONSTRAINT user_push_subscriptions_user_id_key UNIQUE (user_id);
