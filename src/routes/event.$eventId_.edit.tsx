@@ -12,7 +12,7 @@ import { useAuth } from "@/lib/use-auth";
 import { sendEventUpdateNotification } from "@/lib/notifications";
 import {
   EVENT_TYPES,
-  NEIGHBORHOODS,
+  
   type EventType,
   type Neighborhood,
 } from "@/lib/constants";
