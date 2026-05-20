@@ -75,6 +75,8 @@ function Home() {
   return (
     <div className="min-h-screen bg-paper">
       <Header />
+      <EnablePushBanner />
+
 
       {/* Hero */}
       <section className="border-b-2 border-foreground">
