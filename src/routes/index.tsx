@@ -1,6 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { format, isAfter, isBefore, startOfDay, endOfDay, addDays } from "date-fns";
 import { MapPin, Calendar, ExternalLink } from "lucide-react";
 
@@ -24,11 +26,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export const Route = createFileRoute("/")({
-  component: Home,
+const DATE_FILTERS = ["all", "today", "tomorrow", "week", "upcoming", "past"] as const;
+type DateFilter = (typeof DATE_FILTERS)[number];
+
+const NEIGHBORHOOD_VALUES = NEIGHBORHOODS.map((n) => n.value) as [Neighborhood, ...Neighborhood[]];
+const EVENT_TYPE_VALUES = EVENT_TYPES.map((t) => t.value) as [EventType, ...EventType[]];
+
+const searchSchema = z.object({
+  date: fallback(z.enum(DATE_FILTERS), "upcoming").default("upcoming"),
+  neighborhood: fallback(
+    z.union([z.literal("all"), z.enum(NEIGHBORHOOD_VALUES)]),
+    "all",
+  ).default("all"),
+  type: fallback(
+    z.union([z.literal("all"), z.enum(EVENT_TYPE_VALUES)]),
+    "all",
+  ).default("all"),
 });
 
-type DateFilter = "all" | "today" | "tomorrow" | "week" | "upcoming" | "past";
+export const Route = createFileRoute("/")({
+  validateSearch: zodValidator(searchSchema),
+  component: Home,
+});
 
 async function fetchEvents() {
   const { data, error } = await supabase
@@ -45,9 +64,18 @@ function Home() {
     queryFn: fetchEvents,
   });
 
-  const [dateFilter, setDateFilter] = useState<DateFilter>("upcoming");
-  const [neighborhood, setNeighborhood] = useState<Neighborhood | "all">("all");
-  const [eventType, setEventType] = useState<EventType | "all">("all");
+  const search = Route.useSearch();
+  const { date: dateFilter, neighborhood, type: eventType } = search;
+  const navigate = useNavigate({ from: "/" });
+
+  const setDateFilter = (v: DateFilter) =>
+    navigate({ search: { ...search, date: v }, replace: true });
+  const setNeighborhood = (v: Neighborhood | "all") =>
+    navigate({ search: { ...search, neighborhood: v }, replace: true });
+  const setEventType = (v: EventType | "all") =>
+    navigate({ search: { ...search, type: v }, replace: true });
+
+
 
   const filtered = useMemo(() => {
     const now = new Date();
