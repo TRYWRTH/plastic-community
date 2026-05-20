@@ -29,6 +29,10 @@ export function PlaceAutocompleteInput({
   const elementRef = useRef<any>(null);
   const valueRef = useRef(value);
   valueRef.current = value;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const onPlaceSelectedRef = useRef(onPlaceSelected);
+  onPlaceSelectedRef.current = onPlaceSelected;
 
   useEffect(() => {
     let cancelled = false;
@@ -67,16 +71,18 @@ export function PlaceAutocompleteInput({
           if (required) input.required = true;
           if (maxLength) input.maxLength = maxLength;
           input.autocomplete = "off";
-          if (valueRef.current && !input.value) {
+          // Pre-fill with the controlled value once the internal input mounts.
+          if (valueRef.current && input.value !== valueRef.current) {
             input.value = valueRef.current;
           }
           input.addEventListener("input", () => {
-            onChange(input.value);
+            onChangeRef.current(input.value);
           });
         };
         // The internal input mounts asynchronously inside the custom element.
         setTimeout(styleInternalInput, 0);
         setTimeout(styleInternalInput, 100);
+        setTimeout(styleInternalInput, 400);
 
         el.addEventListener("gmp-select", async (event: any) => {
           try {
@@ -98,11 +104,11 @@ export function PlaceAutocompleteInput({
             const lat = loc ? loc.lat() : null;
             const lng = loc ? loc.lng() : null;
             if (name) {
-              onChange(name);
+              onChangeRef.current(name);
               const input = el.querySelector("input") as HTMLInputElement | null;
               if (input) input.value = name;
             }
-            onPlaceSelected({ name, lat, lng });
+            onPlaceSelectedRef.current({ name, lat, lng });
           } catch (err) {
             console.error("Failed to resolve selected place", err);
           }
@@ -119,6 +125,17 @@ export function PlaceAutocompleteInput({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep the internal input in sync when the controlled `value` changes
+  // (e.g. parent loads the event from the DB after mount).
+  useEffect(() => {
+    const el = elementRef.current;
+    if (!el) return;
+    const input = el.querySelector("input") as HTMLInputElement | null;
+    if (input && input.value !== value) {
+      input.value = value ?? "";
+    }
+  }, [value]);
 
   return <div ref={containerRef} className="w-full" />;
 }
