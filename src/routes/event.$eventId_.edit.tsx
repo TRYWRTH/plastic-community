@@ -203,18 +203,18 @@ function EditEventForm({
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="mx-auto max-w-xl px-4 py-8">
+      <main className="mx-auto max-w-xl px-3 pb-24 pt-4 sm:px-4 sm:py-8">
         <Link
           to="/event/$eventId"
           params={{ eventId }}
-          className="text-sm text-muted-foreground hover:text-foreground"
+          className="text-xs text-muted-foreground hover:text-foreground sm:text-sm"
         >
           ← Back
         </Link>
-        <h1 className="mt-2 font-display text-3xl font-bold">Edit event</h1>
-        <p className="mt-1 text-muted-foreground">Update the details below.</p>
+        <h1 className="mt-1 font-display text-2xl font-bold sm:mt-2 sm:text-3xl">Edit event</h1>
+        <p className="mt-1 hidden text-muted-foreground sm:block">Update the details below.</p>
 
-        <form onSubmit={submit} className="mt-8 space-y-5">
+        <form id="edit-event-form" onSubmit={submit} className="mt-4 space-y-3.5 sm:mt-8 sm:space-y-5">
           <Field label="Title" required>
             <Input
               name="title"
@@ -224,7 +224,7 @@ function EditEventForm({
             />
           </Field>
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-3.5 sm:grid-cols-2 sm:gap-5">
             <Field label="Date" required>
               <Input
                 type="date"
@@ -257,7 +257,7 @@ function EditEventForm({
             </Field>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-3.5 sm:grid-cols-2 sm:gap-5">
             <Field label="Place" required>
               <Input
                 name="place"
@@ -313,7 +313,7 @@ function EditEventForm({
             />
           </Field>
 
-          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center">
+          <div className="hidden gap-2 pt-2 sm:flex sm:flex-row sm:items-center">
             <Button type="button" variant="ghost" asChild className="w-full sm:w-auto">
               <Link to="/event/$eventId" params={{ eventId }}>
                 Cancel
@@ -324,6 +324,18 @@ function EditEventForm({
             </Button>
           </div>
         </form>
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 px-3 py-2 backdrop-blur sm:hidden">
+          <div className="mx-auto flex max-w-xl gap-2">
+            <Button type="button" variant="ghost" asChild className="h-11 flex-1">
+              <Link to="/event/$eventId" params={{ eventId }}>
+                Cancel
+              </Link>
+            </Button>
+            <Button type="submit" form="edit-event-form" disabled={saving} className="h-11 flex-1 shadow-glow">
+              {saving ? "Saving…" : "Save changes"}
+            </Button>
+          </div>
+        </div>
       </main>
     </div>
   );
