@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { format } from "date-fns";
 import { MapPin, Calendar, ExternalLink, Trash2, Pencil, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -7,10 +8,22 @@ import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { SaveButtons } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
+import { SaveCountsLine } from "@/components/SaveCountsLine";
+import { useEventSaveCounts } from "@/lib/use-event-save-counts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/event/$eventId")({
   component: EventDetail,
