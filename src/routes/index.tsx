@@ -230,7 +230,7 @@ function Home() {
         ) : filtered.length === 0 ? (
           <EmptyState />
         ) : (
-          <ul className="grid gap-4">
+          <ul className="grid w-full gap-4">
             {filtered.map((e) => {
               const t = eventTypeMeta(e.event_type);
               const n = neighborhoodMeta(e.neighborhood);
