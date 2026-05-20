@@ -192,7 +192,7 @@ function EventDetail() {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={remove}
+                    onClick={() => setConfirmDeleteOpen(true)}
                     className="w-full text-destructive sm:w-auto"
                   >
                     <Trash2 className="h-4 w-4" /> Delete event
@@ -213,6 +213,30 @@ function EventDetail() {
           <SaveButtons eventId={event.id} />
         </div>
       )}
+
+      <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this event?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this event? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                void remove();
+              }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
