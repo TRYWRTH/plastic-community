@@ -225,11 +225,19 @@ function EditEventForm({
           </Field>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Date & time" required>
+            <Field label="Date" required>
               <Input
-                type="datetime-local"
-                name="event_date"
-                defaultValue={initialDate}
+                type="date"
+                name="event_day"
+                defaultValue={initialDateOnly}
+                required
+              />
+            </Field>
+            <Field label="Time" required>
+              <Input
+                type="time"
+                name="event_time"
+                defaultValue={initialTimeOnly}
                 required
               />
             </Field>
