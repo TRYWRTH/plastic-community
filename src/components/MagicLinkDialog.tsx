@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+// True when the app is running from the iOS/Android home screen (installed PWA),
+// false when running in a regular browser tab.
+function isStandalonePWA(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia?.("(display-mode: standalone)").matches ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true
+  );
+}
 
 export function MagicLinkDialog({
   open,
@@ -28,13 +38,25 @@ export function MagicLinkDialog({
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 
+  const fromPWA = useMemo(() => isStandalonePWA(), []);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
+
+    // Build a clean redirect URL on the same origin so Supabase auth accepts
+    // it without extra allowlist configuration. We tag it with ?pwa=1 when
+    // the request was started from the installed home-screen app, so the
+    // landing page knows to nudge the user back into the PWA (iOS opens
+    // links from Mail/Gmail in Safari, not in the PWA container).
+    const url = new URL(window.location.href);
+    if (fromPWA) url.searchParams.set("pwa", "1");
+    const emailRedirectTo = url.toString();
+
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        emailRedirectTo: window.location.href,
+        emailRedirectTo,
         shouldCreateUser: true,
       },
     });
@@ -62,9 +84,23 @@ export function MagicLinkDialog({
             {sent ? "Check your inbox" : title}
           </DialogTitle>
           <DialogDescription className="font-mono text-xs uppercase tracking-wide">
-            {sent
-              ? `We sent a magic link to ${email}. Open it on this device to continue.`
-              : description}
+            {sent ? (
+              <>
+                We sent a magic link to {email}.
+                {fromPWA ? (
+                  <>
+                    {" "}
+                    On iPhone the link opens in Safari first — after you tap
+                    it, return to this app from your home screen to finish
+                    signing in here.
+                  </>
+                ) : (
+                  <> Open it on this device to continue.</>
+                )}
+              </>
+            ) : (
+              description
+            )}
           </DialogDescription>
         </DialogHeader>
         {!sent && (
