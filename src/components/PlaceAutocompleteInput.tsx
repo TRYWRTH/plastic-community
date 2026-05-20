@@ -16,6 +16,7 @@ type Props = {
   maxLength?: number;
 };
 
+
 export function PlaceAutocompleteInput({
   value,
   onChange,
@@ -48,6 +49,9 @@ export function PlaceAutocompleteInput({
         // Match the surrounding form input styling.
         el.className = "w-full";
         el.style.width = "100%";
+        el.style.backgroundColor = "transparent";
+        el.style.color = "inherit";
+        el.style.borderRadius = "var(--radius)";
 
         containerRef.current.innerHTML = "";
         containerRef.current.appendChild(el);
