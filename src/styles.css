@@ -126,4 +126,19 @@
 
 gmp-place-autocomplete {
   color-scheme: light;
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+/* Force Google Places suggestion dropdown to anchor below the input,
+   not float to the top of the viewport on mobile. */
+.pac-container,
+.pac-container.pac-logo {
+  z-index: 9999 !important;
+  border: 2px solid var(--foreground) !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 0 var(--foreground) !important;
+  font-family: var(--font-sans) !important;
+  margin-top: 2px;
 }
