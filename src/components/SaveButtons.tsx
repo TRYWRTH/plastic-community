@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { Button } from "@/components/ui/button";
 import { MagicLinkDialog } from "@/components/MagicLinkDialog";
-import { getNotificationPermission } from "@/lib/onesignal";
+import { getNotificationPermission, savePlayerIdForCurrentUser } from "@/lib/onesignal";
 
 type SaveStatus = "going" | "interested";
 type SaveRow = { id: string; status: SaveStatus; notify: boolean } | null;
@@ -161,6 +161,9 @@ export function SaveButtons({ eventId }: { eventId: string }) {
         try {
           OneSignal?.User?.PushSubscription?.optIn?.();
         } catch {}
+        // Persist the OneSignal player id for this user so server-side
+        // reminders can target this device.
+        void savePlayerIdForCurrentUser();
         toggleNotify.mutate(true);
       } else {
         toast.message(
