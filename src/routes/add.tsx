@@ -42,7 +42,8 @@ function AddEvent() {
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
   const [neighborhood, setNeighborhood] = useState<Neighborhood>("Mitte");
   const [eventType, setEventType] = useState<EventType>("music");
-  const [date, setDate] = useState(format(new Date(Date.now() + 86400000), "yyyy-MM-dd'T'HH:mm"));
+  const [eventDay, setEventDay] = useState(format(new Date(Date.now() + 86400000), "yyyy-MM-dd"));
+  const [eventTime, setEventTime] = useState("20:00");
   const [link, setLink] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
@@ -50,6 +51,11 @@ function AddEvent() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    const parsedDate = new Date(`${eventDay}T${eventTime}`);
+    if (Number.isNaN(parsedDate.getTime())) {
+      toast.error("Please choose a valid date and time.");
+      return;
+    }
     setSaving(true);
     const { data, error } = await supabase
       .from("events")
@@ -58,7 +64,7 @@ function AddEvent() {
         place: place.trim(),
         neighborhood,
         event_type: eventType,
-        event_date: new Date(date).toISOString(),
+        event_date: parsedDate.toISOString(),
         link: link.trim() || null,
         description: description.trim() || null,
         created_by: user.id,
@@ -121,16 +127,16 @@ function AddEvent() {
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="mx-auto max-w-xl px-4 py-8">
+      <main className="mx-auto max-w-xl px-3 py-4 sm:px-4 sm:py-8">
         <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
           ← Back
         </Link>
-        <h1 className="mt-2 font-display text-3xl font-bold">Add an event</h1>
-        <p className="mt-1 text-muted-foreground">
+        <h1 className="mt-2 font-display text-2xl font-bold sm:text-3xl">Add an event</h1>
+        <p className="mt-1 text-sm text-muted-foreground sm:text-base">
           Saw a poster? Drop the basics — your crew sees it instantly.
         </p>
 
-        <form onSubmit={submit} className="mt-8 space-y-5">
+        <form onSubmit={submit} className="mt-6 space-y-4 sm:mt-8 sm:space-y-5">
           <Field label="Title" required>
             <Input
               value={title}
@@ -141,30 +147,40 @@ function AddEvent() {
             />
           </Field>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Date & time" required>
+          <div className="grid grid-cols-2 gap-3 sm:gap-5">
+            <Field label="Date" required>
               <Input
-                type="datetime-local"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                type="date"
+                value={eventDay}
+                onChange={(e) => setEventDay(e.target.value)}
                 required
               />
             </Field>
-            <Field label="Type" required>
-              <Select value={eventType} onValueChange={(v) => setEventType(v as EventType)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {EVENT_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.emoji} {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <Field label="Time" required>
+              <Input
+                type="time"
+                value={eventTime}
+                onChange={(e) => setEventTime(e.target.value)}
+                required
+              />
             </Field>
           </div>
+
+          <Field label="Type" required>
+            <Select value={eventType} onValueChange={(v) => setEventType(v as EventType)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EVENT_TYPES.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.emoji} {t.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
 
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Place" required>
