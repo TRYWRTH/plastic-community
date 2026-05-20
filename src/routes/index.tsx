@@ -274,7 +274,7 @@ function Home() {
                           {e.link && (
                             <span className="inline-flex items-center gap-1 text-link">
                               <ExternalLink className="h-3.5 w-3.5" />
-                              link
+                              Website
                             </span>
                           )}
                           <SaveCountsLine counts={countsMap?.get(e.id)} />

@@ -123,6 +123,7 @@ function EditEventForm({
   const [saving, setSaving] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
   const [place, setPlace] = useState(event.place);
+  const [neighborhood, setNeighborhood] = useState<Neighborhood>(event.neighborhood);
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
     lat: event.lat,
     lng: event.lng,
@@ -135,7 +136,7 @@ function EditEventForm({
     const form = new FormData(e.currentTarget);
     const nextTitle = String(form.get("title") ?? "").trim();
     const nextPlace = place.trim();
-    const nextNeighborhood = String(form.get("neighborhood") ?? event.neighborhood) as Neighborhood;
+    const nextNeighborhood = neighborhood;
     const nextEventType = String(form.get("event_type") ?? event.event_type) as EventType;
     const nextDay = String(form.get("event_day") ?? "");
     const nextTime = String(form.get("event_time") ?? "");
@@ -259,14 +260,17 @@ function EditEventForm({
                   setPlace(v);
                   if (v !== event.place) setCoords({ lat: null, lng: null });
                 }}
-                onPlaceSelected={(p) => setCoords({ lat: p.lat, lng: p.lng })}
+                onPlaceSelected={(p) => {
+                  setCoords({ lat: p.lat, lng: p.lng });
+                  if (p.neighborhood) setNeighborhood(p.neighborhood as Neighborhood);
+                }}
                 placeholder="Venue or address"
                 required
                 maxLength={200}
               />
             </Field>
             <Field label="Area" required>
-              <Select name="neighborhood" defaultValue={event.neighborhood}>
+              <Select value={neighborhood} onValueChange={(v) => setNeighborhood(v as Neighborhood)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
