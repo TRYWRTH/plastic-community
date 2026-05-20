@@ -152,13 +152,25 @@ function RootComponent() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       router.invalidate();
       queryClient.invalidateQueries();
-      setOneSignalExternalId(session?.user?.id ?? null);
+      // Only init OneSignal AFTER the user is authenticated, and never on
+      // the /login route — initializing during the login flow can cause the
+      // browser permission prompt to appear before the user is actually in.
+      if (session?.user) {
+        const path =
+          typeof window !== "undefined" ? window.location.pathname : "";
+        if (!path.startsWith("/login")) {
+          initOneSignal().then(() => {
+            setOneSignalExternalId(session.user.id);
+          });
+        }
+      }
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
 
-  // Unregister any legacy /sw.js, then initialize OneSignal (which registers
-  // its own service worker). OneSignal init no-ops inside Lovable previews.
+  // Unregister any legacy /sw.js. Do NOT auto-init OneSignal here — init is
+  // deferred until the user is authenticated (see auth listener above) and
+  // they explicitly enable push from a user gesture.
   useEffect(() => {
     if (typeof window === "undefined") return;
     if ("serviceWorker" in navigator) {
@@ -168,9 +180,14 @@ function RootComponent() {
         });
       });
     }
-    initOneSignal();
+    // If the user is already signed in on a non-login page, init OneSignal.
     supabase.auth.getSession().then(({ data }) => {
-      setOneSignalExternalId(data.session?.user?.id ?? null);
+      if (!data.session?.user) return;
+      const path = window.location.pathname;
+      if (path.startsWith("/login")) return;
+      initOneSignal().then(() => {
+        setOneSignalExternalId(data.session!.user.id);
+      });
     });
   }, []);
 
