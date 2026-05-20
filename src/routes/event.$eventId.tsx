@@ -74,6 +74,8 @@ function EventDetail() {
   const { eventId } = Route.useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: event, isLoading } = useQuery({
     queryKey: ["events", eventId],
@@ -88,10 +90,14 @@ function EventDetail() {
     },
   });
 
+  const { data: counts } = useEventSaveCounts(eventId);
+
   const remove = async () => {
-    if (!confirm("Delete this event?")) return;
+    setDeleting(true);
     const { error } = await supabase.from("events").delete().eq("id", eventId);
+    setDeleting(false);
     if (error) return toast.error(error.message);
+    setConfirmDeleteOpen(false);
     toast.success("Event deleted");
     navigate({ to: "/" });
   };
