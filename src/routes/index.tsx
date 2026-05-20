@@ -149,7 +149,7 @@ function Home() {
           <h1 className="mt-5 font-brand text-[3rem] uppercase leading-[0.95] text-foreground text-balance sm:mt-6 sm:text-[7.5rem]">
             Whisper
             <br />
-            Ring.
+            Ring
           </h1>
           <p className="mt-5 max-w-xl text-balance font-mono text-xs uppercase tracking-wide text-foreground sm:mt-6 sm:text-base">
             Spot a poster, add the event, share it.
