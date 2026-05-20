@@ -195,6 +195,9 @@ export function PlaceAutocompleteInput({
         required={required}
         maxLength={maxLength}
         autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
         title={value || undefined}
         className="pr-8 text-ellipsis"
       />
