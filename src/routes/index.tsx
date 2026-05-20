@@ -207,7 +207,7 @@ function Home() {
                           </span>
                           <span className="inline-flex items-center gap-1">
                             <Calendar className="h-3.5 w-3.5" />
-                            {format(d, "EEE, HH:mm")}
+                            {d ? format(d, "EEE, HH:mm") : "Date TBA"}
                           </span>
                           {e.link && (
                             <span className="inline-flex items-center gap-1 text-primary">
