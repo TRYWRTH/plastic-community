@@ -146,10 +146,12 @@ export function PlaceAutocompleteInput({
     return () => {
       cancelled = true;
       if (elementRef.current) {
+        (elementRef.current as any).__cleanupReposition?.();
         elementRef.current.remove();
         elementRef.current = null;
       }
     };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
