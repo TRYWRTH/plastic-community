@@ -129,10 +129,27 @@ gmp-place-autocomplete {
   position: relative;
   display: block;
   width: 100%;
+  anchor-name: --gmp-place-anchor;
 }
 
-/* Force Google Places suggestion dropdown to anchor below the input,
-   not float to the top of the viewport on mobile. */
+/* New PlaceAutocompleteElement popover — force it to anchor under the input.
+   On browsers without CSS anchor positioning support, the popover defaults
+   to the top of the viewport on mobile, so we pin it manually. */
+[popover].pcc-ag,
+gmp-place-autocomplete [popover],
+.place-autocomplete-element-popover,
+.place-autocomplete-element-popover-container {
+  position: absolute !important;
+  position-anchor: --gmp-place-anchor;
+  top: anchor(bottom) !important;
+  left: anchor(left) !important;
+  width: anchor-size(width) !important;
+  margin: 2px 0 0 0 !important;
+  inset: auto !important;
+  z-index: 9999 !important;
+}
+
+/* Legacy autocomplete (pac-container) fallback */
 .pac-container,
 .pac-container.pac-logo {
   z-index: 9999 !important;
