@@ -36,6 +36,7 @@ function EditEvent() {
   const { eventId } = Route.useParams();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: event, isLoading } = useQuery({
     queryKey: ["events", eventId],
