@@ -147,30 +147,40 @@ function AddEvent() {
             />
           </Field>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Date & time" required>
+          <div className="grid grid-cols-2 gap-3 sm:gap-5">
+            <Field label="Date" required>
               <Input
-                type="datetime-local"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                type="date"
+                value={eventDay}
+                onChange={(e) => setEventDay(e.target.value)}
                 required
               />
             </Field>
-            <Field label="Type" required>
-              <Select value={eventType} onValueChange={(v) => setEventType(v as EventType)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {EVENT_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.emoji} {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <Field label="Time" required>
+              <Input
+                type="time"
+                value={eventTime}
+                onChange={(e) => setEventTime(e.target.value)}
+                required
+              />
             </Field>
           </div>
+
+          <Field label="Type" required>
+            <Select value={eventType} onValueChange={(v) => setEventType(v as EventType)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EVENT_TYPES.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.emoji} {t.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
 
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Place" required>
