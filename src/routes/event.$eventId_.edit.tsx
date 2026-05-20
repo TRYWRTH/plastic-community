@@ -222,6 +222,7 @@ function EditEvent() {
                 required
                 maxLength={200}
               />
+            </Field>
             <Field label="Area" required>
               <Select
                 value={neighborhood}
