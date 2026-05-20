@@ -276,7 +276,7 @@ function EventDetail() {
                   )}
                 </div>
                 {event.description && (
-                  <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-foreground sm:text-sm">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
                     {event.description}
                   </p>
                 )}
