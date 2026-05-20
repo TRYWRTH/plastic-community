@@ -13,6 +13,47 @@ import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/event/$eventId")({
   component: EventDetail,
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("events")
+      .select("id,title,place,neighborhood,event_date,description")
+      .eq("id", params.eventId)
+      .maybeSingle();
+    return { event: data };
+  },
+  head: ({ loaderData, params }) => {
+    const ev = loaderData?.event;
+    if (!ev) {
+      return { meta: [{ title: "Event — Whisperer Ring" }] };
+    }
+    const when = ev.event_date
+      ? format(new Date(ev.event_date), "EEE, MMM d · HH:mm")
+      : "";
+    const title = `${ev.title} — Whisperer Ring`;
+    const desc = [
+      [ev.place, ev.neighborhood].filter(Boolean).join(", "),
+      when,
+      ev.description ?? "",
+    ]
+      .filter(Boolean)
+      .join(" · ")
+      .slice(0, 200);
+    const url = `https://plastic-community.lovable.app/event/${params.eventId}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: ev.title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "event" },
+        { property: "og:url", content: url },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: ev.title },
+        { name: "twitter:description", content: desc },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
 });
 
 function EventDetail() {

@@ -77,14 +77,14 @@ export const Route = createFileRoute("/api/public/hooks/send-event-reminders")({
 
           const { data: subs, error: pErr } = await supabaseAdmin
             .from("user_push_subscriptions")
-            .select("player_id")
+            .select("onesignal_player_id")
             .in("user_id", userIds);
           if (pErr) {
             console.error("subs query failed", pErr);
             continue;
           }
           const playerIds = Array.from(
-            new Set((subs ?? []).map((r) => r.player_id).filter(Boolean)),
+            new Set((subs ?? []).map((r) => r.onesignal_player_id).filter(Boolean)),
           );
           if (playerIds.length === 0) {
             results.push({ event_id: ev.id, recipients: 0 });

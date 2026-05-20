@@ -214,12 +214,25 @@ export async function savePlayerIdForCurrentUser(): Promise<void> {
     }
     if (!playerId) return;
 
-    await supabase
+    const { data: upsertData, error: upsertError } = await supabase
       .from("user_push_subscriptions")
       .upsert(
-        { user_id: userId, player_id: playerId },
-        { onConflict: "user_id,player_id" },
-      );
+        { user_id: userId, onesignal_player_id: playerId },
+        { onConflict: "user_id" },
+      )
+      .select();
+    if (upsertError) {
+      console.error("[push] upsert failed", {
+        message: upsertError.message,
+        code: upsertError.code,
+        details: upsertError.details,
+        hint: upsertError.hint,
+        userId,
+        playerId,
+      });
+    } else {
+      console.log("[push] upsert ok", upsertData);
+    }
   } catch (err) {
     console.error("savePlayerIdForCurrentUser failed", err);
   }
