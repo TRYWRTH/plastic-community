@@ -170,7 +170,7 @@ function EventDetail() {
                   href={event.link}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="inline-flex items-center gap-2 text-sm font-medium text-primary underline underline-offset-4 hover:text-foreground"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-link underline underline-offset-4 hover:text-foreground"
                 >
                   <ExternalLink className="h-4 w-4 shrink-0" />
                   {(() => {
