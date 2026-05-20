@@ -260,14 +260,17 @@ function EditEventForm({
                   setPlace(v);
                   if (v !== event.place) setCoords({ lat: null, lng: null });
                 }}
-                onPlaceSelected={(p) => setCoords({ lat: p.lat, lng: p.lng })}
+                onPlaceSelected={(p) => {
+                  setCoords({ lat: p.lat, lng: p.lng });
+                  if (p.neighborhood) setNeighborhood(p.neighborhood as Neighborhood);
+                }}
                 placeholder="Venue or address"
                 required
                 maxLength={200}
               />
             </Field>
             <Field label="Area" required>
-              <Select name="neighborhood" defaultValue={event.neighborhood}>
+              <Select value={neighborhood} onValueChange={(v) => setNeighborhood(v as Neighborhood)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
