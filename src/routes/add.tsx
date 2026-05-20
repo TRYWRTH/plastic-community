@@ -127,16 +127,16 @@ function AddEvent() {
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="mx-auto max-w-xl px-4 py-8">
+      <main className="mx-auto max-w-xl px-3 py-4 sm:px-4 sm:py-8">
         <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
           ← Back
         </Link>
-        <h1 className="mt-2 font-display text-3xl font-bold">Add an event</h1>
-        <p className="mt-1 text-muted-foreground">
+        <h1 className="mt-2 font-display text-2xl font-bold sm:text-3xl">Add an event</h1>
+        <p className="mt-1 text-sm text-muted-foreground sm:text-base">
           Saw a poster? Drop the basics — your crew sees it instantly.
         </p>
 
-        <form onSubmit={submit} className="mt-8 space-y-5">
+        <form onSubmit={submit} className="mt-6 space-y-4 sm:mt-8 sm:space-y-5">
           <Field label="Title" required>
             <Input
               value={title}
