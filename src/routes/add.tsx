@@ -62,6 +62,8 @@ function AddEvent() {
         link: link.trim() || null,
         description: description.trim() || null,
         created_by: user.id,
+        lat: coords.lat,
+        lng: coords.lng,
       })
       .select("id")
       .single();
