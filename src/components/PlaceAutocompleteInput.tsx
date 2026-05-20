@@ -6,6 +6,7 @@ export type PlaceResult = {
   name: string;
   lat: number | null;
   lng: number | null;
+  neighborhood: string | null;
 };
 
 type Props = {
@@ -46,7 +47,7 @@ export function PlaceAutocompleteInput({
         }
 
         const ac = new places.Autocomplete(inputRef.current, {
-          fields: ["name", "formatted_address", "geometry"],
+        fields: ["name", "formatted_address", "geometry", "address_components"],
           componentRestrictions: { country: "de" },
           types: ["establishment", "geocode"],
         });
@@ -66,9 +67,33 @@ export function PlaceAutocompleteInput({
           const loc = place.geometry?.location;
           const lat = loc ? loc.lat() : null;
           const lng = loc ? loc.lng() : null;
-          if (name && inputRef.current) inputRef.current.value = name;
-          if (name) onChangeRef.current(name);
-          onPlaceSelectedRef.current({ name, lat, lng });
+        const neighborhoodMap: Record<string, string> = {
+  "mitte": "Mitte", "prenzlauer berg": "Prenzlauer Berg",
+  "friedrichshain": "Friedrichshain", "kreuzberg": "Kreuzberg",
+  "neukölln": "Neukölln", "neukolln": "Neukölln",
+  "tempelhof": "Tempelhof", "schöneberg": "Schöneberg",
+  "schoneberg": "Schöneberg", "charlottenburg": "Charlottenburg",
+  "marzahn": "Marzahn", "spandau": "Spandau",
+  "pankow": "Pankow", "lichtenberg": "Lichtenberg",
+};
+let detectedNeighborhood: string | null = null;
+const components = place.address_components || [];
+for (const component of components) {
+  const longName = component.long_name.toLowerCase();
+  if (neighborhoodMap[longName]) {
+    detectedNeighborhood = neighborhoodMap[longName];
+    break;
+  }
+}
+if (!detectedNeighborhood && address) {
+  const addressLower = address.toLowerCase();
+  for (const [key, val] of Object.entries(neighborhoodMap)) {
+    if (addressLower.includes(key)) { detectedNeighborhood = val; break; }
+  }
+}
+if (name && inputRef.current) inputRef.current.value = name;
+if (name) onChangeRef.current(name);
+onPlaceSelectedRef.current({ name, lat, lng, neighborhood: detectedNeighborhood });
           inputRef.current?.blur();
           (document.activeElement as HTMLElement | null)?.blur?.();
         });
