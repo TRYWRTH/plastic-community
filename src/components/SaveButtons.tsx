@@ -161,6 +161,9 @@ export function SaveButtons({ eventId }: { eventId: string }) {
         try {
           OneSignal?.User?.PushSubscription?.optIn?.();
         } catch {}
+        // Persist the OneSignal player id for this user so server-side
+        // reminders can target this device.
+        void savePlayerIdForCurrentUser();
         toggleNotify.mutate(true);
       } else {
         toast.message(
