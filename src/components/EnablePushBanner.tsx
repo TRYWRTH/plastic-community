@@ -22,23 +22,27 @@ export function EnablePushBanner() {
   );
   const [pending, setPending] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     setPerm(getNotificationPermission());
     if (typeof window !== "undefined") {
       setDismissed(localStorage.getItem("pps:push-banner-dismissed") === "1");
+      const standalone =
+        window.matchMedia?.("(display-mode: standalone)").matches ||
+        (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+      setIsStandalone(!!standalone);
     }
   }, [isAuthenticated]);
 
   if (loading || !isAuthenticated) return null;
+  if (!isStandalone) return null;
   if (perm !== "default") return null;
   if (dismissed) return null;
 
   const onEnable = async () => {
     setPending(true);
     try {
-      // Ensure SDK is loaded before requesting permission. initOneSignal
-      // resolves quickly if already initialized.
       await initOneSignal();
       const granted = await requestPushPermission();
       setPerm(getNotificationPermission());
@@ -47,6 +51,9 @@ export function EnablePushBanner() {
         toast.message(
           "Notifications not enabled. You can turn them on later in your browser settings.",
         );
+      // Hide permanently once the user has made a choice (grant or deny).
+      localStorage.setItem("pps:push-banner-dismissed", "1");
+      setDismissed(true);
     } finally {
       setPending(false);
     }
@@ -64,7 +71,7 @@ export function EnablePushBanner() {
           <Bell className="mt-0.5 h-5 w-5 shrink-0" />
           <div>
             <p className="font-mono text-xs uppercase tracking-wide">
-              Get notified about new & updated events
+              🔔 Enable notifications to stay in the loop
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               You'll only be asked once. You can change this any time in
@@ -88,7 +95,7 @@ export function EnablePushBanner() {
             className="flex-1 sm:flex-none"
           >
             <Bell className="h-4 w-4" />
-            Enable push notifications
+            Turn on
           </Button>
         </div>
       </div>
