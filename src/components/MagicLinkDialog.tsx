@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/use-auth";
 
@@ -14,21 +14,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-// True when the app is running from the iOS/Android home screen (installed PWA),
-// false when running in a regular browser tab.
-function isStandalonePWA(): boolean {
-  if (typeof window === "undefined") return false;
-  return (
-    window.matchMedia?.("(display-mode: standalone)").matches ||
-    (window.navigator as unknown as { standalone?: boolean }).standalone === true
-  );
-}
-
 export function MagicLinkDialog({
   open,
   onOpenChange,
   title = "Enter your email to continue",
-  description = "We'll send you a magic link. Click it to sign in and return here.",
+  description = "We'll email you a 6-digit code to sign in.",
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -36,54 +26,58 @@ export function MagicLinkDialog({
   description?: string;
 }) {
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [step, setStep] = useState<"email" | "code">("email");
   const { isAuthenticated } = useAuth();
 
-  // Auto-close the dialog as soon as a valid session is detected — covers
-  // the case where the user returns to the PWA after clicking the magic
-  // link in Safari and Supabase restores the session on the next visit.
+  // Auto-close when a session is detected.
   useEffect(() => {
     if (open && isAuthenticated) {
-      setSent(false);
+      setStep("email");
       setEmail("");
+      setCode("");
       onOpenChange(false);
     }
   }, [open, isAuthenticated, onOpenChange]);
 
-  const fromPWA = useMemo(() => isStandalonePWA(), []);
-
-  const submit = async (e: React.FormEvent) => {
+  const sendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-
-    // Always send users through the dedicated callback route on the canonical
-    // production URL. This keeps the redirect target stable (one entry in the
-    // Supabase allow-list) and lets /auth/callback run exchangeCodeForSession
-    // before bouncing the user back into the app.
-    const callbackUrl = new URL("https://plastic-community.vercel.app/auth/callback");
-    if (fromPWA) callbackUrl.searchParams.set("pwa", "1");
-    const emailRedirectTo = callbackUrl.toString();
-
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: {
-        emailRedirectTo,
-        shouldCreateUser: true,
-      },
+      options: { shouldCreateUser: true },
     });
     setBusy(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    setSent(true);
+    setStep("code");
+  };
+
+  const verifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    const { error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: code.trim(),
+      type: "email",
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Signed in");
+    // The useEffect above will close the dialog when isAuthenticated flips.
   };
 
   const reset = (v: boolean) => {
     if (!v) {
-      setSent(false);
+      setStep("email");
       setEmail("");
+      setCode("");
     }
     onOpenChange(v);
   };
@@ -93,30 +87,19 @@ export function MagicLinkDialog({
       <DialogContent className="rounded-none border-2 border-foreground">
         <DialogHeader>
           <DialogTitle className="font-brand text-2xl uppercase">
-            {sent ? "Check your inbox" : title}
+            {step === "code" ? "Enter your code" : title}
           </DialogTitle>
           <DialogDescription className="font-mono text-xs uppercase tracking-wide">
-            {sent ? (
-              <>
-                We sent a magic link to {email}.
-                {fromPWA ? (
-                  <>
-                    {" "}
-                    On iPhone the link opens in Safari first — after you tap
-                    it, return to this app from your home screen to finish
-                    signing in here.
-                  </>
-                ) : (
-                  <> Open it on this device to continue.</>
-                )}
-              </>
+            {step === "code" ? (
+              <>We sent a 6-digit code to {email}. Enter it below.</>
             ) : (
               description
             )}
           </DialogDescription>
         </DialogHeader>
-        {!sent && (
-          <form onSubmit={submit} className="space-y-4">
+
+        {step === "email" && (
+          <form onSubmit={sendCode} className="space-y-4">
             <div className="space-y-1.5">
               <Label className="font-mono text-xs uppercase tracking-wide">
                 Email
@@ -132,13 +115,49 @@ export function MagicLinkDialog({
                 className="rounded-none border-2 border-foreground"
               />
             </div>
+            <Button type="submit" disabled={busy} className="w-full rounded-none">
+              {busy ? "Sending…" : "Send code"}
+            </Button>
+          </form>
+        )}
+
+        {step === "code" && (
+          <form onSubmit={verifyCode} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="font-mono text-xs uppercase tracking-wide">
+                6-digit code
+              </Label>
+              <Input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={6}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                required
+                autoFocus
+                autoComplete="one-time-code"
+                placeholder="123456"
+                className="rounded-none border-2 border-foreground text-center text-2xl tracking-[0.5em] font-mono"
+              />
+            </div>
             <Button
               type="submit"
-              disabled={busy}
+              disabled={busy || code.length < 6}
               className="w-full rounded-none"
             >
-              {busy ? "Sending…" : "Send magic link"}
+              {busy ? "Verifying…" : "Verify & sign in"}
             </Button>
+            <button
+              type="button"
+              onClick={() => {
+                setStep("email");
+                setCode("");
+              }}
+              className="w-full font-mono text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
+            >
+              ← Use a different email
+            </button>
           </form>
         )}
       </DialogContent>
