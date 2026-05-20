@@ -143,6 +143,7 @@ function Home() {
                 { value: "tomorrow", label: "Tomorrow" },
                 { value: "week", label: "This week" },
                 { value: "all", label: "Any time" },
+                { value: "past", label: "Past (last 30 days)" },
               ]}
             />
             <FilterSelect
