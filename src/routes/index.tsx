@@ -28,8 +28,7 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-type DateFilter = "all" | "today" | "tomorrow" | "week" | "upcoming";
-type FeedTab = "upcoming" | "past";
+type DateFilter = "all" | "today" | "tomorrow" | "week" | "upcoming" | "past";
 
 async function fetchEvents() {
   const { data, error } = await supabase
@@ -46,7 +45,6 @@ function Home() {
     queryFn: fetchEvents,
   });
 
-  const [tab, setTab] = useState<FeedTab>("upcoming");
   const [dateFilter, setDateFilter] = useState<DateFilter>("upcoming");
   const [neighborhood, setNeighborhood] = useState<Neighborhood | "all">("all");
   const [eventType, setEventType] = useState<EventType | "all">("all");
@@ -58,13 +56,11 @@ function Home() {
       const hasDate = !!e.event_date && !isNaN(new Date(e.event_date).getTime());
       const d = hasDate ? new Date(e.event_date) : null;
 
-      if (tab === "past") {
+      if (dateFilter === "past") {
         if (!d) return false;
         if (!isBefore(d, startOfDay(now))) return false;
         if (isBefore(d, cutoffPast)) return false;
       } else {
-        // Upcoming tab: future-dated OR undated
-        if (d && isBefore(d, startOfDay(now))) return false;
         if (dateFilter === "today") {
           if (!d) return false;
           if (!(isAfter(d, startOfDay(now)) && isBefore(d, endOfDay(now)))) return false;
@@ -83,6 +79,7 @@ function Home() {
           if (!d) return false;
           if (!(isAfter(d, now) && isBefore(d, addDays(now, 7)))) return false;
         }
+        if (dateFilter === "upcoming" && d && isBefore(d, startOfDay(now))) return false;
       }
 
       if (neighborhood !== "all" && e.neighborhood !== neighborhood) return false;
@@ -90,14 +87,13 @@ function Home() {
       return true;
     });
 
-    if (tab === "past") {
-      // Newest first (most recently passed at the top)
+    if (dateFilter === "past") {
       return [...result].sort(
         (a, b) =>
           new Date(b.event_date).getTime() - new Date(a.event_date).getTime(),
       );
     }
-    // Upcoming: dated ascending, undated at the bottom
+    // Dated ascending, undated at the bottom
     return [...result].sort((a, b) => {
       const ta = a.event_date ? new Date(a.event_date).getTime() : NaN;
       const tb = b.event_date ? new Date(b.event_date).getTime() : NaN;
@@ -108,7 +104,7 @@ function Home() {
       if (bBad) return -1;
       return ta - tb;
     });
-  }, [events, tab, dateFilter, neighborhood, eventType]);
+  }, [events, dateFilter, neighborhood, eventType]);
 
   return (
     <div className="min-h-screen bg-paper">
@@ -147,6 +143,7 @@ function Home() {
                 { value: "tomorrow", label: "Tomorrow" },
                 { value: "week", label: "This week" },
                 { value: "all", label: "Any time" },
+                { value: "past", label: "Past (last 30 days)" },
               ]}
             />
             <FilterSelect
