@@ -152,7 +152,7 @@ function Home() {
             Ring
           </h1>
           <p className="mt-5 max-w-xl text-balance font-mono text-xs uppercase tracking-wide text-foreground sm:mt-6 sm:text-base">
-            Spot a poster, add the event, share it.
+            if you know, you know
           </p>
         </div>
       </section>
