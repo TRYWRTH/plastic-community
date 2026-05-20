@@ -26,6 +26,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { Database } from "@/integrations/supabase/types";
+
+type EventForEdit = Database["public"]["Tables"]["events"]["Row"];
 
 export const Route = createFileRoute("/event/$eventId_/edit")({
   component: EditEvent,
@@ -110,7 +113,7 @@ function EditEventForm({
   eventId,
   userId,
 }: {
-  event: NonNullable<Awaited<ReturnType<typeof fetchEventForEdit>>>;
+  event: EventForEdit;
   eventId: string;
   userId: string;
 }) {
@@ -152,8 +155,8 @@ function EditEventForm({
         event_date: parsedDate.toISOString(),
         link: nextLink || null,
         description: nextDescription || null,
-        lat: event.lat,
-        lng: event.lng,
+        lat: nextPlace === event.place ? event.lat : null,
+        lng: nextPlace === event.place ? event.lng : null,
       })
       .eq("id", eventId)
       .eq("created_by", userId)
