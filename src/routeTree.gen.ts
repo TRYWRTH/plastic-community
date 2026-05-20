@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
 import { Route as EventEventIdRouteImport } from './routes/event.$eventId'
 import { Route as EventEventIdEditRouteImport } from './routes/event.$eventId_.edit'
+import { Route as ApiPublicHooksSendEventRemindersRouteImport } from './routes/api/public/hooks/send-event-reminders'
 
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
@@ -52,6 +53,12 @@ const EventEventIdEditRoute = EventEventIdEditRouteImport.update({
   path: '/event/$eventId/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksSendEventRemindersRoute =
+  ApiPublicHooksSendEventRemindersRouteImport.update({
+    id: '/api/public/hooks/send-event-reminders',
+    path: '/api/public/hooks/send-event-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +68,7 @@ export interface FileRoutesByFullPath {
   '/event/$eventId': typeof EventEventIdRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/event/$eventId/edit': typeof EventEventIdEditRoute
+  '/api/public/hooks/send-event-reminders': typeof ApiPublicHooksSendEventRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +78,7 @@ export interface FileRoutesByTo {
   '/event/$eventId': typeof EventEventIdRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/event/$eventId/edit': typeof EventEventIdEditRoute
+  '/api/public/hooks/send-event-reminders': typeof ApiPublicHooksSendEventRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +89,7 @@ export interface FileRoutesById {
   '/event/$eventId': typeof EventEventIdRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/event/$eventId_/edit': typeof EventEventIdEditRoute
+  '/api/public/hooks/send-event-reminders': typeof ApiPublicHooksSendEventRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +101,7 @@ export interface FileRouteTypes {
     | '/event/$eventId'
     | '/settings/notifications'
     | '/event/$eventId/edit'
+    | '/api/public/hooks/send-event-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +111,7 @@ export interface FileRouteTypes {
     | '/event/$eventId'
     | '/settings/notifications'
     | '/event/$eventId/edit'
+    | '/api/public/hooks/send-event-reminders'
   id:
     | '__root__'
     | '/'
@@ -109,6 +121,7 @@ export interface FileRouteTypes {
     | '/event/$eventId'
     | '/settings/notifications'
     | '/event/$eventId_/edit'
+    | '/api/public/hooks/send-event-reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +132,7 @@ export interface RootRouteChildren {
   EventEventIdRoute: typeof EventEventIdRoute
   SettingsNotificationsRoute: typeof SettingsNotificationsRoute
   EventEventIdEditRoute: typeof EventEventIdEditRoute
+  ApiPublicHooksSendEventRemindersRoute: typeof ApiPublicHooksSendEventRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventEventIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/send-event-reminders': {
+      id: '/api/public/hooks/send-event-reminders'
+      path: '/api/public/hooks/send-event-reminders'
+      fullPath: '/api/public/hooks/send-event-reminders'
+      preLoaderRoute: typeof ApiPublicHooksSendEventRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +204,7 @@ const rootRouteChildren: RootRouteChildren = {
   EventEventIdRoute: EventEventIdRoute,
   SettingsNotificationsRoute: SettingsNotificationsRoute,
   EventEventIdEditRoute: EventEventIdEditRoute,
+  ApiPublicHooksSendEventRemindersRoute: ApiPublicHooksSendEventRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
