@@ -149,7 +149,7 @@ function Home() {
   }, [events, dateFilter, neighborhood, eventType]);
 
   return (
-    <div className="min-h-screen bg-paper">
+    <div className="min-h-screen overflow-x-hidden bg-paper">
       <Header />
       {/* Notifications hidden temporarily — feature kept for later testing */}
       {false && <EnablePushBanner />}
@@ -241,7 +241,7 @@ function Home() {
                   <Link
                     to="/event/$eventId"
                     params={{ eventId: e.id }}
-                    className="group block border-2 border-foreground bg-card p-4 transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
+                    className="group block overflow-hidden border-2 border-foreground bg-card p-4 transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
                   >
                     <div className="flex items-start gap-4">
                       <div className="grid h-16 w-16 shrink-0 place-items-center border-2 border-foreground bg-background">
@@ -256,7 +256,7 @@ function Home() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-foreground">
-                          <i className={`ti ${t.icon}`} aria-hidden="true" />
+                          <t.Icon className="h-3.5 w-3.5" aria-hidden="true" />
                           <span>{t.label}</span>
                         </div>
                         <h3 className="mt-1 truncate font-brand text-xl uppercase text-foreground group-hover:text-primary">

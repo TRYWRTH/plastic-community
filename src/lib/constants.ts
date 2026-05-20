@@ -1,19 +1,32 @@
 import type { Database } from "@/integrations/supabase/types";
+import {
+  IconVinyl,
+  IconMasksTheater,
+  IconToolsKitchen2,
+  IconPalette,
+  IconMovie,
+  IconBallFootball,
+  IconTools,
+  IconUsersGroup,
+  IconGlassFull,
+  IconDots,
+  type Icon,
+} from "@tabler/icons-react";
 
 export type EventType = Database["public"]["Enums"]["event_type"];
 export type Neighborhood = Database["public"]["Enums"]["neighborhood"];
 
-export const EVENT_TYPES: { value: EventType; label: string; icon: string }[] = [
-  { value: "music", label: "Music", icon: "ti-vinyl" },
-  { value: "theater", label: "Theater", icon: "ti-masks-theater" },
-  { value: "food", label: "Food", icon: "ti-tools-kitchen-2" },
-  { value: "art", label: "Art", icon: "ti-palette" },
-  { value: "film", label: "Film", icon: "ti-movie" },
-  { value: "sports", label: "Sports", icon: "ti-ball-football" },
-  { value: "workshop", label: "Workshop", icon: "ti-tools" },
-  { value: "community", label: "Community", icon: "ti-users-group" },
-  { value: "nightlife", label: "Nightlife", icon: "ti-glass-full" },
-  { value: "other", label: "Other", icon: "ti-dots" },
+export const EVENT_TYPES: { value: EventType; label: string; Icon: Icon }[] = [
+  { value: "music", label: "Music", Icon: IconVinyl },
+  { value: "theater", label: "Theater", Icon: IconMasksTheater },
+  { value: "food", label: "Food", Icon: IconToolsKitchen2 },
+  { value: "art", label: "Art", Icon: IconPalette },
+  { value: "film", label: "Film", Icon: IconMovie },
+  { value: "sports", label: "Sports", Icon: IconBallFootball },
+  { value: "workshop", label: "Workshop", Icon: IconTools },
+  { value: "community", label: "Community", Icon: IconUsersGroup },
+  { value: "nightlife", label: "Nightlife", Icon: IconGlassFull },
+  { value: "other", label: "Other", Icon: IconDots },
 ];
 
 

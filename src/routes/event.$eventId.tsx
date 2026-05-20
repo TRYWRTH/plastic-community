@@ -154,10 +154,15 @@ function EventDetail() {
         ) : (
           <article className="mt-3 border-2 border-foreground bg-card shadow-stamp sm:mt-6">
             <div className="border-b-2 border-foreground p-4 sm:p-8">
-              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-foreground sm:text-[11px]">
-                <i className={`ti ${eventTypeMeta(event.event_type).icon} text-base`} aria-hidden="true" />
-                <span>{eventTypeMeta(event.event_type).label}</span>
-              </div>
+              {(() => {
+                const meta = eventTypeMeta(event.event_type);
+                return (
+                  <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-foreground sm:text-[11px]">
+                    <meta.Icon className="h-4 w-4" aria-hidden="true" />
+                    <span>{meta.label}</span>
+                  </div>
+                );
+              })()}
               <h1 className="mt-2 font-brand text-xl uppercase text-balance text-foreground sm:mt-3 sm:text-5xl">
                 {event.title}
               </h1>

@@ -196,7 +196,7 @@ function AddEvent() {
                 {EVENT_TYPES.map((t) => (
                   <SelectItem key={t.value} value={t.value}>
                     <span className="inline-flex items-center gap-2">
-                      <i className={`ti ${t.icon}`} aria-hidden="true" />
+                      <t.Icon className="h-4 w-4" aria-hidden="true" />
                       {t.label}
                     </span>
                   </SelectItem>
