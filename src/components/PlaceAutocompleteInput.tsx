@@ -79,6 +79,36 @@ export function PlaceAutocompleteInput({
         setTimeout(styleInternalInput, 100);
         setTimeout(styleInternalInput, 400);
 
+        // Pin the popover (which Google renders in the top-layer and would
+        // otherwise float at the viewport top on mobile) directly below
+        // the input, every animation frame while it is visible.
+        const repositionPopover = () => {
+          const input = el.querySelector("input") as HTMLInputElement | null;
+          const popover = document.querySelector<HTMLElement>(
+            ".pcc-ag, .place-autocomplete-element-popover, gmp-place-autocomplete-popover, [data-popover]",
+          );
+          if (!input || !popover) return;
+          const rect = input.getBoundingClientRect();
+          popover.style.position = "fixed";
+          popover.style.top = `${rect.bottom + 2}px`;
+          popover.style.left = `${rect.left}px`;
+          popover.style.width = `${rect.width}px`;
+          popover.style.maxWidth = `${rect.width}px`;
+          popover.style.margin = "0";
+          popover.style.inset = "auto";
+          popover.style.zIndex = "9999";
+        };
+        let rafId: number | null = null;
+        const tick = () => {
+          repositionPopover();
+          rafId = requestAnimationFrame(tick);
+        };
+        rafId = requestAnimationFrame(tick);
+        (el as any).__cleanupReposition = () => {
+          if (rafId != null) cancelAnimationFrame(rafId);
+        };
+
+
         el.addEventListener("gmp-select", async (event: any) => {
           try {
             const prediction = event.placePrediction;
