@@ -34,6 +34,11 @@ function AuthCallbackPage() {
         }
 
         await refreshAuthSession();
+        try {
+          window.localStorage.setItem("auth_just_completed", "true");
+        } catch {
+          // ignore storage failures (private mode, etc.)
+        }
         if (cancelled) return;
         setStatus("ok");
       } catch (e) {
