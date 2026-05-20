@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Input } from "@/components/ui/input";
 import { loadGooglePlaces } from "@/lib/google-places";
 
 export type PlaceResult = {
@@ -24,10 +25,8 @@ export function PlaceAutocompleteInput({
   required,
   maxLength,
 }: Props) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const elementRef = useRef<any>(null);
-  const valueRef = useRef(value);
-  valueRef.current = value;
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const autocompleteRef = useRef<any>(null);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   const onPlaceSelectedRef = useRef(onPlaceSelected);
@@ -35,140 +34,75 @@ export function PlaceAutocompleteInput({
 
   useEffect(() => {
     let cancelled = false;
+    let listener: any = null;
 
     loadGooglePlaces()
       .then(() => {
-        if (cancelled || !containerRef.current) return;
+        if (cancelled || !inputRef.current) return;
         const places = window.google?.maps?.places;
-        if (!places?.PlaceAutocompleteElement) {
-          console.error("PlaceAutocompleteElement is not available");
+        if (!places?.Autocomplete) {
+          console.error("google.maps.places.Autocomplete is not available");
           return;
         }
 
-        const el = new places.PlaceAutocompleteElement({
-          includedRegionCodes: ["de"],
+        const ac = new places.Autocomplete(inputRef.current, {
+          fields: ["name", "formatted_address", "geometry"],
+          componentRestrictions: { country: "de" },
+          types: ["establishment", "geocode"],
         });
+        autocompleteRef.current = ac;
 
-        el.className = "w-full";
-        el.style.width = "100%";
-        el.style.backgroundColor = "transparent";
-        el.style.color = "inherit";
-        el.style.borderRadius = "var(--radius)";
-
-        containerRef.current.innerHTML = "";
-        containerRef.current.appendChild(el);
-        elementRef.current = el;
-
-        const styleInternalInput = () => {
-          const input = el.querySelector("input") as HTMLInputElement | null;
-          if (!input) return;
-          input.className =
-            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm";
-          if (placeholder) input.placeholder = placeholder;
-          if (required) input.required = true;
-          if (maxLength) input.maxLength = maxLength;
-          input.autocomplete = "off";
-          if (valueRef.current && input.value !== valueRef.current) {
-            input.value = valueRef.current;
-          }
-          input.addEventListener("input", () => {
-            onChangeRef.current(input.value);
-          });
-        };
-        setTimeout(styleInternalInput, 0);
-        setTimeout(styleInternalInput, 100);
-        setTimeout(styleInternalInput, 400);
-
-        // Pin the popover (which Google renders in the top-layer and would
-        // otherwise float at the viewport top on mobile) directly below
-        // the input, every animation frame while it is visible.
-        const repositionPopover = () => {
-          const input = el.querySelector("input") as HTMLInputElement | null;
-          const popover = document.querySelector<HTMLElement>(
-            ".pcc-ag, .place-autocomplete-element-popover, gmp-place-autocomplete-popover, [data-popover]",
-          );
-          if (!input || !popover) return;
-          const rect = input.getBoundingClientRect();
-          popover.style.position = "fixed";
-          popover.style.top = `${rect.bottom + 2}px`;
-          popover.style.left = `${rect.left}px`;
-          popover.style.width = `${rect.width}px`;
-          popover.style.maxWidth = `${rect.width}px`;
-          popover.style.margin = "0";
-          popover.style.inset = "auto";
-          popover.style.zIndex = "9999";
-        };
-        let rafId: number | null = null;
-        const tick = () => {
-          repositionPopover();
-          rafId = requestAnimationFrame(tick);
-        };
-        rafId = requestAnimationFrame(tick);
-        (el as any).__cleanupReposition = () => {
-          if (rafId != null) cancelAnimationFrame(rafId);
-        };
-
-
-        el.addEventListener("gmp-select", async (event: any) => {
-          try {
-            const prediction = event.placePrediction;
-            if (!prediction) return;
-            const place = prediction.toPlace();
-            await place.fetchFields({
-              fields: ["displayName", "formattedAddress", "location"],
-            });
-            const displayName = place.displayName || "";
-            const address = place.formattedAddress || "";
-            const name =
-              displayName && address
-                ? displayName === address
-                  ? address
-                  : `${displayName}, ${address}`
-                : displayName || address;
-            const loc = place.location;
-            const lat = loc ? loc.lat() : null;
-            const lng = loc ? loc.lng() : null;
-            const input = el.querySelector("input") as HTMLInputElement | null;
-            if (name) {
-              onChangeRef.current(name);
-              if (input) input.value = name;
-            }
-            onPlaceSelectedRef.current({ name, lat, lng });
-            input?.blur();
-            (document.activeElement as HTMLElement | null)?.blur?.();
-          } catch (err) {
-            console.error("Failed to resolve selected place", err);
-          }
+        listener = ac.addListener("place_changed", () => {
+          const place = ac.getPlace();
+          if (!place) return;
+          const displayName: string = place.name || "";
+          const address: string = place.formatted_address || "";
+          const name =
+            displayName && address
+              ? displayName === address
+                ? address
+                : `${displayName}, ${address}`
+              : displayName || address;
+          const loc = place.geometry?.location;
+          const lat = loc ? loc.lat() : null;
+          const lng = loc ? loc.lng() : null;
+          if (name && inputRef.current) inputRef.current.value = name;
+          if (name) onChangeRef.current(name);
+          onPlaceSelectedRef.current({ name, lat, lng });
+          inputRef.current?.blur();
+          (document.activeElement as HTMLElement | null)?.blur?.();
         });
       })
       .catch((err) => console.error(err));
 
     return () => {
       cancelled = true;
-      if (elementRef.current) {
-        (elementRef.current as any).__cleanupReposition?.();
-        elementRef.current.remove();
-        elementRef.current = null;
+      if (listener && window.google?.maps?.event) {
+        window.google.maps.event.removeListener(listener);
       }
+      if (autocompleteRef.current && window.google?.maps?.event) {
+        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+      autocompleteRef.current = null;
     };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    const el = elementRef.current;
-    if (!el) return;
-    const input = el.querySelector("input") as HTMLInputElement | null;
-    if (input && input.value !== value) {
-      input.value = value ?? "";
+    if (inputRef.current && inputRef.current.value !== value) {
+      inputRef.current.value = value ?? "";
     }
   }, [value]);
 
-  // The wrapper is position:relative so the popover (which the web component
-  // positions absolutely) anchors to this container rather than the viewport.
   return (
-    <div className="place-autocomplete-wrapper relative w-full">
-      <div ref={containerRef} className="w-full" />
-    </div>
+    <Input
+      ref={inputRef}
+      type="text"
+      defaultValue={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      required={required}
+      maxLength={maxLength}
+      autoComplete="off"
+    />
   );
 }
