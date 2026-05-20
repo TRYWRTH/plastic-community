@@ -29,6 +29,7 @@ export const Route = createFileRoute("/")({
 });
 
 type DateFilter = "all" | "today" | "tomorrow" | "week" | "upcoming";
+type FeedTab = "upcoming" | "past";
 
 async function fetchEvents() {
   const { data, error } = await supabase
@@ -45,39 +46,58 @@ function Home() {
     queryFn: fetchEvents,
   });
 
+  const [tab, setTab] = useState<FeedTab>("upcoming");
   const [dateFilter, setDateFilter] = useState<DateFilter>("upcoming");
   const [neighborhood, setNeighborhood] = useState<Neighborhood | "all">("all");
   const [eventType, setEventType] = useState<EventType | "all">("all");
 
   const filtered = useMemo(() => {
     const now = new Date();
+    const cutoffPast = addDays(startOfDay(now), -30);
     const result = events.filter((e) => {
       const hasDate = !!e.event_date && !isNaN(new Date(e.event_date).getTime());
       const d = hasDate ? new Date(e.event_date) : null;
-      if (dateFilter === "today") {
+
+      if (tab === "past") {
         if (!d) return false;
-        if (!(isAfter(d, startOfDay(now)) && isBefore(d, endOfDay(now)))) return false;
-      }
-      if (dateFilter === "tomorrow") {
-        if (!d) return false;
-        if (
-          !(
-            isAfter(d, startOfDay(addDays(now, 1))) &&
-            isBefore(d, endOfDay(addDays(now, 1)))
+        if (!isBefore(d, startOfDay(now))) return false;
+        if (isBefore(d, cutoffPast)) return false;
+      } else {
+        // Upcoming tab: future-dated OR undated
+        if (d && isBefore(d, startOfDay(now))) return false;
+        if (dateFilter === "today") {
+          if (!d) return false;
+          if (!(isAfter(d, startOfDay(now)) && isBefore(d, endOfDay(now)))) return false;
+        }
+        if (dateFilter === "tomorrow") {
+          if (!d) return false;
+          if (
+            !(
+              isAfter(d, startOfDay(addDays(now, 1))) &&
+              isBefore(d, endOfDay(addDays(now, 1)))
+            )
           )
-        )
-          return false;
+            return false;
+        }
+        if (dateFilter === "week") {
+          if (!d) return false;
+          if (!(isAfter(d, now) && isBefore(d, addDays(now, 7)))) return false;
+        }
       }
-      if (dateFilter === "week") {
-        if (!d) return false;
-        if (!(isAfter(d, now) && isBefore(d, addDays(now, 7)))) return false;
-      }
-      if (dateFilter === "upcoming" && d && isBefore(d, startOfDay(now))) return false;
+
       if (neighborhood !== "all" && e.neighborhood !== neighborhood) return false;
       if (eventType !== "all" && e.event_type !== eventType) return false;
       return true;
     });
-    // Sort dated events ascending, undated at the bottom
+
+    if (tab === "past") {
+      // Newest first (most recently passed at the top)
+      return [...result].sort(
+        (a, b) =>
+          new Date(b.event_date).getTime() - new Date(a.event_date).getTime(),
+      );
+    }
+    // Upcoming: dated ascending, undated at the bottom
     return [...result].sort((a, b) => {
       const ta = a.event_date ? new Date(a.event_date).getTime() : NaN;
       const tb = b.event_date ? new Date(b.event_date).getTime() : NaN;
@@ -88,7 +108,7 @@ function Home() {
       if (bBad) return -1;
       return ta - tb;
     });
-  }, [events, dateFilter, neighborhood, eventType]);
+  }, [events, tab, dateFilter, neighborhood, eventType]);
 
   return (
     <div className="min-h-screen bg-paper">
