@@ -8,6 +8,8 @@ import { MapPin, Calendar, ExternalLink } from "lucide-react";
 
 import { Header } from "@/components/Header";
 import { EnablePushBanner } from "@/components/EnablePushBanner";
+import { SaveCountsLine } from "@/components/SaveCountsLine";
+import { useAllEventSaveCounts } from "@/lib/use-event-save-counts";
 import { supabase } from "@/integrations/supabase/client";
 import {
   EVENT_TYPES,
