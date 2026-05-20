@@ -173,14 +173,7 @@ function EventDetail() {
                   className="inline-flex items-center gap-2 text-sm font-medium text-link underline underline-offset-4 hover:text-foreground"
                 >
                   <ExternalLink className="h-4 w-4 shrink-0" />
-                  {(() => {
-                    try {
-                      return new URL(event.link!).hostname.replace(/^www\./, "");
-                    } catch {
-                      return "View event details";
-                    }
-                  })()}
-                  →
+                  Website
                 </a>
               )}
               {user?.id === event.created_by && (
