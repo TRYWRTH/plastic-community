@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Check, Star, Bell } from "lucide-react";
+import { Check, Star } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -234,17 +234,7 @@ export function SaveButtons({ eventId }: { eventId: string }) {
               : "w-full sm:w-auto border-2 border-dashed border-muted-foreground/40 text-muted-foreground hover:text-foreground"
           }
         >
-          {notify ? (
-            <>
-              <Bell className="h-4 w-4 fill-current" />
-              Notifications on
-            </>
-          ) : (
-            <>
-              <Bell className="h-4 w-4" />
-              Notify me
-            </>
-          )}
+          {notify ? "Notifications on" : "Notify me"}
         </Button>
       )}
     </div>
