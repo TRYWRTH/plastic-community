@@ -19,7 +19,6 @@ export function Header() {
   const navigate = useNavigate();
   const [signInOpen, setSignInOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isLargeBrand = pathname.startsWith("/add") || /\/edit$/.test(pathname);
   
 
   const signOut = async () => {
@@ -30,15 +29,9 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 bg-background">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-3 sm:px-4">
-        <Link to="/" className="flex min-w-0 items-baseline gap-2">
-          {isLargeBrand ? (
-            <span className="font-brand uppercase text-foreground text-xl tracking-[0.18em] sm:text-3xl sm:tracking-[0.24em]">
-              Whisper Ring
-            </span>
-          ) : (
-            <span className="sr-only">Whisper Ring</span>
-          )}
-        </Link>
+      <Link to="/" className="flex min-w-0 items-baseline gap-2">
+  <span className="sr-only">Whisper Ring</span>
+</Link>
 
         <nav className="flex items-center gap-1 sm:gap-2">
           {isAuthenticated && (
