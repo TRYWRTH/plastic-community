@@ -191,7 +191,7 @@ function AddEvent() {
             />
           </Field>
 
-          <Field label="Type">
+          <Field label="Category">
             <Select value={eventType} onValueChange={(v) => setEventType(v as EventType)}>
               <SelectTrigger>
                 <SelectValue />
