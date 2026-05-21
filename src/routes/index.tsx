@@ -20,6 +20,8 @@ import {
   type Neighborhood,
 } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import { cleanPlace } from "@/lib/clean-place";
+
 import {
   Select,
   SelectContent,
