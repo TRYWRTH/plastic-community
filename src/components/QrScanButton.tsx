@@ -31,9 +31,10 @@ export function QrScanButton({ onResult }: { onResult: (text: string) => void })
             <DialogTitle>Scan poster QR</DialogTitle>
           </DialogHeader>
           <div className="overflow-hidden rounded-xl border border-border">
-            {everOpened.current && (
+            {open && (
               <Scanner
                 paused={!open}
+
                 onScan={(codes) => {
                   const text = codes[0]?.rawValue;
                   if (text) {
