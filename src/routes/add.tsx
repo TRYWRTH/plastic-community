@@ -62,7 +62,7 @@ function AddEvent() {
       .from("events")
       .insert({
         title: title.trim(),
-        place: place.trim(),
+        place: cleanPlace(place.trim()),
         neighborhood,
         event_type: eventType,
         event_date: parsedDate.toISOString(),
