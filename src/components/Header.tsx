@@ -30,13 +30,7 @@ export function Header() {
     <header className="sticky top-0 z-40 bg-background">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-3 sm:px-4">
         <Link to="/" className="flex min-w-0 items-baseline gap-2">
-          <span
-            className={
-              isLargeBrand
-                ? "font-brand uppercase text-foreground text-xl tracking-[0.18em] sm:text-3xl sm:tracking-[0.24em]"
-                : "font-brand text-base uppercase tracking-[0.12em] text-foreground"
-            }
-          >
+          <span className="font-brand text-base uppercase tracking-[0.12em] text-foreground">
             Whisper Ring
           </span>
         </Link>
