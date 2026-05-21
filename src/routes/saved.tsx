@@ -42,10 +42,13 @@ function SavedPage() {
   return (
     <div className="min-h-screen bg-paper">
       <Header />
-      <main className="mx-auto max-w-3xl px-4 py-8">
-        <h1 className="font-brand text-4xl uppercase text-foreground sm:text-5xl">
-          Your list
-        </h1>
+     <main className="mx-auto max-w-3xl px-4 py-8">
+  <Link to="/" className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wide text-foreground hover:text-primary">
+    ← Back
+  </Link>
+  <h1 className="mt-4 font-brand text-4xl uppercase text-foreground sm:text-5xl">
+    Your list
+  </h1>
         <p className="mt-2 font-mono text-xs uppercase tracking-widest text-foreground">
           Upcoming events you marked Going or Interested.
         </p>
