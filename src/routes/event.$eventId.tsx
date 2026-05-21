@@ -282,11 +282,6 @@ function EventDetail() {
                     uid={`${event.id}@whisperer-ring`}
                   />
                 )}
-                {event.description && (
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
-                    {event.description}
-                  </p>
-                )}
                 {event.link && (
                   <a
                     href={event.link}
@@ -298,6 +293,12 @@ function EventDetail() {
                     Website
                   </a>
                 )}
+                {event.description && (
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
+                    {event.description}
+                  </p>
+                )}
+
               </div>
             </article>
 
