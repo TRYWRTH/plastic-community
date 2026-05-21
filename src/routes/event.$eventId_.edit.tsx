@@ -136,7 +136,7 @@ function EditEventForm({
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const nextTitle = String(form.get("title") ?? "").trim();
-    const nextPlace = place.trim();
+    const nextPlace = cleanPlace(place.trim());
     const nextNeighborhood = neighborhood;
     const nextEventType = String(form.get("event_type") ?? event.event_type) as EventType;
     const nextDay = String(form.get("event_day") ?? "");
