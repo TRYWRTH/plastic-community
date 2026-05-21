@@ -19,6 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { cleanPlace } from "@/lib/clean-place";
+
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -62,7 +64,7 @@ function AddEvent() {
       .from("events")
       .insert({
         title: title.trim(),
-        place: place.trim(),
+        place: cleanPlace(place.trim()),
         neighborhood,
         event_type: eventType,
         event_date: parsedDate.toISOString(),

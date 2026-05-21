@@ -22,6 +22,8 @@ import { useEventSaveCounts } from "@/lib/use-event-save-counts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
+import { cleanPlace } from "@/lib/clean-place";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -376,6 +378,8 @@ function EventDetail() {
 }
 
 function stripNeighborhoodSuffix(place: string, neighborhood: string) {
+  const cleaned = cleanPlace(place);
   const suffix = ` · ${neighborhood}`;
-  return place.endsWith(suffix) ? place.slice(0, -suffix.length) : place;
+  return cleaned.endsWith(suffix) ? cleaned.slice(0, -suffix.length) : cleaned;
 }
+

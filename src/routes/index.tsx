@@ -20,6 +20,8 @@ import {
   type Neighborhood,
 } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import { cleanPlace } from "@/lib/clean-place";
+
 import {
   Select,
   SelectContent,
@@ -276,7 +278,7 @@ function Home() {
                               ev.preventDefault();
                               ev.stopPropagation();
                               window.open(
-                                `https://maps.google.com/?q=${encodeURIComponent(e.place)}`,
+                                `https://maps.google.com/?q=${encodeURIComponent(cleanPlace(e.place))}`,
                                 "_blank",
                                 "noopener,noreferrer",
                               );
@@ -286,7 +288,7 @@ function Home() {
                                 ev.preventDefault();
                                 ev.stopPropagation();
                                 window.open(
-                                  `https://maps.google.com/?q=${encodeURIComponent(e.place)}`,
+                                  `https://maps.google.com/?q=${encodeURIComponent(cleanPlace(e.place))}`,
                                   "_blank",
                                   "noopener,noreferrer",
                                 );
@@ -324,9 +326,11 @@ function Home() {
 }
 
 function stripNeighborhoodSuffix(place: string, neighborhood: string) {
+  const cleaned = cleanPlace(place);
   const suffix = ` · ${neighborhood}`;
-  return place.endsWith(suffix) ? place.slice(0, -suffix.length) : place;
+  return cleaned.endsWith(suffix) ? cleaned.slice(0, -suffix.length) : cleaned;
 }
+
 
 
 function FilterSelect({
