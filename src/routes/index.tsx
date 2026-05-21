@@ -198,21 +198,22 @@ function Home() {
             <FilterSelect
               value={neighborhood}
               onChange={(v) => setNeighborhood(v as Neighborhood | "all")}
-              placeholder="Area"
+              placeholder="District"
               options={[
-                { value: "all", label: "All areas" },
+                { value: "all", label: "All districts" },
                 ...NEIGHBORHOODS.map((n) => ({ value: n.value, label: n.label })),
               ]}
             />
             <FilterSelect
               value={eventType}
               onChange={(v) => setEventType(v as EventType | "all")}
-              placeholder="Type"
+              placeholder="Category"
               options={[
-                { value: "all", label: "All types" },
+                { value: "all", label: "All categories" },
                 ...EVENT_TYPES.map((t) => ({ value: t.value, label: t.label })),
               ]}
             />
+
           </div>
         </div>
       </section>
@@ -263,28 +264,52 @@ function Home() {
                         <h3 className="mt-1 truncate font-brand text-xl uppercase text-foreground group-hover:text-primary">
                           {e.title}
                         </h3>
-                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs uppercase tracking-wide text-foreground">
-                          <span className="inline-flex min-w-0 max-w-full items-start gap-1">
+                        <div className="mt-2 flex flex-col gap-1 font-mono text-xs uppercase tracking-wide text-foreground">
+                          <span className="inline-flex items-center gap-1">
+                            <Calendar className="h-3.5 w-3.5 shrink-0" />
+                            {d ? format(d, "EEE, HH:mm") : "Date TBA"}
+                          </span>
+                          <span
+                            role="link"
+                            tabIndex={0}
+                            onClick={(ev) => {
+                              ev.preventDefault();
+                              ev.stopPropagation();
+                              window.open(
+                                `https://maps.google.com/?q=${encodeURIComponent(e.place)}`,
+                                "_blank",
+                                "noopener,noreferrer",
+                              );
+                            }}
+                            onKeyDown={(ev) => {
+                              if (ev.key === "Enter" || ev.key === " ") {
+                                ev.preventDefault();
+                                ev.stopPropagation();
+                                window.open(
+                                  `https://maps.google.com/?q=${encodeURIComponent(e.place)}`,
+                                  "_blank",
+                                  "noopener,noreferrer",
+                                );
+                              }
+                            }}
+                            className="inline-flex min-w-0 max-w-full items-start gap-1 text-left hover:text-primary cursor-pointer"
+                          >
                             <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                            <span className="min-w-0 break-words">
+                            <span className="min-w-0 break-words underline-offset-2 hover:underline">
                               {stripNeighborhoodSuffix(e.place, n.label)}
                               {" · "}
                               <span className="text-neighborhood">{n.label}</span>
                             </span>
                           </span>
-
-                          <span className="inline-flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5" />
-                            {d ? format(d, "EEE, HH:mm") : "Date TBA"}
-                          </span>
                           {e.link && (
                             <span className="inline-flex items-center gap-1 text-link">
-                              <ExternalLink className="h-3.5 w-3.5" />
+                              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                               Website
                             </span>
                           )}
                           <SaveCountsLine counts={countsMap?.get(e.id)} />
                         </div>
+
                       </div>
                     </div>
                   </Link>
