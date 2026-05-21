@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Plus, LogOut, Bookmark, UserRound, Bell } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
