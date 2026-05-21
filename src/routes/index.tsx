@@ -157,7 +157,7 @@ function Home() {
 
       {/* Hero */}
       <section className="border-b-2 border-foreground">
-        <div className="mx-auto max-w-5xl px-4 pb-8 pt-8 sm:pb-10 sm:pt-16">
+        <div className="mx-auto max-w-5xl px-4 pb-6 pt-8 sm:pb-6 sm:pt-8">
           <a
             href="https://www.instagram.com/plastic_productions_/"
             target="_blank"
@@ -166,12 +166,12 @@ function Home() {
           >
             Brought to you by Plastic Productions
           </a>
-          <h1 className="mt-5 font-brand text-[3rem] uppercase leading-[0.95] text-foreground text-balance sm:mt-6 sm:text-[7.5rem]">
+          <h1 className="mt-4 font-brand text-[3rem] uppercase leading-[0.95] text-foreground text-balance sm:mt-4 sm:text-6xl">
             Whisper
             <br />
             Ring
           </h1>
-          <p className="mt-5 max-w-xl text-balance font-mono text-xs uppercase tracking-wide text-foreground sm:mt-6 sm:text-base">
+          <p className="mt-3 max-w-xl text-balance font-mono text-xs uppercase tracking-wide text-foreground sm:mt-2 sm:text-sm">
             if you know, you know
           </p>
         </div>
