@@ -53,12 +53,13 @@ export const Route = createFileRoute("/event/$eventId")({
   head: ({ loaderData, params }) => {
     const ev = loaderData?.event;
     if (!ev) {
-      return { meta: [{ title: "Event — Whisperer Ring" }] };
+      return { meta: [{ title: "Event — Whisperer Ring by Plastic Productions" }] };
     }
     const when = ev.event_date
       ? format(new Date(ev.event_date), "EEE, MMM d · HH:mm")
       : "";
-    const title = `${ev.title} — Whisperer Ring`;
+    const title = `${ev.title} — Whisperer Ring by Plastic Productions`;
+
     const desc = [
       [ev.place, ev.neighborhood].filter(Boolean).join(", "),
       when,
