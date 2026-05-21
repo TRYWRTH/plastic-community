@@ -267,18 +267,18 @@ function EventDetail() {
               <div className="space-y-4 pt-4 sm:space-y-5 sm:p-8">
                 <div className="flex flex-wrap items-center gap-2">
                   <SaveButtons eventId={event.id} />
-                  {event.event_date && (
-                    <AddToCalendarButton
-                      title={event.title}
-                      start={event.event_date}
-                      location={[event.place, neighborhoodLabel]
-                        .filter(Boolean)
-                        .join(", ")}
-                      description={event.description ?? undefined}
-                      uid={`${event.id}@whisperer-ring`}
-                    />
-                  )}
                 </div>
+                {event.event_date && (
+                  <AddToCalendarButton
+                    title={event.title}
+                    start={event.event_date}
+                    location={[event.place, neighborhoodLabel]
+                      .filter(Boolean)
+                      .join(", ")}
+                    description={event.description ?? undefined}
+                    uid={`${event.id}@whisperer-ring`}
+                  />
+                )}
                 {event.description && (
                   <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
                     {event.description}
