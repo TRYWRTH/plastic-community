@@ -53,12 +53,13 @@ export const Route = createFileRoute("/event/$eventId")({
   head: ({ loaderData, params }) => {
     const ev = loaderData?.event;
     if (!ev) {
-      return { meta: [{ title: "Event — Whisperer Ring" }] };
+      return { meta: [{ title: "Event — Whisperer Ring by Plastic Productions" }] };
     }
     const when = ev.event_date
       ? format(new Date(ev.event_date), "EEE, MMM d · HH:mm")
       : "";
-    const title = `${ev.title} — Whisperer Ring`;
+    const title = `${ev.title} — Whisperer Ring by Plastic Productions`;
+
     const desc = [
       [ev.place, ev.neighborhood].filter(Boolean).join(", "),
       when,
@@ -183,16 +184,16 @@ function EventDetail() {
         </div>
 
         {isLoading ? (
-          <div className="mt-4 h-48 animate-pulse border-0 bg-card sm:mt-6 sm:border-2 sm:border-foreground" />
+          <div className="mt-6 h-48 animate-pulse border-0 bg-card sm:mt-8 sm:border-2 sm:border-foreground" />
         ) : !event ? (
           <p className="mt-6 font-mono text-sm uppercase tracking-wide text-foreground">
             Event not found.
           </p>
         ) : (
           <>
-            <article className="mt-3 sm:mt-6 sm:border-2 sm:border-foreground sm:bg-card sm:shadow-stamp">
+            <article className="mt-6 sm:mt-8 sm:border-2 sm:border-foreground sm:bg-card sm:shadow-stamp">
               <div className="pb-4 sm:border-b-2 sm:border-foreground sm:p-8 sm:pb-8">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center justify-between gap-3">
                   {(() => {
                     const meta = eventTypeMeta(event.event_type);
                     return (
@@ -207,37 +208,40 @@ function EventDetail() {
                       <DropdownMenuTrigger asChild>
                         <button
                           aria-label="Event actions"
-                          className="-mr-2 -mt-2 grid h-9 w-9 place-items-center rounded-none text-foreground hover:text-primary"
+                          className="-mr-2 grid h-10 w-10 place-items-center rounded-none text-foreground hover:text-primary"
                         >
                           <MoreVertical className="h-5 w-5" />
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
-                        className="rounded-none border-2 border-foreground bg-card"
+                        sideOffset={8}
+                        className="min-w-[12rem] rounded-none border-2 border-foreground bg-card p-0"
                       >
-                        <DropdownMenuItem asChild>
+                        <DropdownMenuItem asChild className="rounded-none">
                           <Link
                             to="/event/$eventId/edit"
                             params={{ eventId: event!.id }}
-                            className="font-mono text-xs uppercase tracking-widest"
+                            className="cursor-pointer gap-3 px-4 py-4 font-mono text-sm uppercase tracking-widest text-primary"
                           >
-                            <Pencil className="mr-2 h-4 w-4" /> Edit event
+                            <Pencil className="h-4 w-4" /> Edit event
                           </Link>
                         </DropdownMenuItem>
+                        <div className="h-px bg-foreground/20" />
                         <DropdownMenuItem
                           onSelect={(e) => {
                             e.preventDefault();
                             setConfirmDeleteOpen(true);
                           }}
-                          className="font-mono text-xs uppercase tracking-widest text-destructive focus:text-destructive focus:bg-destructive/10"
+                          className="cursor-pointer gap-3 rounded-none px-4 py-4 font-mono text-sm uppercase tracking-widest text-destructive focus:bg-destructive/10 focus:text-destructive"
                         >
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete event
+                          <Trash2 className="h-4 w-4" /> Delete event
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
                 </div>
+
                 <h1 className="mt-2 font-brand text-2xl uppercase text-balance text-foreground sm:mt-3 sm:text-5xl">
                   {event.title}
                 </h1>

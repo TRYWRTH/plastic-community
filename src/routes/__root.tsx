@@ -81,8 +81,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-      { name: "apple-mobile-web-app-title", content: "Whisperer Ring" },
-      { name: "application-name", content: "Whisperer Ring" },
+      { name: "apple-mobile-web-app-title", content: "Whisperer Ring by Plastic Productions" },
+      { name: "application-name", content: "Whisperer Ring by Plastic Productions" },
+
       { title: "Whisperer Ring by Plastic Productions" },
       {
         name: "description",

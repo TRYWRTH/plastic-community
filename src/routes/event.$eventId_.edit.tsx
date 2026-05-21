@@ -217,10 +217,11 @@ function EditEventForm({
         <Link
           to="/event/$eventId"
           params={{ eventId }}
-          className="text-xs text-muted-foreground hover:text-foreground sm:text-sm"
+          className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-foreground hover:text-primary sm:text-xs"
         >
           ← Back
         </Link>
+
         <h1 className="mt-1 font-display text-xl font-bold sm:text-3xl">Edit event</h1>
         <p className="mt-0.5 text-xs text-muted-foreground sm:text-base">
           Update the details below.

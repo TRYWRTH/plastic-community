@@ -129,9 +129,13 @@ function AddEvent() {
     <div className="min-h-screen">
       <Header />
       <main className="mx-auto max-w-xl px-3 py-2 sm:px-4 sm:py-6">
-        <Link to="/" className="text-xs text-muted-foreground hover:text-foreground sm:text-sm">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-foreground hover:text-primary sm:text-xs"
+        >
           ← Back
         </Link>
+
         <h1 className="mt-1 font-display text-xl font-bold sm:text-3xl">Add an event</h1>
         <p className="mt-0.5 text-xs text-muted-foreground sm:text-base">
           Saw a poster or heard a whisper? Add it here.
