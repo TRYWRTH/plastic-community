@@ -81,22 +81,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-      { name: "apple-mobile-web-app-title", content: "Whisperer Ring by Plastic Productions" },
-      { name: "application-name", content: "Whisperer Ring by Plastic Productions" },
+      { name: "apple-mobile-web-app-title", content: "Whisper Ring" },
+      { name: "application-name", content: "Whisper Ring" },
 
-      { title: "Whisperer Ring by Plastic Productions" },
+      { title: "Whisper Ring" },
       {
         name: "description",
         content:
-          "Whisperer Ring by Plastic Productions — spot a poster, add the event, share it. A living index of performance events in Berlin.",
+          "Whisper Ring — spot a poster, add the event, share it. A living index of performance events in Berlin.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:title", content: "Whisperer Ring by Plastic Productions" },
+      { property: "og:title", content: "Whisper Ring" },
       {
         property: "og:description",
         content: "Spot a poster, add the event, share it. Performance events in Berlin.",
       },
-      { name: "twitter:title", content: "Whisperer Ring by Plastic Productions" },
+      { name: "twitter:title", content: "Whisper Ring" },
       {
         name: "twitter:description",
         content: "Spot a poster, add the event, share it. Performance events in Berlin.",

@@ -157,7 +157,7 @@ function Home() {
 
       {/* Hero */}
       <section className="border-b-2 border-foreground">
-        <div className="mx-auto max-w-5xl px-4 pb-6 pt-8 sm:pb-6 sm:pt-8">
+        <div className="mx-auto max-w-5xl px-4 pb-3 pt-3 sm:pb-4 sm:pt-4">
           <a
             href="https://www.instagram.com/plastic_productions_/"
             target="_blank"
@@ -166,16 +166,17 @@ function Home() {
           >
             Brought to you by Plastic Productions
           </a>
-          <h1 className="mt-4 font-brand text-[3rem] uppercase leading-[0.95] text-foreground text-balance sm:mt-4 sm:text-6xl">
+          <h1 className="mt-2 font-brand text-[3rem] uppercase leading-[0.95] text-foreground text-balance sm:mt-3 sm:text-[7.5rem]">
             Whisper
             <br />
             Ring
           </h1>
-          <p className="mt-3 max-w-xl text-balance font-mono text-xs uppercase tracking-wide text-foreground sm:mt-2 sm:text-sm">
+          <p className="mt-2 max-w-xl text-balance font-mono text-xs uppercase tracking-wide text-foreground sm:mt-3 sm:text-sm">
             if you know, you know
           </p>
         </div>
       </section>
+
 
       {/* Filters */}
       <section className="sticky top-14 z-30 border-b-2 border-foreground bg-background">
