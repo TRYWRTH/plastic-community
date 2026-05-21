@@ -294,7 +294,7 @@ function Home() {
                                 );
                               }
                             }}
-                            className="inline-flex min-w-0 max-w-full items-start gap-1 text-left hover:text-primary cursor-pointer"
+                            className="inline-flex min-w-0 max-w-full items-start gap-1 text-left hover:text-link cursor-pointer"
                           >
                             <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                             <span className="min-w-0 break-words underline-offset-2 hover:underline">
