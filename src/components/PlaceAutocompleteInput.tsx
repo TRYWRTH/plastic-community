@@ -3,6 +3,8 @@ import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { loadGooglePlaces } from "@/lib/google-places";
+import { cleanPlace } from "@/lib/clean-place";
+
 
 export type PlaceResult = {
   name: string;
