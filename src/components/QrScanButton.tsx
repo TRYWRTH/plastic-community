@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 import { QrCode, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 export function QrScanButton({ onResult }: { onResult: (text: string) => void }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Once the user has granted camera access once, keep the Scanner mounted
+  // (just paused) so the browser doesn't re-prompt or re-negotiate the
+  // stream on every open.
+  const everOpened = useRef(false);
+  if (open) everOpened.current = true;
+
 
   return (
     <>
