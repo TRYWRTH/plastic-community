@@ -152,11 +152,13 @@ export function PlaceAutocompleteInput({
           const displayName: string = place.name || "";
           const address: string = place.formatted_address || "";
           const types: string[] | undefined = place.types;
-          const name = address
+          const rawName = address
             ? shouldPrependName(displayName, address, types)
               ? `${displayName}, ${address}`
               : address
             : displayName;
+          const name = cleanPlace(rawName);
+
 
           const loc = place.geometry?.location;
           const lat = loc ? loc.lat() : null;
