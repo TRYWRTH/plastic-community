@@ -224,11 +224,12 @@ function EventDetail() {
                           <Link
                             to="/event/$eventId/edit"
                             params={{ eventId: event!.id }}
-                            className="cursor-pointer gap-3 px-4 py-4 font-mono text-sm uppercase tracking-widest text-primary"
+                            className="cursor-pointer gap-3 px-4 py-4 font-mono text-sm uppercase tracking-widest text-link"
                           >
                             <Pencil className="h-4 w-4" /> Edit event
                           </Link>
                         </DropdownMenuItem>
+
                         <div className="h-px bg-foreground/20" />
                         <DropdownMenuItem
                           onSelect={(e) => {
