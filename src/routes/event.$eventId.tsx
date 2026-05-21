@@ -22,6 +22,8 @@ import { useEventSaveCounts } from "@/lib/use-event-save-counts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
+import { cleanPlace } from "@/lib/clean-place";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
