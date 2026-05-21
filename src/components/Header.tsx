@@ -18,6 +18,8 @@ export function Header() {
   const { isAuthenticated, user, loading } = useAuth();
   const navigate = useNavigate();
   const [signInOpen, setSignInOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isHome = pathname === "/";
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -27,11 +29,15 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b-2 border-foreground bg-background">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-3 sm:px-4">
-        <Link to="/" className="flex min-w-0 items-baseline gap-2">
-          <span className="font-brand text-base uppercase tracking-[0.12em] text-foreground">
-            Whisperer Ring
-          </span>
-        </Link>
+        {isHome ? (
+          <span />
+        ) : (
+          <Link to="/" className="flex min-w-0 items-baseline gap-2">
+            <span className="font-brand text-base uppercase tracking-[0.12em] text-foreground">
+              Whisper Ring
+            </span>
+          </Link>
+        )}
 
         <nav className="flex items-center gap-1 sm:gap-2">
           {isAuthenticated && (
