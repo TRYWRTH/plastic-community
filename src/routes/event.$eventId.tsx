@@ -376,6 +376,8 @@ function EventDetail() {
 }
 
 function stripNeighborhoodSuffix(place: string, neighborhood: string) {
+  const cleaned = cleanPlace(place);
   const suffix = ` · ${neighborhood}`;
-  return place.endsWith(suffix) ? place.slice(0, -suffix.length) : place;
+  return cleaned.endsWith(suffix) ? cleaned.slice(0, -suffix.length) : cleaned;
 }
+
