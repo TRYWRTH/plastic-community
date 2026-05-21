@@ -223,25 +223,37 @@ export function PlaceAutocompleteInput({
   const handleClear = () => {
     onChange("");
     setSelected(false);
-    // Focus the input once it re-mounts.
     setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const handleEdit = () => {
+    setSelected(false);
+    setTimeout(() => {
+      const el = inputRef.current;
+      if (el) {
+        el.focus();
+        el.select();
+      }
+    }, 0);
   };
 
   if (selected) {
     return (
       <div className="relative w-full">
-        <Textarea
+        <Input
+          type="text"
           value={value}
           readOnly
-          rows={2}
+          onClick={handleEdit}
+          onFocus={handleEdit}
           aria-label="Selected place"
-          className="min-h-0 resize-none py-1.5 pr-8 text-sm leading-snug sm:text-base"
+          className="pr-8 cursor-text"
         />
         <button
           type="button"
           onClick={handleClear}
           aria-label="Clear place"
-          className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:text-foreground"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center text-muted-foreground hover:text-foreground"
         >
           <X className="h-4 w-4" />
         </button>
