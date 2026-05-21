@@ -35,8 +35,9 @@ export function QrScanButton({ onResult }: { onResult: (text: string) => void })
             <DialogTitle>Scan poster QR</DialogTitle>
           </DialogHeader>
           <div className="overflow-hidden rounded-xl border border-border">
-            {open && (
+            {everOpened.current && (
               <Scanner
+                paused={!open}
                 onScan={(codes) => {
                   const text = codes[0]?.rawValue;
                   if (text) {
@@ -49,9 +50,11 @@ export function QrScanButton({ onResult }: { onResult: (text: string) => void })
                 }
                 constraints={{ facingMode: "environment" }}
                 styles={{ container: { width: "100%" } }}
+                allowMultiple={false}
               />
             )}
           </div>
+
           {error && (
             <p className="text-sm text-destructive">
               {error}. You can still paste the link manually.
