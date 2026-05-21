@@ -19,7 +19,6 @@ export function Header() {
   const navigate = useNavigate();
   const [signInOpen, setSignInOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isHome = pathname === "/";
   const isLargeBrand = pathname.startsWith("/add") || /\/edit$/.test(pathname);
 
   const signOut = async () => {
@@ -30,28 +29,17 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 bg-background">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-3 sm:px-4">
-        {isHome ? (
-          <a
-            href="https://www.instagram.com/plastic_productions_/"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="inline-flex items-center gap-2 border-2 border-foreground bg-background px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-foreground hover:bg-primary hover:text-primary-foreground sm:text-[11px]"
+        <Link to="/" className="flex min-w-0 items-baseline gap-2">
+          <span
+            className={
+              isLargeBrand
+                ? "font-brand uppercase text-foreground text-xl tracking-[0.18em] sm:text-3xl sm:tracking-[0.24em]"
+                : "font-brand text-base uppercase tracking-[0.12em] text-foreground"
+            }
           >
-            Brought to you by Plastic Productions
-          </a>
-        ) : (
-          <Link to="/" className="flex min-w-0 items-baseline gap-2">
-            <span
-              className={
-                isLargeBrand
-                  ? "font-brand uppercase text-foreground text-xl tracking-[0.18em] sm:text-3xl sm:tracking-[0.24em]"
-                  : "font-brand text-base uppercase tracking-[0.12em] text-foreground"
-              }
-            >
-              Whisper Ring
-            </span>
-          </Link>
-        )}
+            Whisper Ring
+          </span>
+        </Link>
 
         <nav className="flex items-center gap-1 sm:gap-2">
           {isAuthenticated && (
