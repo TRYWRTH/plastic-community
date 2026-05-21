@@ -272,26 +272,30 @@ function EventDetail() {
                   <SaveButtons eventId={event.id} />
                 </div>
                 {event.event_date && (
-                  <AddToCalendarButton
-                    title={event.title}
-                    start={event.event_date}
-                    location={[event.place, neighborhoodLabel]
-                      .filter(Boolean)
-                      .join(", ")}
-                    description={event.description ?? undefined}
-                    uid={`${event.id}@whisperer-ring`}
-                  />
+                  <div>
+                    <AddToCalendarButton
+                      title={event.title}
+                      start={event.event_date}
+                      location={[event.place, neighborhoodLabel]
+                        .filter(Boolean)
+                        .join(", ")}
+                      description={event.description ?? undefined}
+                      uid={`${event.id}@whisperer-ring`}
+                    />
+                  </div>
                 )}
                 {event.link && (
-                  <a
-                    href={event.link}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-link underline underline-offset-4 hover:text-foreground"
-                  >
-                    <ExternalLink className="h-4 w-4 shrink-0" />
-                    Website
-                  </a>
+                  <div>
+                    <a
+                      href={event.link}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-link underline underline-offset-4 hover:text-foreground"
+                    >
+                      <ExternalLink className="h-4 w-4 shrink-0" />
+                      Website
+                    </a>
+                  </div>
                 )}
                 {event.description && (
                   <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
