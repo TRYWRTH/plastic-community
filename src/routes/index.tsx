@@ -278,7 +278,7 @@ function Home() {
                               ev.preventDefault();
                               ev.stopPropagation();
                               window.open(
-                                `https://maps.google.com/?q=${encodeURIComponent(e.place)}`,
+                                `https://maps.google.com/?q=${encodeURIComponent(cleanPlace(e.place))}`,
                                 "_blank",
                                 "noopener,noreferrer",
                               );
@@ -288,7 +288,7 @@ function Home() {
                                 ev.preventDefault();
                                 ev.stopPropagation();
                                 window.open(
-                                  `https://maps.google.com/?q=${encodeURIComponent(e.place)}`,
+                                  `https://maps.google.com/?q=${encodeURIComponent(cleanPlace(e.place))}`,
                                   "_blank",
                                   "noopener,noreferrer",
                                 );
