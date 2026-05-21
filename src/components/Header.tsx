@@ -19,7 +19,6 @@ export function Header() {
   const navigate = useNavigate();
   const [signInOpen, setSignInOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isHome = pathname === "/";
   const isLargeBrand = pathname.startsWith("/add") || /\/edit$/.test(pathname);
 
   const signOut = async () => {
