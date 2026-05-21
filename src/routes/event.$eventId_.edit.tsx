@@ -276,7 +276,7 @@ function EditEventForm({
             />
           </Field>
 
-          <Field label="Type">
+          <Field label="Category">
             <Select name="event_type" defaultValue={event.event_type}>
               <SelectTrigger>
                 <SelectValue />
