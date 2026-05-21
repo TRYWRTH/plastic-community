@@ -224,11 +224,12 @@ function EventDetail() {
                           <Link
                             to="/event/$eventId/edit"
                             params={{ eventId: event!.id }}
-                            className="cursor-pointer gap-3 px-4 py-4 font-mono text-sm uppercase tracking-widest text-primary"
+                            className="cursor-pointer gap-3 px-4 py-4 font-mono text-sm uppercase tracking-widest text-link"
                           >
                             <Pencil className="h-4 w-4" /> Edit event
                           </Link>
                         </DropdownMenuItem>
+
                         <div className="h-px bg-foreground/20" />
                         <DropdownMenuItem
                           onSelect={(e) => {
@@ -281,11 +282,6 @@ function EventDetail() {
                     uid={`${event.id}@whisperer-ring`}
                   />
                 )}
-                {event.description && (
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
-                    {event.description}
-                  </p>
-                )}
                 {event.link && (
                   <a
                     href={event.link}
@@ -297,6 +293,12 @@ function EventDetail() {
                     Website
                   </a>
                 )}
+                {event.description && (
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
+                    {event.description}
+                  </p>
+                )}
+
               </div>
             </article>
 
