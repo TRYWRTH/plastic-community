@@ -40,6 +40,15 @@ export function cleanPlace(input: string | null | undefined): string {
   // Generic "Bezirk <Word>" leftover (just in case)
   s = s.replace(/\bBezirk\s+[A-Za-zÄÖÜäöüß-]+\b/g, "");
 
+  // Strip German 5-digit postal codes
+  s = s.replace(/\b\d{5}\b/g, "");
+
+  // Strip ", Germany" / ", Deutschland" tail
+  s = s.replace(/,\s*(Germany|Deutschland)\b/gi, "");
+
+  // Strip standalone ", Berlin" segments (city is implicit)
+  s = s.replace(/,\s*Berlin\b/gi, "");
+
   // Tidy whitespace, stray commas, double separators
   s = s
     .replace(/\s{2,}/g, " ")
@@ -50,3 +59,4 @@ export function cleanPlace(input: string | null | undefined): string {
 
   return s;
 }
+
