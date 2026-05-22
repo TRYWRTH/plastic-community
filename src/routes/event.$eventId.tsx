@@ -253,7 +253,7 @@ function EventDetail() {
                     <Calendar className="h-4 w-4 shrink-0 text-primary" />
                     {format(new Date(event.event_date), "EEE, MMM d · HH:mm")}
                   </div>
-                 <div className="inline-flex items-start gap-2">
+            <div className="inline-flex items-start gap-2">
   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
   
     href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
