@@ -70,7 +70,7 @@ export const Route = createFileRoute("/event/$eventId")({
       .filter(Boolean)
       .join(" · ")
       .slice(0, 200);
-    const url = `https://plastic-community.lovable.app/event/${params.eventId}`;
+    const url = `https://plastic-community.vercel.app/event/${params.eventId}`;
     return {
       meta: [
         { title },
@@ -229,7 +229,6 @@ function EventDetail() {
                             <Pencil className="h-4 w-4" /> Edit event
                           </Link>
                         </DropdownMenuItem>
-
                         <div className="h-px bg-foreground/20" />
                         <DropdownMenuItem
                           onSelect={(e) => {
@@ -253,20 +252,21 @@ function EventDetail() {
                     <Calendar className="h-4 w-4 shrink-0 text-primary" />
                     {format(new Date(event.event_date), "EEE, MMM d · HH:mm")}
                   </div>
-            <div className="inline-flex items-start gap-2">
-  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-  
-    href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
-    target="_blank"
-    rel="noreferrer noopener"
-    onClick={(e) => e.stopPropagation()}
-    className="break-words underline-offset-2 hover:underline cursor-pointer"
-  >
-    {stripNeighborhoodSuffix(event.place, neighborhoodLabel)}
-    {" · "}
-    <span className="text-neighborhood">{neighborhoodLabel}</span>
-  </a>
-</div>
+                  <div className="inline-flex items-start gap-2">
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    
+                      href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      onClick={(e) => e.stopPropagation()}
+                      className="break-words underline-offset-2 hover:underline cursor-pointer"
+                    >
+                      {stripNeighborhoodSuffix(event.place, neighborhoodLabel)}
+                      {" · "}
+                      <span className="text-neighborhood">{neighborhoodLabel}</span>
+                    </a>
+                  </div>
+                </div>
                 <SaveCountsLine
                   counts={counts}
                   className="mt-3 inline-block font-mono text-[11px] uppercase tracking-widest text-foreground sm:mt-4"
@@ -291,7 +291,7 @@ function EventDetail() {
                 )}
                 {event.link && (
                   <div>
-                    <a
+                    
                       href={event.link}
                       target="_blank"
                       rel="noreferrer noopener"
@@ -307,7 +307,6 @@ function EventDetail() {
                     {event.description}
                   </p>
                 )}
-
               </div>
             </article>
 
@@ -339,7 +338,7 @@ function EventDetail() {
                             </div>
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-foreground">
+                            <div className="flex items=center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-foreground">
                               <t.Icon className="h-3 w-3" aria-hidden="true" />
                               <span>{t.label}</span>
                             </div>
@@ -393,4 +392,3 @@ function stripNeighborhoodSuffix(place: string, neighborhood: string) {
   const suffix = ` · ${neighborhood}`;
   return cleaned.endsWith(suffix) ? cleaned.slice(0, -suffix.length) : cleaned;
 }
-
