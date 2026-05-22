@@ -250,20 +250,20 @@ function EventDetail() {
                     <Calendar className="h-4 w-4 shrink-0 text-primary" />
                     {format(new Date(event.event_date), "EEE, MMM d · HH:mm")}
                   </div>
-                  <div className="inline-flex items-start gap-2">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <a 
-                      href={`http://googleusercontent.com/maps.google.com/${encodeURIComponent(cleanPlace(event.place))}`}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      onClick={(e) => e.stopPropagation()}
-                      className="break-words underline-offset-2 hover:underline cursor-pointer"
-                    >
-                      {stripNeighborhoodSuffix(event.place, neighborhoodLabel)}
-                      {" · "}
-                      <span className="text-neighborhood">{neighborhoodLabel}</span>
-                    </a>
-                  </div>
+                 <div className="inline-flex items-start gap-2">
+  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+  <a 
+    href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
+    target="_blank"
+    rel="noreferrer noopener"
+    onClick={(e) => e.stopPropagation()}
+    className="break-words underline-offset-2 hover:underline cursor-pointer"
+  >
+    {stripNeighborhoodSuffix(event.place, neighborhoodLabel)}
+    {" · "}
+    <span className="text-neighborhood">{neighborhoodLabel}</span>
+  </a>
+</div>
                 </div>
                 <SaveCountsLine
                   counts={counts}
