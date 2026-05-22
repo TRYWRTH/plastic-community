@@ -253,15 +253,20 @@ function EventDetail() {
                     <Calendar className="h-4 w-4 shrink-0 text-primary" />
                     {format(new Date(event.event_date), "EEE, MMM d · HH:mm")}
                   </div>
-                  <div className="inline-flex items-start gap-2">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <span className="break-words">
-                      {stripNeighborhoodSuffix(event.place, neighborhoodLabel)}
-                      {" · "}
-                      <span className="text-neighborhood">{neighborhoodLabel}</span>
-                    </span>
-                  </div>
-                </div>
+                 <div className="inline-flex items-start gap-2">
+  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+  
+    href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
+    target="_blank"
+    rel="noreferrer noopener"
+    onClick={(e) => e.stopPropagation()}
+    className="break-words underline-offset-2 hover:underline cursor-pointer"
+  >
+    {stripNeighborhoodSuffix(event.place, neighborhoodLabel)}
+    {" · "}
+    <span className="text-neighborhood">{neighborhoodLabel}</span>
+  </a>
+</div>
                 <SaveCountsLine
                   counts={counts}
                   className="mt-3 inline-block font-mono text-[11px] uppercase tracking-widest text-foreground sm:mt-4"
