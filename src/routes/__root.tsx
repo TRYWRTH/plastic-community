@@ -186,15 +186,6 @@ function RootComponent() {
     };
   }, [router, queryClient]);
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("focus", handleFocus);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("focus", handleFocus);
-    };
-  }, [router, queryClient]);
-
   // Register the app's service worker. This is required on iOS so the
   // installed PWA shares the same origin storage (and therefore the
   // Supabase session) with Safari after a magic-link round trip — without
@@ -225,16 +216,6 @@ function RootComponent() {
         /* ignore registration failures */
       });
     }
-
-    // If the user is already signed in on a non-login page, init OneSignal.
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session?.user) return;
-      const path = window.location.pathname;
-      if (path.startsWith("/login")) return;
-      initOneSignal().then(() => {
-        setOneSignalExternalId(data.session!.user.id);
-      });
-    });
   }, []);
 
   if (!mounted) return null;
