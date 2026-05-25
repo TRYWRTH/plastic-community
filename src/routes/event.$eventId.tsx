@@ -128,6 +128,7 @@ function EventDetail() {
   });
 
   const { data: counts } = useEventSaveCounts(eventId);
+  const { data: goingInitials } = useEventGoingInitials(eventId);
 
   const { data: nearby } = useQuery({
     queryKey: ["events", "nearby", event?.neighborhood, eventId],
