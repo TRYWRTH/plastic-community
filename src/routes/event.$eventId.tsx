@@ -254,20 +254,19 @@ function EventDetail() {
                     <Calendar className="h-4 w-4 shrink-0 text-primary" />
                     {format(new Date(event.event_date), "EEE, MMM d · HH:mm")}
                   </div>
-                 <div className="inline-flex items-start gap-2">
-  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-  <a 
-    href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
-    target="_blank"
-    rel="noreferrer noopener"
-    onClick={(e) => e.stopPropagation()}
-    className="break-words underline-offset-2 hover:underline cursor-pointer"
-  >
-    {stripNeighborhoodSuffix(event.place, neighborhoodLabel)}
-    {" · "}
-    <span className="text-neighborhood">{neighborhoodLabel}</span>
-  </a>
-</div>
+                  <div className="inline-flex items-start gap-2">
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <a
+                      href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="break-words text-link underline-offset-2 hover:underline"
+                    >
+                      {stripNeighborhoodSuffix(event.place, neighborhoodLabel)}
+                      {" · "}
+                      <span className="text-neighborhood">{neighborhoodLabel}</span>
+                    </a>
+                  </div>
                 </div>
                 <SaveCountsLine
                   counts={counts}
@@ -296,15 +295,6 @@ function EventDetail() {
                   </div>
                 )}
                 <div className="flex flex-wrap items-center gap-2">
-                  <a
-                    href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="inline-flex items-center gap-2 border-2 border-foreground bg-background px-4 py-2 font-mono text-xs uppercase tracking-widest text-foreground hover:bg-primary hover:text-primary-foreground sm:text-sm"
-                  >
-                    <MapPin className="h-4 w-4 shrink-0" />
-                    Open in Google Maps
-                  </a>
                   <ShareButton
                     title={event.title}
                     url={
