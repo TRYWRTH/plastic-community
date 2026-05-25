@@ -131,6 +131,12 @@ function Home() {
 
       if (neighborhood !== "all" && e.neighborhood !== neighborhood) return false;
       if (eventType !== "all" && e.event_type !== eventType) return false;
+
+      const q = searchText.trim().toLowerCase();
+      if (q) {
+        const hay = `${e.title ?? ""} ${e.place ?? ""} ${e.description ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
       return true;
     });
 
@@ -151,7 +157,7 @@ function Home() {
       if (bBad) return -1;
       return ta - tb;
     });
-  }, [events, dateFilter, neighborhood, eventType]);
+  }, [events, dateFilter, neighborhood, eventType, searchText]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-paper">
