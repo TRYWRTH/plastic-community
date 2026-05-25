@@ -11,6 +11,20 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { getPushOptedIn, setPushOptIn } from "@/lib/onesignal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const REMINDER_HOURS_OPTIONS = [
+  { value: 2, label: "2 hours before" },
+  { value: 6, label: "6 hours before" },
+  { value: 24, label: "24 hours before" },
+  { value: 48, label: "48 hours before" },
+];
 
 export const Route = createFileRoute("/settings/notifications")({
   component: NotificationSettingsPage,
@@ -27,6 +41,38 @@ function NotificationSettingsPage() {
     if (!isAuthenticated) return;
     getPushOptedIn().then(setPushOn).catch(() => setPushOn(false));
   }, [isAuthenticated]);
+
+  const { data: prefs } = useQuery({
+    queryKey: ["user_preferences", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_preferences")
+        .select("reminder_hours")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data ?? { reminder_hours: 24 };
+    },
+  });
+
+  const updateReminderHours = useMutation({
+    mutationFn: async (hours: number) => {
+      const { error } = await supabase
+        .from("user_preferences")
+        .upsert(
+          { user_id: user!.id, reminder_hours: hours },
+          { onConflict: "user_id" },
+        );
+      if (error) throw error;
+      return hours;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["user_preferences", user?.id] });
+      toast.success("Reminder timing updated");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data: saves = [], isLoading } = useQuery({
     queryKey: ["my_saved_events_with_notify", user?.id],
@@ -127,6 +173,36 @@ function NotificationSettingsPage() {
                 />
               </div>
             </section>
+
+            <section className="mt-6 border-2 border-foreground bg-card p-4 sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <h2 className="font-brand text-xl uppercase text-foreground">
+                    Remind me before event
+                  </h2>
+                  <p className="mt-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Applies to all your saved events with notifications on.
+                  </p>
+                </div>
+                <Select
+                  value={String(prefs?.reminder_hours ?? 24)}
+                  onValueChange={(v) => updateReminderHours.mutate(Number(v))}
+                  disabled={updateReminderHours.isPending}
+                >
+                  <SelectTrigger className="w-full sm:w-56">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {REMINDER_HOURS_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={String(o.value)}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </section>
+
 
             <section className="mt-6">
               <h2 className="font-brand text-xl uppercase text-foreground">

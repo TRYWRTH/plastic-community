@@ -29,82 +29,131 @@ async function sendOneSignal(playerIds: string[], title: string, message: string
   }
 }
 
+const DEFAULT_REMINDER_HOURS = 24;
+// Window of ±1h around the user's preferred reminder offset; cron should run hourly.
+const WINDOW_HOURS = 1;
+
 export const Route = createFileRoute("/api/public/hooks/send-event-reminders")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         const url = new URL(request.url);
         const origin = `${url.protocol}//${url.host}`;
+        const now = Date.now();
 
-        // Find events between 23h and 25h from now (~24h reminder window).
-        const now = new Date();
-        const from = new Date(now.getTime() + 23 * 60 * 60 * 1000).toISOString();
-        const to = new Date(now.getTime() + 25 * 60 * 60 * 1000).toISOString();
+        // Pull all candidate saves: future events, notify on, going/interested,
+        // not yet reminded. We do the per-user-pref window filtering in JS.
+        const horizonHours = 48 + WINDOW_HOURS;
+        const horizonIso = new Date(now + horizonHours * 60 * 60 * 1000).toISOString();
+        const nowIso = new Date(now).toISOString();
 
-        const { data: events, error: evErr } = await supabaseAdmin
-          .from("events")
-          .select("id, title, place, neighborhood, event_date")
-          .gte("event_date", from)
-          .lte("event_date", to);
+        const { data: saves, error: sErr } = await supabaseAdmin
+          .from("event_saves")
+          .select(
+            "id, user_id, event_id, event:events(id, title, place, neighborhood, event_date)",
+          )
+          .eq("notify", true)
+          .in("status", ["going", "interested"])
+          .is("reminded_at", null);
 
-        if (evErr) {
-          console.error("events query failed", evErr);
-          return new Response(JSON.stringify({ error: evErr.message }), {
+        if (sErr) {
+          console.error("saves query failed", sErr);
+          return new Response(JSON.stringify({ error: sErr.message }), {
             status: 500,
             headers: { "Content-Type": "application/json" },
           });
         }
 
-        let totalSent = 0;
-        const results: Array<{ event_id: string; recipients: number }> = [];
+        const candidateSaves = (saves ?? []).filter((s) => {
+          if (!s.event) return false;
+          const t = new Date(s.event.event_date).getTime();
+          return t > now && t <= now + horizonHours * 60 * 60 * 1000;
+        });
+        void horizonIso;
+        void nowIso;
 
-        for (const ev of events ?? []) {
-          const { data: saves, error: sErr } = await supabaseAdmin
-            .from("event_saves")
-            .select("user_id")
-            .eq("event_id", ev.id)
-            .eq("notify", true)
-            .in("status", ["going", "interested"]);
-          if (sErr) {
-            console.error("saves query failed", sErr);
-            continue;
-          }
-          const userIds = (saves ?? []).map((s) => s.user_id);
-          if (userIds.length === 0) {
-            results.push({ event_id: ev.id, recipients: 0 });
-            continue;
-          }
-
-          const { data: subs, error: pErr } = await supabaseAdmin
-            .from("user_push_subscriptions")
-            .select("onesignal_player_id")
-            .in("user_id", userIds);
-          if (pErr) {
-            console.error("subs query failed", pErr);
-            continue;
-          }
-          const playerIds = Array.from(
-            new Set((subs ?? []).map((r) => r.onesignal_player_id).filter(Boolean)),
+        if (candidateSaves.length === 0) {
+          return new Response(
+            JSON.stringify({ ok: true, notifications_sent: 0, checked: 0 }),
+            { headers: { "Content-Type": "application/json" } },
           );
-          if (playerIds.length === 0) {
-            results.push({ event_id: ev.id, recipients: 0 });
-            continue;
-          }
+        }
 
-          const title = "Event tomorrow";
-          const message = `${ev.title} is tomorrow — ${ev.place}, ${ev.neighborhood}`;
+        // Load reminder prefs for involved users.
+        const userIds = Array.from(new Set(candidateSaves.map((s) => s.user_id)));
+        const { data: prefs } = await supabaseAdmin
+          .from("user_preferences")
+          .select("user_id, reminder_hours")
+          .in("user_id", userIds);
+        const prefByUser = new Map<string, number>();
+        for (const p of prefs ?? []) prefByUser.set(p.user_id, p.reminder_hours);
+
+        // Filter saves where the time-until-event matches the user's pref ± window.
+        const due = candidateSaves.filter((s) => {
+          const hoursUntil = (new Date(s.event!.event_date).getTime() - now) / (60 * 60 * 1000);
+          const pref = prefByUser.get(s.user_id) ?? DEFAULT_REMINDER_HOURS;
+          return hoursUntil >= pref - WINDOW_HOURS && hoursUntil <= pref + WINDOW_HOURS;
+        });
+
+        if (due.length === 0) {
+          return new Response(
+            JSON.stringify({ ok: true, notifications_sent: 0, checked: candidateSaves.length }),
+            { headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        // Load player IDs for the due users.
+        const dueUserIds = Array.from(new Set(due.map((s) => s.user_id)));
+        const { data: subs, error: pErr } = await supabaseAdmin
+          .from("user_push_subscriptions")
+          .select("user_id, onesignal_player_id")
+          .in("user_id", dueUserIds);
+        if (pErr) {
+          console.error("subs query failed", pErr);
+          return new Response(JSON.stringify({ error: pErr.message }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        const playersByUser = new Map<string, string[]>();
+        for (const r of subs ?? []) {
+          if (!r.onesignal_player_id) continue;
+          const arr = playersByUser.get(r.user_id) ?? [];
+          arr.push(r.onesignal_player_id);
+          playersByUser.set(r.user_id, arr);
+        }
+
+        let totalSent = 0;
+        const sentSaveIds: string[] = [];
+        for (const s of due) {
+          const players = playersByUser.get(s.user_id) ?? [];
+          const ev = s.event!;
+          const pref = prefByUser.get(s.user_id) ?? DEFAULT_REMINDER_HOURS;
+          const when = pref >= 24 ? `in ${Math.round(pref / 24)} day(s)` : `in ${pref} hours`;
+          const title = "Upcoming event reminder";
+          const message = `${ev.title} is ${when} — ${ev.place}, ${ev.neighborhood}`;
           const eventUrl = `${origin}/event/${ev.id}`;
-          await sendOneSignal(playerIds, title, message, eventUrl);
-          totalSent += playerIds.length;
-          results.push({ event_id: ev.id, recipients: playerIds.length });
+          if (players.length > 0) {
+            await sendOneSignal(players, title, message, eventUrl);
+            totalSent += players.length;
+          }
+          sentSaveIds.push(s.id);
+        }
+
+        if (sentSaveIds.length > 0) {
+          const { error: uErr } = await supabaseAdmin
+            .from("event_saves")
+            .update({ reminded_at: new Date().toISOString() })
+            .in("id", sentSaveIds);
+          if (uErr) console.error("failed to mark reminded_at", uErr);
         }
 
         return new Response(
           JSON.stringify({
             ok: true,
-            events_checked: events?.length ?? 0,
+            checked: candidateSaves.length,
+            due: due.length,
             notifications_sent: totalSent,
-            results,
           }),
           { headers: { "Content-Type": "application/json" } },
         );

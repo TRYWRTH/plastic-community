@@ -16,6 +16,7 @@ import {
   type EventType,
   type Neighborhood,
 } from "@/lib/constants";
+import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -131,6 +132,7 @@ function EditEventForm({
     lat: event.lat,
     lng: event.lng,
   });
+  const [repeats, setRepeats] = useState<RepeatOption>((event.repeats as RepeatOption) ?? "none");
   const initialDateOnly = format(new Date(event.event_date), "yyyy-MM-dd");
   const initialTimeOnly = format(new Date(event.event_date), "HH:mm");
 
@@ -170,11 +172,32 @@ function EditEventForm({
         description: nextDescription || null,
         lat: coords.lat,
         lng: coords.lng,
+        repeats,
       })
       .eq("id", eventId)
       .eq("created_by", userId)
       .select("*")
       .maybeSingle();
+
+    // If repeats changed from none -> something, generate future instances now.
+    const initialRepeats = (event.repeats as RepeatOption) ?? "none";
+    if (updated && initialRepeats === "none" && repeats !== "none") {
+      await createRecurringInstances(
+        {
+          title: nextTitle,
+          place: nextPlace,
+          neighborhood: nextNeighborhood,
+          event_type: nextEventType,
+          link: nextLink || null,
+          description: nextDescription || null,
+          created_by: userId,
+          lat: coords.lat,
+          lng: coords.lng,
+        },
+        parsedDate,
+        repeats,
+      );
+    }
     setSaving(false);
 
     if (error) {
@@ -293,6 +316,28 @@ function EditEventForm({
                   </SelectItem>
                 ))}
 
+              </SelectContent>
+            </Select>
+          </Field>
+
+          <Field
+            label="Repeats"
+            hint={
+              ((event.repeats as RepeatOption) ?? "none") === "none" && repeats !== "none"
+                ? "Future instances will be auto-created up to 3 months ahead."
+                : undefined
+            }
+          >
+            <Select value={repeats} onValueChange={(v) => setRepeats(v as RepeatOption)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {REPEAT_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </Field>
