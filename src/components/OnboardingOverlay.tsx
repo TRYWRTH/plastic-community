@@ -202,7 +202,7 @@ export function OnboardingOverlay({
             onClick={() => (isLast ? onClose() : setStep((s) => s + 1))}
             className="inline-flex items-center justify-center border-2 border-foreground bg-foreground px-6 py-3 font-mono text-xs uppercase tracking-[0.2em] text-background hover:bg-background hover:text-foreground transition"
           >
-            {isLast ? "Let's go" : "Next"}
+            {isLast ? "Got it" : "Next"}
           </button>
         </div>
       </div>
