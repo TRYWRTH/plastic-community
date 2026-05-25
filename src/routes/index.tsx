@@ -85,6 +85,7 @@ function Home() {
   const search = Route.useSearch();
   const { date: dateFilter, neighborhood, type: eventType } = search;
   const navigate = useNavigate({ from: "/" });
+  const [searchText, setSearchText] = useState("");
 
   const setDateFilter = (v: DateFilter) =>
     navigate({ search: cleanSearch({ ...search, date: v }), replace: true });
