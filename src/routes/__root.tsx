@@ -13,7 +13,8 @@ import { FeedbackButton } from "@/components/FeedbackButton";
 
 import { supabase } from "@/integrations/supabase/client";
 import { refreshAuthSession } from "@/lib/use-auth";
-import { initOneSignal, setOneSignalExternalId } from "@/lib/onesignal";
+// OneSignal push notifications disabled — popups don't work reliably on iOS/Android.
+// import { initOneSignal, setOneSignalExternalId } from "@/lib/onesignal";
 
 import appCss from "../styles.css?url";
 
