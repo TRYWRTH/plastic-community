@@ -20,6 +20,7 @@ export type Database = {
           event_id: string
           id: string
           notify: boolean
+          reminded_at: string | null
           status: Database["public"]["Enums"]["save_status"]
           updated_at: string
           user_id: string
@@ -29,6 +30,7 @@ export type Database = {
           event_id: string
           id?: string
           notify?: boolean
+          reminded_at?: string | null
           status: Database["public"]["Enums"]["save_status"]
           updated_at?: string
           user_id: string
@@ -38,6 +40,7 @@ export type Database = {
           event_id?: string
           id?: string
           notify?: boolean
+          reminded_at?: string | null
           status?: Database["public"]["Enums"]["save_status"]
           updated_at?: string
           user_id?: string
@@ -65,6 +68,7 @@ export type Database = {
           lng: number | null
           neighborhood: Database["public"]["Enums"]["neighborhood"]
           place: string
+          repeats: Database["public"]["Enums"]["event_repeat"]
           title: string
           updated_at: string
         }
@@ -80,6 +84,7 @@ export type Database = {
           lng?: number | null
           neighborhood: Database["public"]["Enums"]["neighborhood"]
           place: string
+          repeats?: Database["public"]["Enums"]["event_repeat"]
           title: string
           updated_at?: string
         }
@@ -95,6 +100,7 @@ export type Database = {
           lng?: number | null
           neighborhood?: Database["public"]["Enums"]["neighborhood"]
           place?: string
+          repeats?: Database["public"]["Enums"]["event_repeat"]
           title?: string
           updated_at?: string
         }
@@ -118,6 +124,30 @@ export type Database = {
           id?: string
           message?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          reminder_hours: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reminder_hours?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reminder_hours?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -168,6 +198,7 @@ export type Database = {
       }
     }
     Enums: {
+      event_repeat: "none" | "weekly" | "biweekly" | "monthly"
       event_type:
         | "music"
         | "theater"
@@ -320,6 +351,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      event_repeat: ["none", "weekly", "biweekly", "monthly"],
       event_type: [
         "music",
         "theater",
