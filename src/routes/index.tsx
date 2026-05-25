@@ -7,6 +7,7 @@ import { format, isAfter, isBefore, startOfDay, endOfDay, addDays } from "date-f
 import { MapPin, Calendar, ExternalLink } from "lucide-react";
 
 import { Header } from "@/components/Header";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { EnablePushBanner } from "@/components/EnablePushBanner";
 import { SaveCountsLine } from "@/components/SaveCountsLine";
 import { useAllEventSaveCounts } from "@/lib/use-event-save-counts";
@@ -79,6 +80,7 @@ function Home() {
     queryFn: fetchEvents,
   });
   const { data: countsMap } = useAllEventSaveCounts();
+  const isMobile = useIsMobile();
 
   const search = Route.useSearch();
   const { date: dateFilter, neighborhood, type: eventType } = search;
@@ -272,20 +274,20 @@ function Home() {
                             <Calendar className="h-3.5 w-3.5 shrink-0" />
                             {d ? format(d, "EEE, HH:mm") : "Date TBA"}
                           </span>
-                          <span
-                            role="link"
-                            tabIndex={0}
-                            onClick={(ev) => {
-                              ev.preventDefault();
-                              ev.stopPropagation();
-                              window.open(
-                                `https://maps.google.com/?q=${encodeURIComponent(cleanPlace(e.place))}`,
-                                "_blank",
-                                "noopener,noreferrer",
-                              );
-                            }}
-                            onKeyDown={(ev) => {
-                              if (ev.key === "Enter" || ev.key === " ") {
+                          {isMobile ? (
+                            <span className="inline-flex min-w-0 max-w-full items-start gap-1 self-start text-left">
+                              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                              <span className="min-w-0 break-words">
+                                {stripNeighborhoodSuffix(e.place, n.label)}
+                                {" · "}
+                                <span className="text-neighborhood">{n.label}</span>
+                              </span>
+                            </span>
+                          ) : (
+                            <span
+                              role="link"
+                              tabIndex={0}
+                              onClick={(ev) => {
                                 ev.preventDefault();
                                 ev.stopPropagation();
                                 window.open(
@@ -293,17 +295,28 @@ function Home() {
                                   "_blank",
                                   "noopener,noreferrer",
                                 );
-                              }
-                            }}
-                            className="inline-flex min-w-0 max-w-full items-start gap-1 self-start text-left hover:text-link cursor-pointer"
-                          >
-                            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                            <span className="min-w-0 break-words underline-offset-2 hover:underline">
-                              {stripNeighborhoodSuffix(e.place, n.label)}
-                              {" · "}
-                              <span className="text-neighborhood">{n.label}</span>
+                              }}
+                              onKeyDown={(ev) => {
+                                if (ev.key === "Enter" || ev.key === " ") {
+                                  ev.preventDefault();
+                                  ev.stopPropagation();
+                                  window.open(
+                                    `https://maps.google.com/?q=${encodeURIComponent(cleanPlace(e.place))}`,
+                                    "_blank",
+                                    "noopener,noreferrer",
+                                  );
+                                }
+                              }}
+                              className="inline-flex min-w-0 max-w-full items-start gap-1 self-start text-left hover:text-link cursor-pointer"
+                            >
+                              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                              <span className="min-w-0 break-words underline-offset-2 hover:underline">
+                                {stripNeighborhoodSuffix(e.place, n.label)}
+                                {" · "}
+                                <span className="text-neighborhood">{n.label}</span>
+                              </span>
                             </span>
-                          </span>
+                          )}
                           {e.link && (
                             <span className="inline-flex items-center gap-1 text-link">
                               <ExternalLink className="h-3.5 w-3.5 shrink-0" />

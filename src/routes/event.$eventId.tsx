@@ -287,6 +287,17 @@ function EventDetail() {
                     />
                   </div>
                 )}
+                <div>
+                  <a
+                    href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="inline-flex items-center gap-2 border-2 border-foreground bg-background px-4 py-2 font-mono text-xs uppercase tracking-widest text-foreground hover:bg-primary hover:text-primary-foreground sm:text-sm"
+                  >
+                    <MapPin className="h-4 w-4 shrink-0" />
+                    Open in Google Maps
+                  </a>
+                </div>
                 {event.link && (
                   <div>
                     <a
