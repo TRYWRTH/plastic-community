@@ -164,16 +164,8 @@ function RootComponent() {
     const handleVisibleSession = async () => {
       const session = await refreshAuthSession();
       if (!session?.user) return;
-
       router.invalidate();
       queryClient.invalidateQueries();
-
-      const path = window.location.pathname;
-      if (!path.startsWith("/login")) {
-        initOneSignal().then(() => {
-          setOneSignalExternalId(session.user.id);
-        });
-      }
     };
 
     const handleVisibilityChange = () => {
@@ -184,6 +176,15 @@ function RootComponent() {
     const handleFocus = () => {
       void handleVisibleSession();
     };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [router, queryClient]);
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("focus", handleFocus);
