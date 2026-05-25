@@ -11,6 +11,20 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { getPushOptedIn, setPushOptIn } from "@/lib/onesignal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const REMINDER_HOURS_OPTIONS = [
+  { value: 2, label: "2 hours before" },
+  { value: 6, label: "6 hours before" },
+  { value: 24, label: "24 hours before" },
+  { value: 48, label: "48 hours before" },
+];
 
 export const Route = createFileRoute("/settings/notifications")({
   component: NotificationSettingsPage,
@@ -27,6 +41,38 @@ function NotificationSettingsPage() {
     if (!isAuthenticated) return;
     getPushOptedIn().then(setPushOn).catch(() => setPushOn(false));
   }, [isAuthenticated]);
+
+  const { data: prefs } = useQuery({
+    queryKey: ["user_preferences", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_preferences")
+        .select("reminder_hours")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data ?? { reminder_hours: 24 };
+    },
+  });
+
+  const updateReminderHours = useMutation({
+    mutationFn: async (hours: number) => {
+      const { error } = await supabase
+        .from("user_preferences")
+        .upsert(
+          { user_id: user!.id, reminder_hours: hours },
+          { onConflict: "user_id" },
+        );
+      if (error) throw error;
+      return hours;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["user_preferences", user?.id] });
+      toast.success("Reminder timing updated");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data: saves = [], isLoading } = useQuery({
     queryKey: ["my_saved_events_with_notify", user?.id],
