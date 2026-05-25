@@ -16,6 +16,7 @@ import {
   type EventType,
   type Neighborhood,
 } from "@/lib/constants";
+import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -49,6 +50,7 @@ function AddEvent() {
   const [eventTime, setEventTime] = useState("20:00");
   const [link, setLink] = useState("");
   const [description, setDescription] = useState("");
+  const [repeats, setRepeats] = useState<RepeatOption>("none");
   const [saving, setSaving] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -60,28 +62,39 @@ function AddEvent() {
       return;
     }
     setSaving(true);
+    const basePayload = {
+      title: title.trim(),
+      place: cleanPlace(place.trim()),
+      neighborhood,
+      event_type: eventType,
+      link: link.trim() || null,
+      description: description.trim() || null,
+      created_by: user.id,
+      lat: coords.lat,
+      lng: coords.lng,
+    };
     const { data, error } = await supabase
       .from("events")
       .insert({
-        title: title.trim(),
-        place: cleanPlace(place.trim()),
-        neighborhood,
-        event_type: eventType,
+        ...basePayload,
         event_date: parsedDate.toISOString(),
-        link: link.trim() || null,
-        description: description.trim() || null,
-        created_by: user.id,
-        lat: coords.lat,
-        lng: coords.lng,
+        repeats,
       })
       .select("id")
       .single();
-    setSaving(false);
     if (error) {
+      setSaving(false);
       toast.error(error.message);
       return;
     }
-    toast.success("Event added");
+
+    const extraCount = await createRecurringInstances(basePayload, parsedDate, repeats);
+    setSaving(false);
+    toast.success(
+      extraCount > 0
+        ? `Event added (+${extraCount} repeats)`
+        : "Event added",
+    );
 
     // Fire-and-forget push broadcast to all subscribers (client-side OneSignal call)
     const eventUrl = `${window.location.origin}/event/${data.id}`;
