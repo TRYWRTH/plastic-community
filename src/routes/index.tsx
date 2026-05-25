@@ -7,6 +7,7 @@ import { format, isAfter, isBefore, startOfDay, endOfDay, addDays } from "date-f
 import { MapPin, Calendar, ExternalLink } from "lucide-react";
 
 import { Header } from "@/components/Header";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { EnablePushBanner } from "@/components/EnablePushBanner";
 import { SaveCountsLine } from "@/components/SaveCountsLine";
 import { useAllEventSaveCounts } from "@/lib/use-event-save-counts";
