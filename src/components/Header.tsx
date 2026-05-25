@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Plus, LogOut, Bookmark, UserRound, Bell } from "lucide-react";
+import { Plus, LogOut, Bookmark, UserRound, Bell, HelpCircle } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
@@ -34,6 +34,15 @@ export function Header() {
 </Link>
 
         <nav className="flex items-center gap-1 sm:gap-2">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-9 w-9"
+            aria-label="Show walkthrough"
+            onClick={() => window.dispatchEvent(new CustomEvent("whisperring:show-onboarding"))}
+          >
+            <HelpCircle className="h-4 w-4" />
+          </Button>
           {isAuthenticated && (
             <Button asChild size="sm" variant="ghost">
               <Link to="/saved">

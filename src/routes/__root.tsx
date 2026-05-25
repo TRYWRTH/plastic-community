@@ -10,6 +10,7 @@ import {
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { FeedbackButton } from "@/components/FeedbackButton";
+import { OnboardingOverlay, useOnboarding } from "@/components/OnboardingOverlay";
 
 import { supabase } from "@/integrations/supabase/client";
 import { refreshAuthSession } from "@/lib/use-auth";
@@ -224,7 +225,18 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <FeedbackButton />
+      <OnboardingHost />
       <Toaster theme="light" position="top-center" richColors />
     </QueryClientProvider>
   );
+}
+
+function OnboardingHost() {
+  const { open, show, close } = useOnboarding();
+  useEffect(() => {
+    const handler = () => show();
+    window.addEventListener("whisperring:show-onboarding", handler);
+    return () => window.removeEventListener("whisperring:show-onboarding", handler);
+  }, [show]);
+  return <OnboardingOverlay open={open} onClose={close} />;
 }
