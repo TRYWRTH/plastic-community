@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
+import { FeedbackButton } from "@/components/FeedbackButton";
 
 import { supabase } from "@/integrations/supabase/client";
 import { refreshAuthSession } from "@/lib/use-auth";
@@ -250,6 +251,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <FeedbackButton />
       <Toaster theme="light" position="top-center" richColors />
     </QueryClientProvider>
   );

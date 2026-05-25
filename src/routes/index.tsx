@@ -2,9 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { format, isAfter, isBefore, startOfDay, endOfDay, addDays } from "date-fns";
-import { MapPin, Calendar, ExternalLink } from "lucide-react";
+import { MapPin, Calendar, ExternalLink, Search, X } from "lucide-react";
 
 import { Header } from "@/components/Header";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -85,6 +85,7 @@ function Home() {
   const search = Route.useSearch();
   const { date: dateFilter, neighborhood, type: eventType } = search;
   const navigate = useNavigate({ from: "/" });
+  const [searchText, setSearchText] = useState("");
 
   const setDateFilter = (v: DateFilter) =>
     navigate({ search: cleanSearch({ ...search, date: v }), replace: true });
@@ -130,6 +131,12 @@ function Home() {
 
       if (neighborhood !== "all" && e.neighborhood !== neighborhood) return false;
       if (eventType !== "all" && e.event_type !== eventType) return false;
+
+      const q = searchText.trim().toLowerCase();
+      if (q) {
+        const hay = `${e.title ?? ""} ${e.place ?? ""} ${e.description ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
       return true;
     });
 
@@ -150,7 +157,7 @@ function Home() {
       if (bBad) return -1;
       return ta - tb;
     });
-  }, [events, dateFilter, neighborhood, eventType]);
+  }, [events, dateFilter, neighborhood, eventType, searchText]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-paper">
@@ -185,7 +192,28 @@ function Home() {
 
       {/* Filters */}
       <section className="sticky top-14 z-30 border-b-2 border-foreground bg-background">
-        <div className="mx-auto max-w-5xl px-4 py-3">
+        <div className="mx-auto max-w-5xl space-y-2 px-4 py-3">
+          <div className="relative w-full">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground" />
+            <input
+              type="text"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="Search events…"
+              aria-label="Search events"
+              className="h-11 w-full rounded-none border-2 border-foreground bg-background pl-9 pr-9 font-mono text-xs uppercase tracking-wider placeholder:text-foreground/50 focus:outline-none focus:ring-0 sm:h-9"
+            />
+            {searchText && (
+              <button
+                type="button"
+                onClick={() => setSearchText("")}
+                aria-label="Clear search"
+                className="absolute right-2 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center border border-foreground bg-background hover:bg-foreground hover:text-background"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
             <FilterSelect
               value={dateFilter}
