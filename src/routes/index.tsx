@@ -192,7 +192,28 @@ function Home() {
 
       {/* Filters */}
       <section className="sticky top-14 z-30 border-b-2 border-foreground bg-background">
-        <div className="mx-auto max-w-5xl px-4 py-3">
+        <div className="mx-auto max-w-5xl space-y-2 px-4 py-3">
+          <div className="relative w-full">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground" />
+            <input
+              type="text"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="Search events…"
+              aria-label="Search events"
+              className="h-11 w-full rounded-none border-2 border-foreground bg-background pl-9 pr-9 font-mono text-xs uppercase tracking-wider placeholder:text-foreground/50 focus:outline-none focus:ring-0 sm:h-9"
+            />
+            {searchText && (
+              <button
+                type="button"
+                onClick={() => setSearchText("")}
+                aria-label="Clear search"
+                className="absolute right-2 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center border border-foreground bg-background hover:bg-foreground hover:text-background"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
             <FilterSelect
               value={dateFilter}
