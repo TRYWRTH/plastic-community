@@ -19,6 +19,12 @@ function detectPlatform(): "ios" | "android" | "desktop" {
   return "desktop";
 }
 
+function isChrome(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  return /CriOS|Chrome/.test(ua);
+}
+
 export function useOnboarding() {
   const [open, setOpen] = useState(false);
 
@@ -59,17 +65,18 @@ export function OnboardingOverlay({
   const [step, setStep] = useState(0);
   const installed = isStandalonePWA();
   const platform = detectPlatform();
+  const chrome = isChrome();
 
   type Step = { icon: React.ReactNode; title: string; body: React.ReactNode };
 
   const steps: Step[] = [
     {
       icon: <Sparkles className="h-10 w-10" strokeWidth={2.5} />,
-      title: "Welcome to Whisper Ring",
+      title: "WHISPER RING",
       body: (
         <p>
-          A living index of performance events in Berlin. Spot a poster, add the event,
-          share it with the community.
+          A place to collect events you spot on posters, hear from friends, or find
+          anywhere. Add them, track them, show up.
         </p>
       ),
     },
@@ -78,36 +85,55 @@ export function OnboardingOverlay({
       : [
           {
             icon: <Smartphone className="h-10 w-10" strokeWidth={2.5} />,
-            title: "Add it to your home screen",
-            body:
-              platform === "ios" ? (
+            title: "ADD TO HOME SCREEN",
+            body: chrome ? (
+              <div className="space-y-2">
                 <p>
-                  In Safari, tap the <span className="font-bold">Share</span> icon, then
-                  <span className="font-bold"> "Add to Home Screen"</span>. Opens instantly,
-                  works offline.
+                  1. Tap the three dots <span className="font-bold">⋮</span> in the top right corner
                 </p>
-              ) : platform === "android" ? (
+                <p>2. Tap <span className="font-bold">"Add to Home Screen"</span></p>
+                <p>3. Tap <span className="font-bold">"Add"</span></p>
+                <p className="mt-2 text-muted-foreground">
+                  You&apos;ll get an icon on your home screen that opens like a real app — no browser bar, no fuss.
+                </p>
+              </div>
+            ) : platform === "ios" ? (
+              <div className="space-y-2">
                 <p>
-                  Tap the <span className="font-bold">⋮</span> menu, then
-                  <span className="font-bold"> "Add to Home Screen"</span>. Opens instantly,
-                  works offline.
+                  1. Tap the <span className="font-bold">Share</span> button at the bottom of Safari (the box with an arrow)
                 </p>
-              ) : (
                 <p>
-                  Open this page on your phone and add it to your home screen for instant
-                  access.
+                  2. Scroll down and tap <span className="font-bold">"Add to Home Screen"</span>
                 </p>
-              ),
+                <p>3. Tap <span className="font-bold">"Add"</span></p>
+                <p className="mt-2 text-muted-foreground">
+                  You&apos;ll get an icon on your home screen that opens like a real app.
+                </p>
+              </div>
+            ) : (
+              <p>
+                Open this page on your phone and add it to your home screen for instant
+                access.
+              </p>
+            ),
           } as Step,
         ]),
     {
       icon: <CalendarClock className="h-10 w-10" strokeWidth={2.5} />,
-      title: "How it works",
+      title: "HOW IT WORKS",
       body: (
-        <p>
-          Spot an event → Add it → Get reminded the day before. Save the ones you care about
-          to your list.
-        </p>
+        <div className="space-y-3">
+          <p>
+            Spot a poster or hear about something? Tap <span className="font-bold">+</span> and add it.
+          </p>
+          <p>
+            Mark events as <span className="font-bold">Going</span> or{" "}
+            <span className="font-bold">Interested</span> to save them to your list.
+          </p>
+          <p>
+            You&apos;ll get a reminder the day before so you actually show up.
+          </p>
+        </div>
       ),
     },
   ];
