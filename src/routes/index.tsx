@@ -80,6 +80,7 @@ function Home() {
     queryFn: fetchEvents,
   });
   const { data: countsMap } = useAllEventSaveCounts();
+  const isMobile = useIsMobile();
 
   const search = Route.useSearch();
   const { date: dateFilter, neighborhood, type: eventType } = search;
