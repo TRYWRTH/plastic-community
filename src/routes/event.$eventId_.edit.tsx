@@ -320,6 +320,28 @@ function EditEventForm({
             </Select>
           </Field>
 
+          <Field
+            label="Repeats"
+            hint={
+              ((event.repeats as RepeatOption) ?? "none") === "none" && repeats !== "none"
+                ? "Future instances will be auto-created up to 3 months ahead."
+                : undefined
+            }
+          >
+            <Select value={repeats} onValueChange={(v) => setRepeats(v as RepeatOption)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {REPEAT_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
           <Field label="Link">
             <div className="flex gap-2">
               <Input
