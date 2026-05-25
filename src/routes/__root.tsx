@@ -13,7 +13,8 @@ import { FeedbackButton } from "@/components/FeedbackButton";
 
 import { supabase } from "@/integrations/supabase/client";
 import { refreshAuthSession } from "@/lib/use-auth";
-import { initOneSignal, setOneSignalExternalId } from "@/lib/onesignal";
+// OneSignal push notifications disabled — popups don't work reliably on iOS/Android.
+// import { initOneSignal, setOneSignalExternalId } from "@/lib/onesignal";
 
 import appCss from "../styles.css?url";
 
@@ -150,20 +151,9 @@ function RootComponent() {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(() => {
       router.invalidate();
       queryClient.invalidateQueries();
-      // Only init OneSignal AFTER the user is authenticated, and never on
-      // the /login route — initializing during the login flow can cause the
-      // browser permission prompt to appear before the user is actually in.
-      if (session?.user) {
-        const path = typeof window !== "undefined" ? window.location.pathname : "";
-        if (!path.startsWith("/login")) {
-          initOneSignal().then(() => {
-            setOneSignalExternalId(session.user.id);
-          });
-        }
-      }
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
@@ -174,16 +164,8 @@ function RootComponent() {
     const handleVisibleSession = async () => {
       const session = await refreshAuthSession();
       if (!session?.user) return;
-
       router.invalidate();
       queryClient.invalidateQueries();
-
-      const path = window.location.pathname;
-      if (!path.startsWith("/login")) {
-        initOneSignal().then(() => {
-          setOneSignalExternalId(session.user.id);
-        });
-      }
     };
 
     const handleVisibilityChange = () => {
@@ -234,16 +216,6 @@ function RootComponent() {
         /* ignore registration failures */
       });
     }
-
-    // If the user is already signed in on a non-login page, init OneSignal.
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session?.user) return;
-      const path = window.location.pathname;
-      if (path.startsWith("/login")) return;
-      initOneSignal().then(() => {
-        setOneSignalExternalId(data.session!.user.id);
-      });
-    });
   }, []);
 
   if (!mounted) return null;

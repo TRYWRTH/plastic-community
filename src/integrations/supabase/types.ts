@@ -150,6 +150,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_event_going_initials: {
+        Args: never
+        Returns: {
+          event_id: string
+          going_count: number
+          initials: string[]
+        }[]
+      }
       get_event_save_counts: {
         Args: never
         Returns: {

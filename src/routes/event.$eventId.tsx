@@ -17,7 +17,10 @@ import { Header } from "@/components/Header";
 import { SaveButtons } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import { SaveCountsLine } from "@/components/SaveCountsLine";
+import { GoingInitialsLine } from "@/components/GoingInitialsLine";
+import { ShareButton } from "@/components/ShareButton";
 import { useEventSaveCounts } from "@/lib/use-event-save-counts";
+import { useEventGoingInitials } from "@/lib/use-event-going-initials";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
@@ -125,6 +128,7 @@ function EventDetail() {
   });
 
   const { data: counts } = useEventSaveCounts(eventId);
+  const { data: goingInitials } = useEventGoingInitials(eventId);
 
   const { data: nearby } = useQuery({
     queryKey: ["events", "nearby", event?.neighborhood, eventId],
@@ -269,6 +273,10 @@ function EventDetail() {
                   counts={counts}
                   className="mt-3 inline-block font-mono text-[11px] uppercase tracking-widest text-foreground sm:mt-4"
                 />
+                <GoingInitialsLine
+                  data={goingInitials}
+                  className="mt-1 block font-mono text-[11px] uppercase tracking-widest text-foreground"
+                />
               </div>
               <div className="space-y-4 pt-4 sm:space-y-5 sm:p-8">
                 <div className="flex flex-wrap items-center gap-2">
@@ -287,7 +295,7 @@ function EventDetail() {
                     />
                   </div>
                 )}
-                <div>
+                <div className="flex flex-wrap items-center gap-2">
                   <a
                     href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
                     target="_blank"
@@ -297,6 +305,14 @@ function EventDetail() {
                     <MapPin className="h-4 w-4 shrink-0" />
                     Open in Google Maps
                   </a>
+                  <ShareButton
+                    title={event.title}
+                    url={
+                      typeof window !== "undefined"
+                        ? window.location.href
+                        : `https://plastic-community.vercel.app/event/${event.id}`
+                    }
+                  />
                 </div>
                 {event.link && (
                   <div>
