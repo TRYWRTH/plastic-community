@@ -151,20 +151,9 @@ function RootComponent() {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(() => {
       router.invalidate();
       queryClient.invalidateQueries();
-      // Only init OneSignal AFTER the user is authenticated, and never on
-      // the /login route — initializing during the login flow can cause the
-      // browser permission prompt to appear before the user is actually in.
-      if (session?.user) {
-        const path = typeof window !== "undefined" ? window.location.pathname : "";
-        if (!path.startsWith("/login")) {
-          initOneSignal().then(() => {
-            setOneSignalExternalId(session.user.id);
-          });
-        }
-      }
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
