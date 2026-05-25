@@ -174,6 +174,36 @@ function NotificationSettingsPage() {
               </div>
             </section>
 
+            <section className="mt-6 border-2 border-foreground bg-card p-4 sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <h2 className="font-brand text-xl uppercase text-foreground">
+                    Remind me before event
+                  </h2>
+                  <p className="mt-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Applies to all your saved events with notifications on.
+                  </p>
+                </div>
+                <Select
+                  value={String(prefs?.reminder_hours ?? 24)}
+                  onValueChange={(v) => updateReminderHours.mutate(Number(v))}
+                  disabled={updateReminderHours.isPending}
+                >
+                  <SelectTrigger className="w-full sm:w-56">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {REMINDER_HOURS_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={String(o.value)}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </section>
+
+
             <section className="mt-6">
               <h2 className="font-brand text-xl uppercase text-foreground">
                 Per-event notifications
