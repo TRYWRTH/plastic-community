@@ -120,7 +120,7 @@ function Home() {
       arr.push(e);
       futureByKey.set(key, arr);
     }
-    for (const [key, arr] of futureByKey) {
+    for (const arr of futureByKey.values()) {
       if (arr.length < 2) continue;
       // Only collapse if any event in the group is marked recurring
       const hasRecurring = arr.some((e) => e.repeats && e.repeats !== "none");
