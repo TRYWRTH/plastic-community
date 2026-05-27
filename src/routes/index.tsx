@@ -108,6 +108,7 @@ function Home() {
     // future dates), only keep the nearest upcoming instance per group.
     const todayStart = startOfDay(now);
     const hiddenIds = new Set<string>();
+    const recurringByKey = new Map<string, string>();
 
     // Group future events by title+created_by
     const futureByKey = new Map<string, typeof events>();
@@ -120,11 +121,13 @@ function Home() {
       arr.push(e);
       futureByKey.set(key, arr);
     }
-    for (const arr of futureByKey.values()) {
+    for (const [key, arr] of futureByKey.entries()) {
+      const recurringParent = arr.find((e) => e.repeats && e.repeats !== "none");
+      if (recurringParent || arr.length > 1) {
+        recurringByKey.set(key, recurringParent?.repeats ?? "weekly");
+      }
       if (arr.length < 2) continue;
-      // Only collapse if any event in the group is marked recurring
-      const hasRecurring = arr.some((e) => e.repeats && e.repeats !== "none");
-      if (!hasRecurring) continue;
+      if (!recurringParent) continue;
       const sorted = [...arr].sort(
         (a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime(),
       );
