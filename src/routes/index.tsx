@@ -156,10 +156,16 @@ function Home() {
           )
             return false;
         }
-        if (dateFilter === "week") {
-          if (!d) return false;
-          if (!(isAfter(d, now) && isBefore(d, addDays(now, 7)))) return false;
-        }
+      if (dateFilter === "week") {
+  if (!d) return false;
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Monday
+  startOfWeek.setHours(0, 0, 0, 0);
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
+  endOfWeek.setHours(23, 59, 59, 999);
+  if (!(isAfter(d, now) && isBefore(d, endOfWeek))) return false;
+}
         if (dateFilter === "upcoming" && d && isBefore(d, startOfDay(now))) return false;
       }
 
