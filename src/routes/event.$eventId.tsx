@@ -323,6 +323,14 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                     </a>
                   </div>
                 </div>
+                {isRecurring && upcomingOccurrences && upcomingOccurrences.length > 0 && (
+                  <div className="mt-2 font-mono text-[11px] uppercase tracking-widest text-foreground sm:text-xs">
+                    <span className="text-primary">↻ Also happening:</span>{" "}
+                    {upcomingOccurrences
+                      .map((o) => format(new Date(o.event_date), "MMM d"))
+                      .join(" · ")}
+                  </div>
+                )}
                 <SaveCountsLine
                   counts={counts}
                   className="mt-3 inline-block font-mono text-[11px] uppercase tracking-widest text-foreground sm:mt-4"
