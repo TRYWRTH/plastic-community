@@ -305,9 +305,14 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   {event.title}
                 </h1>
                 <div className="mt-3 grid gap-2 font-mono text-sm uppercase tracking-wide text-foreground sm:mt-5 sm:grid-cols-2 sm:text-xs">
-                  <div className="inline-flex items-center gap-2">
+                  <div className="inline-flex flex-wrap items-center gap-2">
                     <Calendar className="h-4 w-4 shrink-0 text-primary" />
-                    {format(new Date(event.event_date), "EEE, MMM d · HH:mm")}
+                    <span>{format(new Date(event.event_date), "EEE, MMM d · HH:mm")}</span>
+                    {isRecurring && (
+                      <span className="inline-flex items-center gap-1 border border-foreground/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-primary">
+                        ↻ {String(event.repeats).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <div className="inline-flex items-start gap-2">
                     <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -323,12 +328,44 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                     </a>
                   </div>
                 </div>
+                {(() => {
+                  const now = new Date();
+                  const eventDate = new Date(event.event_date);
+                  const isPastOrToday =
+                    eventDate.toDateString() === now.toDateString() ||
+                    eventDate < now;
+                  const next = upcomingOccurrences?.[0];
+                  if (isPastOrToday && next) {
+                    return (
+                      <div className="mt-2 font-mono text-[11px] uppercase tracking-widest text-foreground sm:text-xs">
+                        <span className="text-primary">↻ Next occurrence:</span>{" "}
+                        <Link
+                          to="/event/$eventId"
+                          params={{ eventId: next.id }}
+                          className="text-link underline underline-offset-2 hover:text-primary"
+                        >
+                          {format(new Date(next.event_date), "EEE, MMM d · HH:mm")}
+                        </Link>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
                 {isRecurring && upcomingOccurrences && upcomingOccurrences.length > 0 && (
                   <div className="mt-2 font-mono text-[11px] uppercase tracking-widest text-foreground sm:text-xs">
                     <span className="text-primary">↻ Also happening:</span>{" "}
-                    {upcomingOccurrences
-                      .map((o) => format(new Date(o.event_date), "MMM d"))
-                      .join(" · ")}
+                    {upcomingOccurrences.map((o, i) => (
+                      <span key={o.id}>
+                        {i > 0 && " · "}
+                        <Link
+                          to="/event/$eventId"
+                          params={{ eventId: o.id }}
+                          className="text-link underline underline-offset-2 hover:text-primary"
+                        >
+                          {format(new Date(o.event_date), "MMM d")}
+                        </Link>
+                      </span>
+                    ))}
                   </div>
                 )}
                 <SaveCountsLine
