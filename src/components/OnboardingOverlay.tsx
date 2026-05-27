@@ -131,7 +131,7 @@ export function OnboardingOverlay({
             <span className="font-bold">Interested</span> to save them to your list.
           </p>
           <p>
-            You&apos;ll get a reminder the day before so you actually show up.
+            Tap <span className="font-bold">Add to calendar</span> on the event page to set up your own reminder — Whisper Ring doesn&apos;t send push notifications.
           </p>
         </div>
       ),
