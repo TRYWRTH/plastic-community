@@ -260,6 +260,17 @@ function AddEvent() {
             </div>
           </Field>
 
+          <Field label="Image" hint="Paste a link to an image from the web">
+            <Input
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://... (optional)"
+              type="url"
+              inputMode="url"
+              maxLength={500}
+            />
+          </Field>
+
           <Field label="Description">
             <Textarea
               value={description}
