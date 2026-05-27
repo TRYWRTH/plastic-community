@@ -221,7 +221,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
         <div
           role="status"
           aria-live="polite"
-          className={`fixed inset-x-0 top-0 z-50 border-b-2 border-foreground bg-foreground text-primary shadow-stamp transition-opacity duration-500 ${
+          className={`fixed inset-x-0 top-0 z-50 border-b-2 border-foreground bg-foreground text-neighborhood shadow-stamp transition-opacity duration-500 ${
             savedBannerFading ? "opacity-0" : "opacity-100"
           }`}
         >
@@ -236,7 +236,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
         <div className="flex items-center">
           <Link
             to="/"
-            className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-foreground hover:text-primary sm:text-xs"
+            className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-foreground hover:text-neighborhood sm:text-xs"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back
           </Link>
@@ -267,7 +267,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                       <DropdownMenuTrigger asChild>
                         <button
                           aria-label="Event actions"
-                          className="-mr-2 grid h-10 w-10 place-items-center rounded-none text-foreground hover:text-primary"
+                          className="-mr-2 grid h-10 w-10 place-items-center rounded-none text-foreground hover:text-neighborhood"
                         >
                           <MoreVertical className="h-5 w-5" />
                         </button>
@@ -306,16 +306,16 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                 </h1>
                 <div className="mt-3 grid gap-2 font-mono text-sm uppercase tracking-wide text-foreground sm:mt-5 sm:grid-cols-2 sm:text-xs">
                   <div className="inline-flex flex-wrap items-center gap-2">
-                    <Calendar className="h-4 w-4 shrink-0 text-primary" />
+                    <Calendar className="h-4 w-4 shrink-0 text-neighborhood" />
                     <span>{format(new Date(event.event_date), "EEE, MMM d · HH:mm")}</span>
                     {isRecurring && (
-                      <span className="inline-flex items-center gap-1 border border-foreground/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-primary">
+                      <span className="inline-flex items-center gap-1 border border-foreground/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-neighborhood">
                         ↻ {String(event.repeats).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div className="inline-flex items-start gap-2">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-neighborhood" />
                     <a
                       href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
                       target="_blank"
@@ -334,15 +334,16 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   const isPastOrToday =
                     eventDate.toDateString() === now.toDateString() ||
                     eventDate < now;
+
                   const next = upcomingOccurrences?.[0];
                   if (isPastOrToday && next) {
                     return (
                       <div className="mt-2 font-mono text-[11px] uppercase tracking-widest text-foreground sm:text-xs">
-                        <span className="text-primary">↻ Next occurrence:</span>{" "}
+                        <span className="text-neighborhood">↻ Next occurrence:</span>{" "}
                         <Link
                           to="/event/$eventId"
                           params={{ eventId: next.id }}
-                          className="text-link underline underline-offset-2 hover:text-primary"
+                          className="text-link underline underline-offset-2 hover:text-neighborhood"
                         >
                           {format(new Date(next.event_date), "EEE, MMM d · HH:mm")}
                         </Link>
@@ -351,16 +352,16 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   }
                   return null;
                 })()}
-                {isRecurring && upcomingOccurrences && upcomingOccurrences.length > 0 && (
+                {upcomingOccurrences && upcomingOccurrences.length > 0 && (
                   <div className="mt-2 font-mono text-[11px] uppercase tracking-widest text-foreground sm:text-xs">
-                    <span className="text-primary">↻ Also happening:</span>{" "}
+                    <span className="text-neighborhood">↻ Also happening:</span>{" "}
                     {upcomingOccurrences.map((o, i) => (
                       <span key={o.id}>
                         {i > 0 && " · "}
                         <Link
                           to="/event/$eventId"
                           params={{ eventId: o.id }}
-                          className="text-link underline underline-offset-2 hover:text-primary"
+                          className="text-link underline underline-offset-2 hover:text-neighborhood"
                         >
                           {format(new Date(o.event_date), "MMM d")}
                         </Link>
@@ -368,6 +369,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                     ))}
                   </div>
                 )}
+
                 <SaveCountsLine
                   counts={counts}
                   className="mt-3 inline-block font-mono text-[11px] uppercase tracking-widest text-foreground sm:mt-4"
@@ -457,7 +459,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                               <t.Icon className="h-3 w-3 shrink-0" aria-hidden="true" />
                               <span className="truncate">{t.label}</span>
                             </div>
-                            <h3 className="mt-0.5 truncate font-brand text-base uppercase text-foreground group-hover:text-primary">
+                            <h3 className="mt-0.5 truncate font-brand text-base uppercase text-foreground group-hover:text-neighborhood">
                               {e.title}
                             </h3>
                             <p className="mt-0.5 truncate font-mono text-[10px] uppercase tracking-wide text-foreground">
