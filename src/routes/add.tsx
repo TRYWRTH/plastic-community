@@ -50,6 +50,7 @@ function AddEvent() {
   const [eventTime, setEventTime] = useState("20:00");
   const [link, setLink] = useState("");
   const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [repeats, setRepeats] = useState<RepeatOption>("none");
   const [saving, setSaving] = useState(false);
 
