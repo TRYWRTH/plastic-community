@@ -193,6 +193,27 @@ function Home() {
     });
   }, [events, dateFilter, neighborhood, eventType, searchText]);
 
+  const recurringByKey = useMemo(() => {
+    const todayStart = startOfDay(new Date());
+    const groups = new Map<string, typeof events>();
+    for (const e of events) {
+      if (!e.event_date) continue;
+      const d = new Date(e.event_date);
+      if (isNaN(d.getTime()) || isBefore(d, todayStart)) continue;
+      const key = `${e.created_by}::${e.title}`;
+      const arr = groups.get(key) ?? [];
+      arr.push(e);
+      groups.set(key, arr);
+    }
+    const map = new Map<string, string>();
+    for (const [key, arr] of groups.entries()) {
+      const parent = arr.find((e) => e.repeats && e.repeats !== "none");
+      if (parent) map.set(key, parent.repeats as string);
+      else if (arr.length > 1) map.set(key, "weekly");
+    }
+    return map;
+  }, [events]);
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-paper">
       <Header />
