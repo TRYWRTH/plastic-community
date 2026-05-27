@@ -359,11 +359,11 @@ const isCreator = !!event && (
                     const d = e.event_date ? new Date(e.event_date) : null;
                     const valid = d && !isNaN(d.getTime()) ? d : null;
                     return (
-                      <li key={e.id}>
+                      <li key={e.id} className="min-w-0 w-full max-w-full">
                         <Link
                           to="/event/$eventId"
                           params={{ eventId: e.id }}
-                          className="group flex items-start gap-3 border-2 border-foreground bg-card p-3 transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
+                          className="group flex w-full max-w-full items-start gap-3 overflow-hidden border-2 border-foreground bg-card p-3 transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
                         >
                           <div className="grid h-12 w-12 shrink-0 place-items-center border-2 border-foreground bg-background">
                             <div className="text-center leading-tight">
@@ -375,10 +375,10 @@ const isCreator = !!event && (
                               </div>
                             </div>
                           </div>
-                          <div className="min-w-0 flex-1">
+                          <div className="min-w-0 flex-1 overflow-hidden">
                             <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-foreground">
-                              <t.Icon className="h-3 w-3" aria-hidden="true" />
-                              <span>{t.label}</span>
+                              <t.Icon className="h-3 w-3 shrink-0" aria-hidden="true" />
+                              <span className="truncate">{t.label}</span>
                             </div>
                             <h3 className="mt-0.5 truncate font-brand text-base uppercase text-foreground group-hover:text-primary">
                               {e.title}
@@ -389,6 +389,7 @@ const isCreator = !!event && (
                           </div>
                         </Link>
                       </li>
+
                     );
                   })}
                 </ul>
