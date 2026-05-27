@@ -339,11 +339,11 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   if (isPastOrToday && next) {
                     return (
                       <div className="mt-2 font-mono text-[11px] uppercase tracking-widest text-foreground sm:text-xs">
-                        <span className="text-primary">↻ Next occurrence:</span>{" "}
+                        <span className="text-neighborhood">↻ Next occurrence:</span>{" "}
                         <Link
                           to="/event/$eventId"
                           params={{ eventId: next.id }}
-                          className="text-link underline underline-offset-2 hover:text-primary"
+                          className="text-link underline underline-offset-2 hover:text-neighborhood"
                         >
                           {format(new Date(next.event_date), "EEE, MMM d · HH:mm")}
                         </Link>
@@ -352,16 +352,16 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   }
                   return null;
                 })()}
-                {isRecurring && upcomingOccurrences && upcomingOccurrences.length > 0 && (
+                {upcomingOccurrences && upcomingOccurrences.length > 0 && (
                   <div className="mt-2 font-mono text-[11px] uppercase tracking-widest text-foreground sm:text-xs">
-                    <span className="text-primary">↻ Also happening:</span>{" "}
+                    <span className="text-neighborhood">↻ Also happening:</span>{" "}
                     {upcomingOccurrences.map((o, i) => (
                       <span key={o.id}>
                         {i > 0 && " · "}
                         <Link
                           to="/event/$eventId"
                           params={{ eventId: o.id }}
-                          className="text-link underline underline-offset-2 hover:text-primary"
+                          className="text-link underline underline-offset-2 hover:text-neighborhood"
                         >
                           {format(new Date(o.event_date), "MMM d")}
                         </Link>
@@ -369,6 +369,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                     ))}
                   </div>
                 )}
+
                 <SaveCountsLine
                   counts={counts}
                   className="mt-3 inline-block font-mono text-[11px] uppercase tracking-widest text-foreground sm:mt-4"
