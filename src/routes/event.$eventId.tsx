@@ -424,7 +424,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                 )}
                 {event.description && (
                   <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
-                    {event.description}
+                    {renderDescription(event.description)}
                   </p>
                 )}
               </div>
