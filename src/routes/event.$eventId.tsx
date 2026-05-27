@@ -136,16 +136,28 @@ function EventDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("id,title,place,neighborhood,event_date,event_type")
+        .select("id,title,place,neighborhood,event_date,event_type,created_by")
         .eq("neighborhood", event!.neighborhood)
         .neq("id", eventId)
         .gte("event_date", new Date().toISOString())
         .order("event_date", { ascending: true })
-        .limit(3);
+        .limit(30);
       if (error) throw error;
-      return data ?? [];
+      // Collapse recurring series: only keep the earliest upcoming instance
+      // per (title + created_by) group.
+      const seen = new Set<string>();
+      const deduped: typeof data = [];
+      for (const e of data ?? []) {
+        const key = `${e.created_by}::${e.title}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        deduped.push(e);
+        if (deduped.length >= 3) break;
+      }
+      return deduped;
     },
   });
+
 
   const remove = async () => {
     setDeleting(true);
