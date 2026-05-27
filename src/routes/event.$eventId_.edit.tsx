@@ -125,6 +125,7 @@ function EditEventForm({
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
+  const [imageUrl, setImageUrl] = useState(event.image_url ?? "");
   const [place, setPlace] = useState(event.place);
   
   const [neighborhood, setNeighborhood] = useState<Neighborhood>(event.neighborhood);
