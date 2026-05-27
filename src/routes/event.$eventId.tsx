@@ -158,6 +158,26 @@ function EventDetail() {
     },
   });
 
+  const { data: upcomingOccurrences } = useQuery({
+    queryKey: ["events", "occurrences", event?.title, event?.created_by, eventId],
+    enabled: !!event?.title && !!event?.created_by,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select("id,event_date")
+        .eq("title", event!.title)
+        .eq("created_by", event!.created_by)
+        .neq("id", eventId)
+        .gte("event_date", new Date().toISOString())
+        .order("event_date", { ascending: true })
+        .limit(4);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+
+
 
   const remove = async () => {
     setDeleting(true);
@@ -303,6 +323,14 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                     </a>
                   </div>
                 </div>
+                {isRecurring && upcomingOccurrences && upcomingOccurrences.length > 0 && (
+                  <div className="mt-2 font-mono text-[11px] uppercase tracking-widest text-foreground sm:text-xs">
+                    <span className="text-primary">↻ Also happening:</span>{" "}
+                    {upcomingOccurrences
+                      .map((o) => format(new Date(o.event_date), "MMM d"))
+                      .join(" · ")}
+                  </div>
+                )}
                 <SaveCountsLine
                   counts={counts}
                   className="mt-3 inline-block font-mono text-[11px] uppercase tracking-widest text-foreground sm:mt-4"

@@ -122,7 +122,6 @@ function Home() {
     }
     for (const arr of futureByKey.values()) {
       if (arr.length < 2) continue;
-      // Only collapse if any event in the group is marked recurring
       const hasRecurring = arr.some((e) => e.repeats && e.repeats !== "none");
       if (!hasRecurring) continue;
       const sorted = [...arr].sort(
@@ -193,6 +192,27 @@ function Home() {
       return ta - tb;
     });
   }, [events, dateFilter, neighborhood, eventType, searchText]);
+
+  const recurringByKey = useMemo(() => {
+    const todayStart = startOfDay(new Date());
+    const groups = new Map<string, typeof events>();
+    for (const e of events) {
+      if (!e.event_date) continue;
+      const d = new Date(e.event_date);
+      if (isNaN(d.getTime()) || isBefore(d, todayStart)) continue;
+      const key = `${e.created_by}::${e.title}`;
+      const arr = groups.get(key) ?? [];
+      arr.push(e);
+      groups.set(key, arr);
+    }
+    const map = new Map<string, string>();
+    for (const [key, arr] of groups.entries()) {
+      const parent = arr.find((e) => e.repeats && e.repeats !== "none");
+      if (parent) map.set(key, parent.repeats as string);
+      else if (arr.length > 1) map.set(key, "weekly");
+    }
+    return map;
+  }, [events]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-paper">
@@ -333,9 +353,19 @@ function Home() {
                           {e.title}
                         </h3>
                         <div className="mt-2 flex flex-col gap-1 font-mono text-xs uppercase tracking-wide text-foreground">
-                          <span className="inline-flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5 shrink-0" />
-                            {d ? format(d, "EEE, HH:mm") : "Date TBA"}
+                          <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <span className="inline-flex items-center gap-1">
+                              <Calendar className="h-3.5 w-3.5 shrink-0" />
+                              {d ? format(d, "EEE, HH:mm") : "Date TBA"}
+                            </span>
+                            {(() => {
+                              const rep = recurringByKey.get(`${e.created_by}::${e.title}`);
+                              return rep ? (
+                                <span className="inline-flex items-center gap-1 border border-foreground/40 px-1.5 py-0.5 text-[10px] tracking-widest text-foreground">
+                                  ↻ {rep.toUpperCase()}
+                                </span>
+                              ) : null;
+                            })()}
                           </span>
                           {isMobile ? (
                             <span className="inline-flex min-w-0 max-w-full items-start gap-1 self-start text-left">
