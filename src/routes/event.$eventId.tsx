@@ -157,6 +157,26 @@ function EventDetail() {
     navigate({ to: "/" });
   };
 
+  const removeAllFuture = async () => {
+    if (!event) return;
+    setDeleting(true);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const { error, count } = await supabase
+      .from("events")
+      .delete({ count: "exact" })
+      .eq("title", event.title)
+      .eq("created_by", event.created_by)
+      .gte("event_date", today.toISOString());
+    setDeleting(false);
+    if (error) return toast.error(error.message);
+    setConfirmDeleteOpen(false);
+    toast.success(`Deleted ${count ?? 0} event${count === 1 ? "" : "s"}`);
+    navigate({ to: "/" });
+  };
+
+  const isRecurring = !!event && event.repeats && event.repeats !== "none";
+
   const isCreator = !!event && user?.id === event.created_by;
   const neighborhoodLabel = event ? neighborhoodMeta(event.neighborhood).label : "";
 
