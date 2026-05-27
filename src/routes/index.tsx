@@ -102,9 +102,41 @@ function Home() {
   const filtered = useMemo(() => {
     const now = new Date();
     const cutoffPast = addDays(startOfDay(now), -30);
+
+    // Collapse recurring event series: for events with repeats != 'none' OR
+    // copies generated from a recurring series (same title + created_by with
+    // future dates), only keep the nearest upcoming instance per group.
+    const todayStart = startOfDay(now);
+    const hiddenIds = new Set<string>();
+
+    // Group future events by title+created_by
+    const futureByKey = new Map<string, typeof events>();
+    for (const e of events) {
+      if (!e.event_date) continue;
+      const d = new Date(e.event_date);
+      if (isNaN(d.getTime()) || isBefore(d, todayStart)) continue;
+      const key = `${e.created_by}::${e.title}`;
+      const arr = futureByKey.get(key) ?? [];
+      arr.push(e);
+      futureByKey.set(key, arr);
+    }
+    for (const arr of futureByKey.values()) {
+      if (arr.length < 2) continue;
+      // Only collapse if any event in the group is marked recurring
+      const hasRecurring = arr.some((e) => e.repeats && e.repeats !== "none");
+      if (!hasRecurring) continue;
+      const sorted = [...arr].sort(
+        (a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime(),
+      );
+      const [, ...rest] = sorted;
+      for (const e of rest) hiddenIds.add(e.id);
+    }
+
     const result = events.filter((e) => {
+      if (hiddenIds.has(e.id)) return false;
       const hasDate = !!e.event_date && !isNaN(new Date(e.event_date).getTime());
       const d = hasDate ? new Date(e.event_date) : null;
+
 
       if (dateFilter === "past") {
         if (!d) return false;
