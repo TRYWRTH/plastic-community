@@ -89,7 +89,7 @@ body: chrome ? (
   <div className="space-y-2">
     <p className="font-bold">On your phone:</p>
     <p>
-      1. Tap the three dots <span className="font-bold">⋮</span> (top right corner in Chrome)
+      1. Tap the three dots <span className="font-bold">⋮</span> in the top or bottom of your screen. 
     </p>
     <p>2. Tap <span className="font-bold">"Add to Home Screen"</span></p>
     <p>3. Tap <span className="font-bold">"Add"</span></p>
@@ -99,7 +99,7 @@ body: chrome ? (
     </p>
     <p>2. Click <span className="font-bold">"Install"</span></p>
     <p className="mt-2 text-muted-foreground">
-      You&apos;ll get an icon that opens like a real app — no browser bar, no fuss.
+      You&apos;ll get a shortcut that opens like an app
     </p>
   </div>
             ) : platform === "ios" ? (
