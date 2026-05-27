@@ -573,3 +573,57 @@ function EventHeroImage({ src, alt }: { src: string; alt: string }) {
   );
 }
 
+const LINK_CLASS = "text-neighborhood underline underline-offset-2 hover:opacity-80";
+
+function ExtLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer noopener" className={LINK_CLASS}>
+      {children}
+    </a>
+  );
+}
+
+function renderTextSegment(text: string, keyPrefix: string): React.ReactNode[] {
+  const re = /(https?:\/\/[^\s)]+)|(@[A-Za-z0-9_.]+)/g;
+  const out: React.ReactNode[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let i = 0;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) out.push(text.slice(last, m.index));
+    const key = `${keyPrefix}-${i++}`;
+    if (m[1]) {
+      out.push(<ExtLink key={key} href={m[1]}>{m[1]}</ExtLink>);
+    } else if (m[2]) {
+      const handle = m[2].slice(1);
+      out.push(
+        <ExtLink key={key} href={`https://www.instagram.com/${handle}/`}>
+          {m[2]}
+        </ExtLink>,
+      );
+    }
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
+
+function renderDescription(text: string): React.ReactNode[] {
+  const md = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  const out: React.ReactNode[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let i = 0;
+  while ((m = md.exec(text)) !== null) {
+    if (m.index > last) {
+      out.push(...renderTextSegment(text.slice(last, m.index), `t${i}`));
+    }
+    out.push(<ExtLink key={`md-${i}`} href={m[2]}>{m[1]}</ExtLink>);
+    i++;
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push(...renderTextSegment(text.slice(last), `t${i}`));
+  return out;
+}
+
+
