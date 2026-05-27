@@ -93,7 +93,7 @@ body: chrome ? (
     </p>
     <p>2. Tap <span className="font-bold">"Add to Home Screen"</span></p>
     <p>3. Tap <span className="font-bold">"Add"</span></p>
-    <p className="font-bold mt-3">On desktop (Chrome or Edge):</p>
+    <p className="font-bold mt-3">On desktop:</p>
     <p>
       1. Look for the install icon <span className="font-bold">⊕</span> in the address bar (right side)
     </p>
