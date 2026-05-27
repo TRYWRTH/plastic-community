@@ -75,8 +75,7 @@ export function OnboardingOverlay({
       title: "WHISPER RING",
       body: (
         <p>
-          A place to collect events you spot on posters, hear from friends, or find
-          anywhere. Add them, track them, show up.
+          See what's going on in your area, add things you spot on posters, hear from friends, or find anywhere
         </p>
       ),
     },
@@ -85,18 +84,24 @@ export function OnboardingOverlay({
       : [
           {
             icon: <Smartphone className="h-10 w-10" strokeWidth={2.5} />,
-            title: "ADD TO HOME SCREEN",
-            body: chrome ? (
-              <div className="space-y-2">
-                <p>
-                  1. Tap the three dots <span className="font-bold">⋮</span> in the top right corner
-                </p>
-                <p>2. Tap <span className="font-bold">"Add to Home Screen"</span></p>
-                <p>3. Tap <span className="font-bold">"Add"</span></p>
-                <p className="mt-2 text-muted-foreground">
-                  You&apos;ll get an icon on your home screen that opens like a real app — no browser bar, no fuss.
-                </p>
-              </div>
+title: "ADD TO YOUR DEVICE",
+body: chrome ? (
+  <div className="space-y-2">
+    <p className="font-bold">On your phone:</p>
+    <p>
+      1. Tap the three dots <span className="font-bold">⋮</span> (top right corner in Chrome)
+    </p>
+    <p>2. Tap <span className="font-bold">"Add to Home Screen"</span></p>
+    <p>3. Tap <span className="font-bold">"Add"</span></p>
+    <p className="font-bold mt-3">On desktop (Chrome or Edge):</p>
+    <p>
+      1. Look for the install icon <span className="font-bold">⊕</span> in the address bar (right side)
+    </p>
+    <p>2. Click <span className="font-bold">"Install"</span></p>
+    <p className="mt-2 text-muted-foreground">
+      You&apos;ll get an icon that opens like a real app — no browser bar, no fuss.
+    </p>
+  </div>
             ) : platform === "ios" ? (
               <div className="space-y-2">
                 <p>
