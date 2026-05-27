@@ -306,16 +306,16 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                 </h1>
                 <div className="mt-3 grid gap-2 font-mono text-sm uppercase tracking-wide text-foreground sm:mt-5 sm:grid-cols-2 sm:text-xs">
                   <div className="inline-flex flex-wrap items-center gap-2">
-                    <Calendar className="h-4 w-4 shrink-0 text-primary" />
+                    <Calendar className="h-4 w-4 shrink-0 text-neighborhood" />
                     <span>{format(new Date(event.event_date), "EEE, MMM d · HH:mm")}</span>
                     {isRecurring && (
-                      <span className="inline-flex items-center gap-1 border border-foreground/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-primary">
+                      <span className="inline-flex items-center gap-1 border border-foreground/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-neighborhood">
                         ↻ {String(event.repeats).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div className="inline-flex items-start gap-2">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-neighborhood" />
                     <a
                       href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
                       target="_blank"
@@ -334,6 +334,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   const isPastOrToday =
                     eventDate.toDateString() === now.toDateString() ||
                     eventDate < now;
+
                   const next = upcomingOccurrences?.[0];
                   if (isPastOrToday && next) {
                     return (
