@@ -191,7 +191,7 @@ function EventDetail() {
 
 const isCreator = !!event && (
   user?.id === event.created_by || 
-  user?.id === 'f664f9ec-b2f1-44bb-a962-60c9525775b9'
+user?.id === import.meta.env.VITE_ADMIN_USER_ID
 );
   const neighborhoodLabel = event ? neighborhoodMeta(event.neighborhood).label : "";
 
