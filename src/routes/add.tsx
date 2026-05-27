@@ -50,6 +50,7 @@ function AddEvent() {
   const [eventTime, setEventTime] = useState("20:00");
   const [link, setLink] = useState("");
   const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [repeats, setRepeats] = useState<RepeatOption>("none");
   const [saving, setSaving] = useState(false);
 
@@ -69,6 +70,7 @@ function AddEvent() {
       event_type: eventType,
       link: link.trim() || null,
       description: description.trim() || null,
+      image_url: imageUrl.trim() || null,
       created_by: user.id,
       lat: coords.lat,
       lng: coords.lng,
@@ -256,6 +258,17 @@ function AddEvent() {
                 }}
               />
             </div>
+          </Field>
+
+          <Field label="Image" hint="Paste a link to an image from the web">
+            <Input
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://... (optional)"
+              type="url"
+              inputMode="url"
+              maxLength={500}
+            />
           </Field>
 
           <Field label="Description">

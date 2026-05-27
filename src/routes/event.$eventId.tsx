@@ -251,6 +251,9 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
         ) : (
           <>
             <article className="mt-6 sm:mt-8 sm:border-2 sm:border-foreground sm:bg-card sm:shadow-stamp">
+              {event.image_url && (
+                <EventHeroImage src={event.image_url} alt={event.title} />
+              )}
               <div className="pb-4 sm:border-b-2 sm:border-foreground sm:p-8 sm:pb-8">
                 <div className="flex items-center justify-between gap-3">
                   {(() => {
@@ -542,3 +545,31 @@ function stripNeighborhoodSuffix(place: string, neighborhood: string) {
   const suffix = ` · ${neighborhood}`;
   return cleaned.endsWith(suffix) ? cleaned.slice(0, -suffix.length) : cleaned;
 }
+
+function EventHeroImage({ src, alt }: { src: string; alt: string }) {
+  const [hidden, setHidden] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  if (hidden) return null;
+  return (
+    <div className="relative w-full overflow-hidden border-b-2 border-foreground bg-muted">
+      <div className="relative h-[280px] w-full sm:h-[380px]">
+        {!loaded && (
+          <div className="absolute inset-0 animate-pulse bg-muted" aria-hidden="true" />
+        )}
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          onLoad={() => setLoaded(true)}
+          onError={() => setHidden(true)}
+          className="h-full w-full object-cover"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent"
+        />
+      </div>
+    </div>
+  );
+}
+

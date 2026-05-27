@@ -125,6 +125,7 @@ function EditEventForm({
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
+  const [imageUrl, setImageUrl] = useState(event.image_url ?? "");
   const [place, setPlace] = useState(event.place);
   
   const [neighborhood, setNeighborhood] = useState<Neighborhood>(event.neighborhood);
@@ -170,6 +171,7 @@ function EditEventForm({
         event_date: parsedDate.toISOString(),
         link: nextLink || null,
         description: nextDescription || null,
+        image_url: imageUrl.trim() || null,
         lat: coords.lat,
         lng: coords.lng,
         repeats,
@@ -359,6 +361,17 @@ function EditEventForm({
                 }}
               />
             </div>
+          </Field>
+
+          <Field label="Image" hint="Paste a link to an image from the web">
+            <Input
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://... (optional)"
+              type="url"
+              inputMode="url"
+              maxLength={500}
+            />
           </Field>
 
           <Field label="Description">
