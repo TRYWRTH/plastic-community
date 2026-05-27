@@ -133,8 +133,10 @@ function Home() {
     }
 
     const result = events.filter((e) => {
+      if (hiddenIds.has(e.id)) return false;
       const hasDate = !!e.event_date && !isNaN(new Date(e.event_date).getTime());
       const d = hasDate ? new Date(e.event_date) : null;
+
 
       if (dateFilter === "past") {
         if (!d) return false;
