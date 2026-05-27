@@ -107,8 +107,8 @@ function Home() {
     // copies generated from a recurring series (same title + created_by with
     // future dates), only keep the nearest upcoming instance per group.
     const todayStart = startOfDay(now);
-    const groups = new Map<string, typeof events[number]>();
     const hiddenIds = new Set<string>();
+
     // Group future events by title+created_by
     const futureByKey = new Map<string, typeof events>();
     for (const e of events) {
