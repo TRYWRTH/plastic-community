@@ -221,7 +221,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
         <div
           role="status"
           aria-live="polite"
-          className={`fixed inset-x-0 top-0 z-50 border-b-2 border-foreground bg-foreground text-primary shadow-stamp transition-opacity duration-500 ${
+          className={`fixed inset-x-0 top-0 z-50 border-b-2 border-foreground bg-foreground text-neighborhood shadow-stamp transition-opacity duration-500 ${
             savedBannerFading ? "opacity-0" : "opacity-100"
           }`}
         >
@@ -236,7 +236,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
         <div className="flex items-center">
           <Link
             to="/"
-            className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-foreground hover:text-primary sm:text-xs"
+            className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-foreground hover:text-neighborhood sm:text-xs"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> Back
           </Link>
@@ -267,7 +267,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                       <DropdownMenuTrigger asChild>
                         <button
                           aria-label="Event actions"
-                          className="-mr-2 grid h-10 w-10 place-items-center rounded-none text-foreground hover:text-primary"
+                          className="-mr-2 grid h-10 w-10 place-items-center rounded-none text-foreground hover:text-neighborhood"
                         >
                           <MoreVertical className="h-5 w-5" />
                         </button>
@@ -459,7 +459,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                               <t.Icon className="h-3 w-3 shrink-0" aria-hidden="true" />
                               <span className="truncate">{t.label}</span>
                             </div>
-                            <h3 className="mt-0.5 truncate font-brand text-base uppercase text-foreground group-hover:text-primary">
+                            <h3 className="mt-0.5 truncate font-brand text-base uppercase text-foreground group-hover:text-neighborhood">
                               {e.title}
                             </h3>
                             <p className="mt-0.5 truncate font-mono text-[10px] uppercase tracking-wide text-foreground">
