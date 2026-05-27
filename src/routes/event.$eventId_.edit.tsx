@@ -171,6 +171,7 @@ function EditEventForm({
         event_date: parsedDate.toISOString(),
         link: nextLink || null,
         description: nextDescription || null,
+        image_url: imageUrl.trim() || null,
         lat: coords.lat,
         lng: coords.lng,
         repeats,
