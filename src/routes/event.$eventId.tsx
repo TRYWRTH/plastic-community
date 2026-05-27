@@ -251,6 +251,9 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
         ) : (
           <>
             <article className="mt-6 sm:mt-8 sm:border-2 sm:border-foreground sm:bg-card sm:shadow-stamp">
+              {event.image_url && (
+                <EventHeroImage src={event.image_url} alt={event.title} />
+              )}
               <div className="pb-4 sm:border-b-2 sm:border-foreground sm:p-8 sm:pb-8">
                 <div className="flex items-center justify-between gap-3">
                   {(() => {
