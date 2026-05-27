@@ -398,23 +398,55 @@ function EventDetail() {
       <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this event?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {isRecurring ? "Delete recurring event?" : "Delete this event?"}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this event? This cannot be undone.
+              {isRecurring
+                ? "This is a recurring event. Choose whether to delete only this occurrence or this and all future occurrences."
+                : "Are you sure you want to delete this event? This cannot be undone."}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                void remove();
-              }}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? "Deleting…" : "Delete"}
-            </AlertDialogAction>
+          <AlertDialogFooter className={isRecurring ? "flex-col gap-2 sm:flex-col sm:space-x-0" : undefined}>
+            {isRecurring ? (
+              <>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void remove();
+                  }}
+                  disabled={deleting}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {deleting ? "Deleting…" : "Delete this event only"}
+                </AlertDialogAction>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void removeAllFuture();
+                  }}
+                  disabled={deleting}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {deleting ? "Deleting…" : "Delete all future occurrences"}
+                </AlertDialogAction>
+                <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              </>
+            ) : (
+              <>
+                <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void remove();
+                  }}
+                  disabled={deleting}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {deleting ? "Deleting…" : "Delete"}
+                </AlertDialogAction>
+              </>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
