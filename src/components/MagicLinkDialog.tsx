@@ -91,7 +91,11 @@ export function MagicLinkDialog({
           </DialogTitle>
           <DialogDescription className="font-mono text-xs uppercase tracking-wide">
             {step === "code" ? (
-              <>We sent a 6-digit code to {email}. Enter it below.</>
+              <>
+                Check your inbox — we sent a 6-digit code to {email}. If this is
+                your first time, you may receive a confirmation link instead —
+                click it and you'll be signed in automatically.
+              </>
             ) : (
               description
             )}
