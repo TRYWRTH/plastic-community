@@ -70,6 +70,7 @@ function AddEvent() {
       event_type: eventType,
       link: link.trim() || null,
       description: description.trim() || null,
+      image_url: imageUrl.trim() || null,
       created_by: user.id,
       lat: coords.lat,
       lng: coords.lng,
