@@ -43,6 +43,17 @@ export function Header() {
 
 
         <nav className="flex items-center gap-1 sm:gap-2">
+          {pathname === "/" && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 sm:hidden"
+              aria-label="Search events"
+              onClick={() => window.dispatchEvent(new CustomEvent("whisperring:open-search"))}
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+          )}
           <Button
             size="icon"
             variant="ghost"
