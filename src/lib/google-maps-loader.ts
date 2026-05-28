@@ -5,7 +5,7 @@ let loaderPromise: Promise<GoogleNS> | null = null;
 
 declare global {
   interface Window {
-    google: GoogleNS;
+    google?: GoogleNS;
     __initGoogleMapsCallback?: () => void;
   }
 }
