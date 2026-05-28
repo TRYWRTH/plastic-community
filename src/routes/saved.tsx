@@ -130,34 +130,35 @@ function SavedPage() {
                             </div>
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="flex flex-col gap-0.5">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  handleRemove(event.id);
-                                }}
-                                className="inline-flex w-fit cursor-pointer items-center gap-1 border-2 border-foreground bg-primary px-2 py-0.5 font-mono text-[11px] uppercase tracking-widest text-primary-foreground hover:opacity-90"
-                              >
-                                {status === "going" ? (
-                                  <Check className="h-3 w-3" />
-                                ) : (
-                                  <Star className="h-3 w-3" />
-                                )}
-                                {status}
-                                <X className="h-3 w-3" />
-                              </button>
-                              <span className="font-mono text-[10px] tracking-wide text-foreground/60">
-                                tap to remove
-                              </span>
+                            <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-foreground">
+                              <div className="flex flex-col gap-0.5">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleRemove(event.id);
+                                  }}
+                                  className="inline-flex w-fit cursor-pointer items-center gap-1 border-2 border-foreground bg-primary px-2 py-0.5 font-mono text-[11px] uppercase tracking-widest text-primary-foreground hover:opacity-90"
+                                >
+                                  {status === "going" ? (
+                                    <Check className="h-3 w-3" />
+                                  ) : (
+                                    <Star className="h-3 w-3" />
+                                  )}
+                                  {status}
+                                  <X className="h-3 w-3" />
+                                </button>
+                                <span className="font-mono text-[10px] tracking-wide text-foreground/60">
+                                  tap to remove
+                                </span>
+                              </div>
+                              <t.Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                              <span>{t.label}</span>
                             </div>
-                            <t.Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                            <span>{t.label}</span>
-                          </div>
-                          <h3 className="mt-1 truncate font-brand text-xl uppercase text-foreground group-hover:text-primary">
-                            {event.title}
-                          </h3>
+                            <h3 className="mt-1 truncate font-brand text-xl uppercase text-foreground group-hover:text-primary">
+                              {event.title}
+                            </h3>
                             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-xs uppercase tracking-wide text-foreground">
                               <span className="inline-flex items-center gap-1">
                                 <MapPin className="h-3.5 w-3.5" />
