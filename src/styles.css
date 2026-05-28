@@ -129,6 +129,15 @@
   .shadow-stamp-sm {
     box-shadow: 3px 3px 0 0 var(--foreground);
   }
+
+  /* Hide scrollbar for horizontal scrollable lists */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Normalize native date/time inputs on iOS Safari — strip the inner
