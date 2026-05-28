@@ -144,6 +144,7 @@ function AddEvent() {
       url: eventUrl,
     });
 
+    setSaved(true);
     navigate({ to: "/event/$eventId", params: { eventId: data.id } });
   };
 
