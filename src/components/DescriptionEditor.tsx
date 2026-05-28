@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { Link2 } from "lucide-react";
+import { Bold, Italic, Link2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +14,8 @@ type Props = {
   placeholder?: string;
 };
 
+type Sel = { start: number; end: number };
+
 export function DescriptionEditor({
   value,
   onChange,
@@ -22,53 +25,25 @@ export function DescriptionEditor({
   placeholder,
 }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [open, setOpen] = useState(false);
-  const [selection, setSelection] = useState<{ start: number; end: number } | null>(null);
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [selection, setSelection] = useState<Sel | null>(null);
   const [linkText, setLinkText] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
 
-  const openLinkPopover = () => {
+  const currentSelection = (): Sel => {
     const ta = textareaRef.current;
-    const start = ta?.selectionStart ?? value.length;
-    const end = ta?.selectionEnd ?? value.length;
-    const selected = value.slice(start, end);
-    setSelection({ start, end });
-    setLinkText(selected);
-    setLinkUrl("");
-    setOpen(true);
+    return {
+      start: ta?.selectionStart ?? value.length,
+      end: ta?.selectionEnd ?? value.length,
+    };
   };
 
-  const cancel = () => {
-    setOpen(false);
-    setLinkUrl("");
-    setLinkText("");
-    setSelection(null);
-  };
-
-  const insert = () => {
-    const u = linkUrl.trim();
-    if (!u) return;
-    const normalized = /^https?:\/\//i.test(u) ? u : `https://${u}`;
-    const display = (linkText.trim() || u);
-    const md = `[${display}](${normalized})`;
-
-    const sel = selection ?? { start: value.length, end: value.length };
+  const applyReplacement = (sel: Sel, replacement: string, caretOffset?: number) => {
     const before = value.slice(0, sel.start);
     const after = value.slice(sel.end);
-    let next: string;
-    let caret: number;
-    if (sel.start === sel.end) {
-      // No selection — append with sensible separator
-      const sep = before && !before.endsWith(" ") && !before.endsWith("\n") ? " " : "";
-      next = (before + sep + md + after).slice(0, maxLength);
-      caret = (before + sep + md).length;
-    } else {
-      next = (before + md + after).slice(0, maxLength);
-      caret = (before + md).length;
-    }
+    const next = (before + replacement + after).slice(0, maxLength);
     onChange(next);
-    cancel();
-    // Restore focus & caret after state flush
+    const caret = before.length + (caretOffset ?? replacement.length);
     requestAnimationFrame(() => {
       const ta = textareaRef.current;
       if (!ta) return;
@@ -77,20 +52,100 @@ export function DescriptionEditor({
     });
   };
 
+  const wrap = (marker: string, placeholderText: string) => {
+    const sel = currentSelection();
+    const selected = value.slice(sel.start, sel.end);
+    const inner = selected || placeholderText;
+    const replacement = `${marker}${inner}${marker}`;
+    const caret = selected
+      ? sel.start + replacement.length
+      : sel.start + marker.length + inner.length;
+    applyReplacement(sel, replacement, caret - sel.start);
+  };
+
+  const openLink = () => {
+    const sel = currentSelection();
+    const selected = value.slice(sel.start, sel.end);
+    setSelection(sel);
+    setLinkText(selected);
+    setLinkUrl("");
+    setLinkOpen(true);
+  };
+
+  const cancelLink = () => {
+    setLinkOpen(false);
+    setLinkUrl("");
+    setLinkText("");
+    setSelection(null);
+  };
+
+  const insertLink = () => {
+    const u = linkUrl.trim();
+    if (!u) return;
+    const normalized = /^https?:\/\//i.test(u) ? u : `https://${u}`;
+    const display = (linkText.trim() || u);
+    const md = `[${display}](${normalized})`;
+    const sel = selection ?? currentSelection();
+    applyReplacement(sel, md);
+    cancelLink();
+  };
+
   const hasSelection = !!(selection && selection.start !== selection.end);
 
   return (
     <div>
-      <div className="mb-1 flex items-center gap-1 rounded-md border border-border/60 bg-muted/30 px-1.5 py-1">
-        <button
-          type="button"
-          onClick={openLinkPopover}
-          title="Insert link"
-          className="inline-flex h-7 items-center gap-1 rounded px-2 font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-muted hover:text-primary sm:text-xs"
-        >
-          <Link2 className="h-3.5 w-3.5" /> Link
-        </button>
+      <div className="mb-1 flex items-center gap-0.5 rounded-md border border-border/60 bg-muted/40 px-1 py-1">
+        <ToolbarBtn label="Bold" onClick={() => wrap("**", "bold")}>
+          <Bold className="h-3.5 w-3.5" />
+        </ToolbarBtn>
+        <ToolbarBtn label="Italic" onClick={() => wrap("*", "italic")}>
+          <Italic className="h-3.5 w-3.5" />
+        </ToolbarBtn>
+        <span className="mx-1 h-4 w-px bg-border/70" aria-hidden />
+        <ToolbarBtn label="Link" onClick={openLink}>
+          <Link2 className="h-3.5 w-3.5" />
+        </ToolbarBtn>
       </div>
+
+      {linkOpen && (
+        <div className="mb-1 space-y-2 rounded-md border border-border/60 bg-muted/30 p-2">
+          {!hasSelection && (
+            <Input
+              value={linkText}
+              onChange={(e) => setLinkText(e.target.value)}
+              placeholder="Link text (e.g. Tickets)"
+              maxLength={120}
+              autoFocus
+            />
+          )}
+          <div className="flex gap-2">
+            <Input
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              placeholder="https://…"
+              type="url"
+              inputMode="url"
+              maxLength={500}
+              autoFocus={hasSelection}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  insertLink();
+                } else if (e.key === "Escape") {
+                  e.preventDefault();
+                  cancelLink();
+                }
+              }}
+            />
+            <Button type="button" size="sm" variant="ghost" onClick={cancelLink}>
+              Cancel
+            </Button>
+            <Button type="button" size="sm" onClick={insertLink} disabled={!linkUrl.trim()}>
+              Add
+            </Button>
+          </div>
+        </div>
+      )}
 
       <Textarea
         ref={textareaRef}
@@ -103,52 +158,49 @@ export function DescriptionEditor({
         className="min-h-0 py-1.5 text-sm sm:text-base"
       />
 
-      {open && (
-        <div className="mt-2 space-y-2 rounded-md border border-border/60 bg-muted/30 p-2">
-          {!hasSelection && (
-            <Input
-              value={linkText}
-              onChange={(e) => setLinkText(e.target.value)}
-              placeholder="Link text (e.g. Tickets)"
-              maxLength={120}
-              autoFocus
-            />
-          )}
-          <Input
-            value={linkUrl}
-            onChange={(e) => setLinkUrl(e.target.value)}
-            placeholder="https://…"
-            type="url"
-            inputMode="url"
-            maxLength={500}
-            autoFocus={hasSelection}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                insert();
-              } else if (e.key === "Escape") {
-                e.preventDefault();
-                cancel();
-              }
-            }}
-          />
-          <div className="flex items-center justify-between gap-2">
-            <p className="font-mono text-[11px] text-muted-foreground sm:text-xs">
-              {hasSelection
-                ? `Wrapping "${value.slice(selection!.start, selection!.end).slice(0, 40)}"`
-                : "Adds a new link at the end"}
-            </p>
-            <div className="flex gap-2">
-              <Button type="button" size="sm" variant="ghost" onClick={cancel}>
-                Cancel
-              </Button>
-              <Button type="button" size="sm" onClick={insert} disabled={!linkUrl.trim()}>
-                Insert
-              </Button>
-            </div>
+      {value.trim() && (
+        <div className="mt-2 rounded-md border border-border/60 bg-muted/20 p-2">
+          <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            Preview
+          </p>
+          <div className="prose prose-sm max-w-none break-words text-sm [&_a]:text-primary [&_a]:underline">
+            <ReactMarkdown
+              components={{
+                a: ({ href, children }) => (
+                  <a href={href} target="_blank" rel="noopener noreferrer">
+                    {children}
+                  </a>
+                ),
+                p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
+              }}
+            >
+              {value}
+            </ReactMarkdown>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function ToolbarBtn({
+  label,
+  onClick,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className="inline-flex h-7 w-7 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+    >
+      {children}
+    </button>
   );
 }
