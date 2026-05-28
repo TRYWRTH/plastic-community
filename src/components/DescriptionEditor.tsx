@@ -108,9 +108,10 @@ export function DescriptionEditor({
     const { from, to, empty } = editor.state.selection;
     hadSelectionRef.current = !empty;
     const selectedText = empty ? "" : editor.state.doc.textBetween(from, to, " ");
-    const existing = editor.getAttributes("link").href as string | undefined;
+    const { hasLink, href } = selectionContainsLink(editor);
+    linkInfoRef.current = { hasLink, href };
     setLinkText(selectedText);
-    setLinkUrl(existing ?? "");
+    setLinkUrl(href);
     setLinkOpen(true);
   };
 
