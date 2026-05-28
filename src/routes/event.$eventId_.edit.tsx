@@ -180,8 +180,8 @@ function EditEventForm({
     event_date: parsedDate.toISOString(),
     link: nextLink || null,
     description: nextDescription || null,
-    lat: coords.lat,
-    lng: coords.lng,
+    lat: finalCoords.lat,
+    lng: finalCoords.lng,
     repeats,
   })
   .eq("id", eventId)
