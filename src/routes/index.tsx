@@ -366,26 +366,26 @@ function Home() {
                 aria-label="List view"
                 aria-pressed={viewMode === "list"}
                 onClick={() => setViewMode("list")}
-                className={`flex h-[34px] items-center justify-center px-3 font-mono text-xs uppercase tracking-wider ${
+                className={`flex h-[38px] items-center justify-center px-3 font-mono text-xs uppercase tracking-wider ${
                   viewMode === "list"
                     ? "bg-foreground text-background"
                     : "bg-background text-foreground hover:bg-foreground/10"
                 }`}
               >
-                <List className="h-4 w-4" />
+                <List className="h-5 w-5" />
               </button>
               <button
                 type="button"
                 aria-label="Map view"
                 aria-pressed={viewMode === "map"}
                 onClick={() => setViewMode("map")}
-                className={`flex h-[34px] items-center justify-center border-l-2 border-foreground px-3 font-mono text-xs uppercase tracking-wider ${
+                className={`flex h-[38px] items-center justify-center border-l-2 border-foreground px-3 font-mono text-xs uppercase tracking-wider ${
                   viewMode === "map"
                     ? "bg-foreground text-background"
                     : "bg-background text-foreground hover:bg-foreground/10"
                 }`}
               >
-                <MapIcon className="h-4 w-4" />
+                <MapIcon className="h-5 w-5" />
               </button>
             </div>
           </div>
