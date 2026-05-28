@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { format, isAfter, isBefore, startOfDay, endOfDay, addDays } from "date-fns";
 import { MapPin, Calendar, ExternalLink, Search, X, List, Map as MapIcon } from "lucide-react";
 import { EventsMap } from "@/components/EventsMap";
