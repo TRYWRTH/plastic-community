@@ -426,10 +426,19 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
               </div>
             </article>
 
+            <div className="border-t-2 border-foreground/15" />
+
             {nearby && nearby.length > 0 && (
-              <section className="mt-8 sm:mt-10">
-                <h2 className="font-mono text-[11px] uppercase tracking-widest text-foreground sm:text-xs">
-                  More in <span className="text-neighborhood">{neighborhoodLabel}</span>
+              <section className="mt-10 sm:mt-12">
+                <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-foreground sm:text-sm">
+                  More in{" "}
+                  <Link
+                    to="/"
+                    search={{ neighborhood: event.neighborhood }}
+                    className="text-neighborhood hover:underline"
+                  >
+                    {neighborhoodLabel}
+                  </Link>
                 </h2>
                 <ul className="mt-3 grid gap-3">
                   {nearby.map((e) => {
