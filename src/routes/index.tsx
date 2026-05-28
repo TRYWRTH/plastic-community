@@ -486,7 +486,11 @@ function Home() {
                           <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
                             <span className="inline-flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5 shrink-0" />
-                              {d ? format(d, "EEE, HH:mm") : "Date TBA"}
+                              {d
+                                ? e.end_date
+                                  ? formatEventDateRange(d, e.end_date)
+                                  : format(d, "EEE, HH:mm")
+                                : "Date TBA"}
                             </span>
                             {(() => {
                               const rep = recurringByKey.get(`${e.created_by}::${e.title}`);
