@@ -163,6 +163,7 @@ function EditEventForm({
     endDay !== (event.end_date ?? "");
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
+    setSaved(true);
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const nextTitle = String(form.get("title") ?? "").trim();
@@ -175,21 +176,25 @@ function EditEventForm({
     const nextDescription = String(form.get("description") ?? "").trim();
 
     if (!nextTitle || !nextPlace || !nextDay || !nextTime) {
+      setSaved(false);
       toast.error("Please fill in the required fields.");
       return;
     }
 
     const parsedDate = new Date(`${nextDay}T${nextTime}`);
     if (Number.isNaN(parsedDate.getTime())) {
+      setSaved(false);
       toast.error("Please choose a valid date and time.");
       return;
     }
     if (multiDay) {
       if (!endDay) {
+        setSaved(false);
         toast.error("Please pick an end date.");
         return;
       }
       if (endDateError) {
+        setSaved(false);
         toast.error(endDateError);
         return;
       }
@@ -245,10 +250,12 @@ function EditEventForm({
     setSaving(false);
 
     if (error) {
+      setSaved(false);
       toast.error(error.message);
       return;
     }
     if (!updated) {
+      setSaved(false);
       toast.error("Couldn't save — you may not have permission to edit this event.");
       return;
     }
@@ -276,7 +283,6 @@ function EditEventForm({
       externalUserIds,
     });
 
-    setSaved(true);
     navigate({ to: "/event/$eventId", params: { eventId } });
   };
 
