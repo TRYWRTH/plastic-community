@@ -471,6 +471,7 @@ function Home() {
           </ul>
         )}
       </main>
+      )}
     </div>
   );
 }
