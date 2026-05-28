@@ -502,7 +502,7 @@ function FilterSelect({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-11 w-full rounded-none border-2 border-foreground bg-background px-2 font-mono text-xs uppercase tracking-wider [&>span]:line-clamp-none [&>span]:overflow-visible sm:h-9 sm:w-auto sm:min-w-[8rem] sm:px-3">
+      <SelectTrigger className="h-11 w-full rounded-none border-2 border-foreground bg-background px-2 font-mono text-xs uppercase tracking-wider [&>span]:block [&>span]:truncate sm:h-9 sm:w-auto sm:min-w-[8rem] sm:max-w-[14rem] sm:px-3">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className="rounded-none border-2 border-foreground">
