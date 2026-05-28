@@ -161,6 +161,15 @@ function EditEventForm({
     }
 
     setSaving(true);
+    let finalCoords = coords;
+    if (
+      finalCoords.lat == null ||
+      finalCoords.lng == null ||
+      nextPlace !== cleanPlace(event.place)
+    ) {
+      const geo = await geocodeAddress(`${nextPlace}, ${nextNeighborhood}, Berlin`);
+      if (geo) finalCoords = geo;
+    }
     const { data: updated, error } = await supabase
   .from("events")
   .update({
