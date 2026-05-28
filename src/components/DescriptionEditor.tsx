@@ -203,42 +203,6 @@ export function DescriptionEditor({
           </div>
         </div>
       )}
-            <Input
-              value={linkText}
-              onChange={(e) => setLinkText(e.target.value)}
-              placeholder="Link text (e.g. Tickets)"
-              maxLength={120}
-              autoFocus
-            />
-          )}
-          <div className="flex gap-2">
-            <Input
-              value={linkUrl}
-              onChange={(e) => setLinkUrl(e.target.value)}
-              placeholder="https://…"
-              type="url"
-              inputMode="url"
-              maxLength={500}
-              autoFocus={hadSelectionRef.current}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  insertLink();
-                } else if (e.key === "Escape") {
-                  e.preventDefault();
-                  cancelLink();
-                }
-              }}
-            />
-            <Button type="button" size="sm" variant="ghost" onClick={cancelLink}>
-              Cancel
-            </Button>
-            <Button type="button" size="sm" onClick={insertLink} disabled={!linkUrl.trim()}>
-              Add
-            </Button>
-          </div>
-        </div>
-      )}
 
       <EditorContent editor={editor} />
 
