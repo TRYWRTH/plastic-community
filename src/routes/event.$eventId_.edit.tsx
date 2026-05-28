@@ -145,6 +145,20 @@ function EditEventForm({
       ? "End date must be on or after the start date."
       : null;
 
+  // Dirty when any controlled field changed OR an uncontrolled form input fired.
+  const [touched, setTouched] = useState(false);
+  const dirty =
+    touched ||
+    link !== (event.link ?? "") ||
+    place !== event.place ||
+    neighborhood !== event.neighborhood ||
+    coords.lat !== event.lat ||
+    coords.lng !== event.lng ||
+    repeats !== ((event.repeats as RepeatOption) ?? "none") ||
+    eventDay !== initialDateOnly ||
+    multiDay !== !!event.end_date ||
+    endDay !== (event.end_date ?? "");
+
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
