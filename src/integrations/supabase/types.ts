@@ -207,21 +207,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_event_going_initials: {
-        Args: { event_ids: string[] }
-        Returns: {
-          event_id: string
-          initials: string[]
-        }[]
-      }
-      get_event_save_counts: {
-        Args: never
-        Returns: {
-          event_id: string
-          going_count: number
-          interested_count: number
-        }[]
-      }
+      [_ in never]: never
     }
     Enums: {
       event_repeat: "none" | "weekly" | "biweekly" | "monthly"
