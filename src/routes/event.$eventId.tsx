@@ -698,22 +698,27 @@ function renderTextSegment(text: string, keyPrefix: string): React.ReactNode[] {
   return out;
 }
 
-function renderDescription(text: string): React.ReactNode[] {
-  const md = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-  const out: React.ReactNode[] = [];
-  let last = 0;
-  let m: RegExpExecArray | null;
-  let i = 0;
-  while ((m = md.exec(text)) !== null) {
-    if (m.index > last) {
-      out.push(...renderTextSegment(text.slice(last, m.index), `t${i}`));
-    }
-    out.push(<ExtLink key={`md-${i}`} href={m[2]}>{m[1]}</ExtLink>);
-    i++;
-    last = m.index + m[0].length;
-  }
-  if (last < text.length) out.push(...renderTextSegment(text.slice(last), `t${i}`));
-  return out;
+function renderDescription(text: string): React.ReactNode {
+  // Convert @handles (at start or after whitespace) to markdown links to Instagram,
+  // so react-markdown renders them as clickable links alongside [text](url) and bare URLs.
+  const withHandles = text.replace(
+    /(^|\s)@([A-Za-z0-9_.]+)/g,
+    (_, pre, handle) => `${pre}[@${handle}](https://www.instagram.com/${handle}/)`,
+  );
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        a: ({ href, children }) => (
+          <ExtLink href={href ?? "#"}>{children}</ExtLink>
+        ),
+        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+      }}
+    >
+      {withHandles}
+    </ReactMarkdown>
+  );
 }
+
 
 
