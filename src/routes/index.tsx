@@ -83,7 +83,7 @@ function Home() {
     queryFn: fetchEvents,
   });
   const { data: countsMap } = useAllEventSaveCounts();
-  const { data: initialsMap } = useAllEventGoingInitials();
+
   const isMobile = useIsMobile();
 
   const search = Route.useSearch();
