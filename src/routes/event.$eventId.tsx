@@ -576,7 +576,7 @@ function LinkPreviewCard({ url }: { url: string }) {
       href={url}
       target="_blank"
       rel="noreferrer noopener"
-      className="group block w-full max-w-md overflow-hidden border-2 border-foreground bg-card transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
+      className="group block w-full overflow-hidden border-2 border-foreground bg-card transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
     >
       {data.image?.url && (
         <div className="relative aspect-[1.91/1] w-full overflow-hidden border-b-2 border-foreground bg-muted">
