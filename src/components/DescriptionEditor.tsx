@@ -17,6 +17,24 @@ type Props = {
   rows?: number;
 };
 
+/** Check whether any part of the current selection contains a link mark,
+ *  and return the first href found. */
+function selectionContainsLink(editor: Editor): { hasLink: boolean; href: string } {
+  const { from, to } = editor.state.selection;
+  let href = "";
+  editor.state.doc.nodesBetween(from, to, (node) => {
+    if (node.marks) {
+      const linkMark = node.marks.find((m) => m.type.name === "link");
+      if (linkMark) {
+        href = linkMark.attrs.href as string;
+        return false; // stop traversing
+      }
+    }
+    return true;
+  });
+  return { hasLink: !!href, href };
+}
+
 export function DescriptionEditor({
   value,
   onChange,
@@ -28,6 +46,7 @@ export function DescriptionEditor({
   const [linkText, setLinkText] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
   const hadSelectionRef = useRef(false);
+  const linkInfoRef = useRef({ hasLink: false, href: "" });
 
   const editor = useEditor({
     extensions: [
@@ -89,9 +108,10 @@ export function DescriptionEditor({
     const { from, to, empty } = editor.state.selection;
     hadSelectionRef.current = !empty;
     const selectedText = empty ? "" : editor.state.doc.textBetween(from, to, " ");
-    const existing = editor.getAttributes("link").href as string | undefined;
+    const { hasLink, href } = selectionContainsLink(editor);
+    linkInfoRef.current = { hasLink, href };
     setLinkText(selectedText);
-    setLinkUrl(existing ?? "");
+    setLinkUrl(href);
     setLinkOpen(true);
   };
 
@@ -144,7 +164,7 @@ export function DescriptionEditor({
         <span className="mx-1 h-4 w-px bg-border/70" aria-hidden />
         <ToolbarBtn
           label="Link"
-          active={editor.isActive("link")}
+          active={selectionContainsLink(editor).hasLink}
           onClick={openLink}
         >
           <Link2 className="h-3.5 w-3.5" />
@@ -153,7 +173,7 @@ export function DescriptionEditor({
 
       {linkOpen && (
         <div className="mb-1 space-y-2 rounded-md border border-border/60 bg-muted/30 p-2">
-          {!hadSelectionRef.current && !editor.isActive("link") && (
+          {!hadSelectionRef.current && !linkInfoRef.current.hasLink && (
             <Input
               value={linkText}
               onChange={(e) => setLinkText(e.target.value)}
@@ -170,7 +190,7 @@ export function DescriptionEditor({
               type="url"
               inputMode="url"
               maxLength={500}
-              autoFocus={hadSelectionRef.current || editor.isActive("link")}
+              autoFocus={hadSelectionRef.current || linkInfoRef.current.hasLink}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -184,7 +204,7 @@ export function DescriptionEditor({
             <Button type="button" size="sm" variant="ghost" onClick={cancelLink}>
               Cancel
             </Button>
-            {editor.isActive("link") && (
+            {linkInfoRef.current.hasLink && (
               <Button
                 type="button"
                 size="sm"
@@ -198,7 +218,7 @@ export function DescriptionEditor({
               </Button>
             )}
             <Button type="button" size="sm" onClick={insertLink} disabled={!linkUrl.trim()}>
-              {editor.isActive("link") ? "Save" : "Add"}
+              {linkInfoRef.current.hasLink ? "Save" : "Add"}
             </Button>
           </div>
         </div>
