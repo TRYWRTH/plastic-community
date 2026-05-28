@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Plus, LogOut, Bookmark, UserRound, Bell, HelpCircle } from "lucide-react";
+import { Plus, LogOut, Bookmark, UserRound, Bell, HelpCircle, LogIn } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
@@ -60,12 +60,20 @@ export function Header() {
               </Link>
             </Button>
           )}
-          <Button asChild size="sm" variant="default">
-            <Link to="/add">
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Add event</span>
-            </Link>
-          </Button>
+          {isAuthenticated ? (
+            <Button asChild size="sm" variant="default">
+              <Link to="/add">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Add event</span>
+              </Link>
+            </Button>
+          ) : (
+            <Button size="sm" variant="default" onClick={() => setSignInOpen(true)}>
+              <LogIn className="h-4 w-4" />
+              <span className="hidden sm:inline">Sign in to add event</span>
+              <span className="sm:hidden">Sign in</span>
+            </Button>
+          )}
           {!loading && isAuthenticated && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
