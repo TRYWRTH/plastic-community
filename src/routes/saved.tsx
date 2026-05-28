@@ -135,26 +135,41 @@ function SavedPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-foreground">
                               <div className="flex flex-col gap-0.5">
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    handleRemove(event.id);
-                                  }}
-                                  className="inline-flex w-fit cursor-pointer items-center gap-1 border-2 border-foreground bg-primary px-2 py-0.5 font-mono text-[11px] uppercase tracking-widest text-primary-foreground hover:opacity-90"
-                                >
-                                  {status === "going" ? (
-                                    <Check className="h-3 w-3" />
-                                  ) : (
-                                    <Star className="h-3 w-3" />
-                                  )}
-                                  {status}
-                                  <X className="h-3 w-3" />
-                                </button>
-                                <span className="font-mono text-[10px] tracking-wide text-foreground/60">
-                                  tap to remove
-                                </span>
+                                {(() => {
+                                  const badge = (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleRemove(event.id);
+                                      }}
+                                      className="inline-flex w-fit cursor-pointer items-center gap-1 border-2 border-foreground bg-primary px-2 py-0.5 font-mono text-[11px] uppercase tracking-widest text-primary-foreground hover:opacity-90"
+                                    >
+                                      {status === "going" ? (
+                                        <Check className="h-3 w-3" />
+                                      ) : (
+                                        <Star className="h-3 w-3" />
+                                      )}
+                                      {status}
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  );
+                                  if (isMobile) return badge;
+                                  return (
+                                    <TooltipProvider delayDuration={100}>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>{badge}</TooltipTrigger>
+                                        <TooltipContent>Click to remove from your list</TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  );
+                                })()}
+                                {isMobile && (
+                                  <span className="font-mono text-[10px] tracking-wide text-foreground/60">
+                                    tap to remove
+                                  </span>
+                                )}
                               </div>
                               <t.Icon className="h-3.5 w-3.5" aria-hidden="true" />
                               <span>{t.label}</span>
