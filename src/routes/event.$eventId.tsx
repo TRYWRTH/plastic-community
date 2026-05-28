@@ -18,8 +18,8 @@ import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { SaveButtons } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
-import { SaveCountsLine } from "@/components/SaveCountsLine";
-import { GoingInitialsLine } from "@/components/GoingInitialsLine";
+import { EventInterestPanel } from "@/components/EventInterestPanel";
+
 import { ShareButton } from "@/components/ShareButton";
 import { useEventSaveCounts } from "@/lib/use-event-save-counts";
 import { useEventGoingInitials } from "@/lib/use-event-going-initials";
