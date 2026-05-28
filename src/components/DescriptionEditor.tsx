@@ -46,6 +46,7 @@ export function DescriptionEditor({
   const [linkText, setLinkText] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
   const hadSelectionRef = useRef(false);
+  const linkInfoRef = useRef({ hasLink: false, href: "" });
 
   const editor = useEditor({
     extensions: [
