@@ -14,13 +14,10 @@ type SaveRow = { id: string; status: SaveStatus; notify: boolean } | null;
 
 export function SaveButtons({
   eventId,
-  goingCount = 0,
-  interestedCount = 0,
 }: {
   eventId: string;
-  goingCount?: number;
-  interestedCount?: number;
 }) {
+
   const { user, isAuthenticated, loading } = useAuth();
   const [signInOpen, setSignInOpen] = useState(false);
   const qc = useQueryClient();
@@ -181,23 +178,13 @@ export function SaveButtons({
   if (!isAuthenticated) {
     return (
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" onClick={() => setSignInOpen(true)} className="relative pr-6">
+        <Button variant="outline" onClick={() => setSignInOpen(true)}>
           <Check className="h-4 w-4" />
           Going
-          {goingCount > 0 && (
-            <span className="absolute right-1 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center border-2 border-foreground bg-primary text-[10px] font-bold text-primary-foreground shadow-stamp-sm">
-              {goingCount}
-            </span>
-          )}
         </Button>
-        <Button variant="outline" onClick={() => setSignInOpen(true)} className="relative pr-6">
+        <Button variant="outline" onClick={() => setSignInOpen(true)}>
           <Star className="h-4 w-4" />
           Interested
-          {interestedCount > 0 && (
-            <span className="absolute right-1 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center border-2 border-foreground bg-muted text-[10px] font-bold text-foreground shadow-stamp-sm">
-              {interestedCount}
-            </span>
-          )}
         </Button>
         <MagicLinkDialog
           open={signInOpen}
@@ -207,6 +194,7 @@ export function SaveButtons({
       </div>
     );
   }
+
 
   const current = save?.status as SaveStatus | undefined;
   const notify = save?.notify ?? true;
@@ -218,15 +206,9 @@ export function SaveButtons({
           variant={current === "going" ? "default" : "outline"}
           onClick={() => mutate.mutate(current === "going" ? null : "going")}
           disabled={mutate.isPending}
-          className="relative pr-6"
         >
           <Check className="h-4 w-4" />
           Going
-          {goingCount > 0 && (
-            <span className="absolute right-1 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center border-2 border-foreground bg-primary text-[10px] font-bold text-primary-foreground shadow-stamp-sm">
-              {goingCount}
-            </span>
-          )}
         </Button>
         <Button
           variant={current === "interested" ? "default" : "outline"}
@@ -234,16 +216,11 @@ export function SaveButtons({
             mutate.mutate(current === "interested" ? null : "interested")
           }
           disabled={mutate.isPending}
-          className="relative pr-6"
         >
           <Star className="h-4 w-4" />
           Interested
-          {interestedCount > 0 && (
-            <span className="absolute right-1 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center border-2 border-foreground bg-muted text-[10px] font-bold text-foreground shadow-stamp-sm">
-              {interestedCount}
-            </span>
-          )}
         </Button>
+
       </div>
       {/* Per-event notify toggle hidden temporarily — feature kept for later testing */}
       {false && current && (
