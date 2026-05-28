@@ -310,6 +310,34 @@ function Home() {
               ]}
             />
 
+            <div className="col-span-2 flex items-stretch border-2 border-foreground sm:col-span-1">
+              <button
+                type="button"
+                aria-label="List view"
+                aria-pressed={viewMode === "list"}
+                onClick={() => setViewMode("list")}
+                className={`flex h-11 flex-1 items-center justify-center px-3 font-mono text-xs uppercase tracking-wider sm:h-[34px] ${
+                  viewMode === "list"
+                    ? "bg-foreground text-background"
+                    : "bg-background text-foreground hover:bg-foreground/10"
+                }`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                aria-label="Map view"
+                aria-pressed={viewMode === "map"}
+                onClick={() => setViewMode("map")}
+                className={`flex h-11 flex-1 items-center justify-center border-l-2 border-foreground px-3 font-mono text-xs uppercase tracking-wider sm:h-[34px] ${
+                  viewMode === "map"
+                    ? "bg-foreground text-background"
+                    : "bg-background text-foreground hover:bg-foreground/10"
+                }`}
+              >
+                <MapIcon className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </section>
