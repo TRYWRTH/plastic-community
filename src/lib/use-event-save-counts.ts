@@ -6,28 +6,28 @@ export type EventSaveCounts = {
   interested_count: number;
 };
 
-type Row = { event_id: string; going_count: number; interested_count: number };
-
 /**
- * Fetches Going / Interested counts for every event in one call.
- * Backed by a SECURITY DEFINER RPC so it bypasses the per-user RLS on event_saves
- * while only exposing aggregate counts (never user_ids).
+ * Fetches Going / Interested counts for every event by querying
+ * event_saves directly and aggregating client-side.
  */
 export function useAllEventSaveCounts() {
   return useQuery({
     queryKey: ["event_save_counts", "all"],
     staleTime: 30_000,
     queryFn: async () => {
-      const { data, error } = await (supabase as unknown as {
-        rpc: (name: string) => Promise<{ data: Row[] | null; error: Error | null }>;
-      }).rpc("get_event_save_counts");
+      const { data, error } = await supabase
+        .from("event_saves")
+        .select("event_id, status");
       if (error) throw error;
       const map = new Map<string, EventSaveCounts>();
-      for (const r of data ?? []) {
-        map.set(r.event_id, {
-          going_count: Number(r.going_count) || 0,
-          interested_count: Number(r.interested_count) || 0,
-        });
+      for (const row of data ?? []) {
+        const current = map.get(row.event_id) ?? {
+          going_count: 0,
+          interested_count: 0,
+        };
+        if (row.status === "going") current.going_count += 1;
+        else if (row.status === "interested") current.interested_count += 1;
+        map.set(row.event_id, current);
       }
       return map;
     },
