@@ -77,19 +77,26 @@ function AddEvent() {
     repeats !== "none";
 
   const submit = async (e: React.FormEvent) => {
+    setSaved(true);
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      setSaved(false);
+      return;
+    }
     const parsedDate = new Date(`${eventDay}T${eventTime}`);
     if (Number.isNaN(parsedDate.getTime())) {
+      setSaved(false);
       toast.error("Please choose a valid date and time.");
       return;
     }
     if (multiDay) {
       if (!endDay) {
+        setSaved(false);
         toast.error("Please pick an end date.");
         return;
       }
       if (endDateError) {
+        setSaved(false);
         toast.error(endDateError);
         return;
       }
@@ -124,6 +131,7 @@ function AddEvent() {
       .single();
     if (error) {
       setSaving(false);
+      setSaved(false);
       toast.error(error.message);
       return;
     }
@@ -144,7 +152,6 @@ function AddEvent() {
       url: eventUrl,
     });
 
-    setSaved(true);
     navigate({ to: "/event/$eventId", params: { eventId: data.id } });
   };
 
