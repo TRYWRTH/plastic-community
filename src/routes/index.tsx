@@ -25,6 +25,7 @@ import {
 } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { cleanPlace } from "@/lib/clean-place";
+import { formatEventDateRange, parseEndDateEod } from "@/lib/format-date-range";
 
 import {
   Select,
@@ -155,6 +156,9 @@ function Home() {
       if (hiddenIds.has(e.id)) return false;
       const hasDate = !!e.event_date && !isNaN(new Date(e.event_date).getTime());
       const d = hasDate ? new Date(e.event_date) : null;
+      const endD = e.end_date ? parseEndDateEod(e.end_date) : null;
+      // Effective range end for "is this event active on day X" checks
+      const rangeEnd = endD && d && endD > d ? endD : d;
 
 
       if (dateFilter === "past") {
@@ -163,30 +167,31 @@ function Home() {
         if (isBefore(d, cutoffPast)) return false;
       } else {
         if (dateFilter === "today") {
-          if (!d) return false;
-          if (!(isAfter(d, startOfDay(now)) && isBefore(d, endOfDay(now)))) return false;
+          if (!d || !rangeEnd) return false;
+          // Today falls within [start, end]
+          if (isAfter(d, endOfDay(now))) return false;
+          if (isBefore(rangeEnd, startOfDay(now))) return false;
         }
         if (dateFilter === "tomorrow") {
-          if (!d) return false;
-          if (
-            !(
-              isAfter(d, startOfDay(addDays(now, 1))) &&
-              isBefore(d, endOfDay(addDays(now, 1)))
-            )
-          )
-            return false;
+          if (!d || !rangeEnd) return false;
+          const tStart = startOfDay(addDays(now, 1));
+          const tEnd = endOfDay(addDays(now, 1));
+          if (isAfter(d, tEnd)) return false;
+          if (isBefore(rangeEnd, tStart)) return false;
         }
       if (dateFilter === "week") {
-  if (!d) return false;
+  if (!d || !rangeEnd) return false;
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Monday
   startOfWeek.setHours(0, 0, 0, 0);
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
   endOfWeek.setHours(23, 59, 59, 999);
-  if (!(isAfter(d, now) && isBefore(d, endOfWeek))) return false;
+  if (isAfter(d, endOfWeek)) return false;
+  if (isBefore(rangeEnd, now)) return false;
 }
-        if (dateFilter === "upcoming" && d && isBefore(d, startOfDay(now))) return false;
+        // upcoming: include if event hasn't ended yet (covers multi-day still running)
+        if (dateFilter === "upcoming" && rangeEnd && isBefore(rangeEnd, startOfDay(now))) return false;
       }
 
       if (neighborhood !== "all" && e.neighborhood !== neighborhood) return false;
@@ -481,7 +486,11 @@ function Home() {
                           <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
                             <span className="inline-flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5 shrink-0" />
-                              {d ? format(d, "EEE, HH:mm") : "Date TBA"}
+                              {d
+                                ? e.end_date
+                                  ? formatEventDateRange(d, e.end_date)
+                                  : format(d, "EEE, HH:mm")
+                                : "Date TBA"}
                             </span>
                             {(() => {
                               const rep = recurringByKey.get(`${e.created_by}::${e.title}`);

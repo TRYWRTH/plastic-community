@@ -137,6 +137,13 @@ function EditEventForm({
   const [repeats, setRepeats] = useState<RepeatOption>((event.repeats as RepeatOption) ?? "none");
   const initialDateOnly = format(new Date(event.event_date), "yyyy-MM-dd");
   const initialTimeOnly = format(new Date(event.event_date), "HH:mm");
+  const [eventDay, setEventDay] = useState(initialDateOnly);
+  const [multiDay, setMultiDay] = useState(!!event.end_date);
+  const [endDay, setEndDay] = useState(event.end_date ?? "");
+  const endDateError =
+    multiDay && endDay && endDay < eventDay
+      ? "End date must be on or after the start date."
+      : null;
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -160,6 +167,16 @@ function EditEventForm({
       toast.error("Please choose a valid date and time.");
       return;
     }
+    if (multiDay) {
+      if (!endDay) {
+        toast.error("Please pick an end date.");
+        return;
+      }
+      if (endDateError) {
+        toast.error(endDateError);
+        return;
+      }
+    }
 
     setSaving(true);
     let finalCoords = coords;
@@ -179,6 +196,7 @@ function EditEventForm({
     neighborhood: nextNeighborhood,
     event_type: nextEventType,
     event_date: parsedDate.toISOString(),
+    end_date: multiDay && endDay ? endDay : null,
     link: nextLink || null,
     description: nextDescription || null,
     lat: finalCoords.lat,
@@ -279,7 +297,8 @@ function EditEventForm({
               <Input
                 type="date"
                 name="event_day"
-                defaultValue={initialDateOnly}
+                value={eventDay}
+                onChange={(e) => setEventDay(e.target.value)}
                 required
               />
             </Field>
@@ -291,6 +310,43 @@ function EditEventForm({
                 required
               />
             </Field>
+          </div>
+
+          <div>
+            <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
+              <input
+                type="checkbox"
+                checked={multiDay}
+                onChange={(e) => {
+                  setMultiDay(e.target.checked);
+                  if (!e.target.checked) setEndDay("");
+                  else if (!endDay) setEndDay(eventDay);
+                }}
+                className="h-4 w-4 accent-primary"
+              />
+              Multi-day event
+            </label>
+            <div
+              className={`grid overflow-hidden transition-all duration-300 ease-out ${
+                multiDay ? "mt-2 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+              }`}
+            >
+              <div className="min-h-0">
+                <Field label="End date" required={multiDay}>
+                  <Input
+                    type="date"
+                    value={endDay}
+                    min={eventDay}
+                    onChange={(ev) => setEndDay(ev.target.value)}
+                  />
+                  {endDateError && (
+                    <p className="mt-1 text-[11px] text-destructive sm:text-xs">
+                      {endDateError}
+                    </p>
+                  )}
+                </Field>
+              </div>
+            </div>
           </div>
 
           <Field label="Place" required>
