@@ -54,6 +54,7 @@
     "@tiptap/pm": "^3.23.6",
     "@tiptap/react": "^3.23.6",
     "@tiptap/starter-kit": "^3.23.6",
+    "@vercel/analytics": "^2.0.1",
     "@yudiel/react-qr-scanner": "^2.6.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
