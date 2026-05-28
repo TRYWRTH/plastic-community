@@ -58,6 +58,7 @@ function AddEvent() {
   const [description, setDescription] = useState("");
   const [repeats, setRepeats] = useState<RepeatOption>("none");
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const endDateError =
     multiDay && endDay && endDay < eventDay
