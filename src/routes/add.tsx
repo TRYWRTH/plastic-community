@@ -113,7 +113,7 @@ function AddEvent() {
       neighborhood,
       event_type: eventType,
       link: link.trim() || null,
-      description: description.trim() || null,
+      description: cleanDescription(description) || null,
       
       created_by: user.id,
       lat: finalCoords.lat,
