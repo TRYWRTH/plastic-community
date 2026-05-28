@@ -181,13 +181,23 @@ export function SaveButtons({
   if (!isAuthenticated) {
     return (
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" onClick={() => setSignInOpen(true)}>
+        <Button variant="outline" onClick={() => setSignInOpen(true)} className="relative pr-6">
           <Check className="h-4 w-4" />
           Going
+          {goingCount > 0 && (
+            <span className="absolute right-1 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center border-2 border-foreground bg-primary text-[10px] font-bold text-primary-foreground shadow-stamp-sm">
+              {goingCount}
+            </span>
+          )}
         </Button>
-        <Button variant="outline" onClick={() => setSignInOpen(true)}>
+        <Button variant="outline" onClick={() => setSignInOpen(true)} className="relative pr-6">
           <Star className="h-4 w-4" />
           Interested
+          {interestedCount > 0 && (
+            <span className="absolute right-1 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center border-2 border-foreground bg-muted text-[10px] font-bold text-foreground shadow-stamp-sm">
+              {interestedCount}
+            </span>
+          )}
         </Button>
         <MagicLinkDialog
           open={signInOpen}
