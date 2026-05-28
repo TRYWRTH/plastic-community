@@ -34,7 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const DATE_FILTERS = ["all", "today", "tomorrow", "week", "upcoming", "past"] as const;
+const DATE_FILTERS = ["all", "today", "tomorrow", "week", "next_week", "upcoming", "past"] as const;
 type DateFilter = (typeof DATE_FILTERS)[number];
 
 const NEIGHBORHOOD_VALUES = NEIGHBORHOODS.map((n) => n.value) as [Neighborhood, ...Neighborhood[]];
@@ -180,17 +180,28 @@ function Home() {
           if (isAfter(d, tEnd)) return false;
           if (isBefore(rangeEnd, tStart)) return false;
         }
-      if (dateFilter === "week") {
-  if (!d || !rangeEnd) return false;
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Monday
-  startOfWeek.setHours(0, 0, 0, 0);
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
-  endOfWeek.setHours(23, 59, 59, 999);
-  if (isAfter(d, endOfWeek)) return false;
-  if (isBefore(rangeEnd, now)) return false;
-}
+        if (dateFilter === "week") {
+          if (!d || !rangeEnd) return false;
+          const startOfWeek = new Date(now);
+          startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Monday
+          startOfWeek.setHours(0, 0, 0, 0);
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
+          endOfWeek.setHours(23, 59, 59, 999);
+          if (isAfter(d, endOfWeek)) return false;
+          if (isBefore(rangeEnd, now)) return false;
+        }
+        if (dateFilter === "next_week") {
+          if (!d || !rangeEnd) return false;
+          const startOfNextWeek = new Date(now);
+          startOfNextWeek.setDate(now.getDate() - now.getDay() + 1 + 7); // Next Monday
+          startOfNextWeek.setHours(0, 0, 0, 0);
+          const endOfNextWeek = new Date(startOfNextWeek);
+          endOfNextWeek.setDate(startOfNextWeek.getDate() + 6); // Following Sunday
+          endOfNextWeek.setHours(23, 59, 59, 999);
+          if (isAfter(d, endOfNextWeek)) return false;
+          if (isBefore(rangeEnd, startOfNextWeek)) return false;
+        }
         // upcoming: include if event hasn't ended yet (covers multi-day still running)
         if (dateFilter === "upcoming" && rangeEnd && isBefore(rangeEnd, startOfDay(now))) return false;
       }
@@ -342,6 +353,7 @@ function Home() {
                 { value: "today", label: "Today" },
                 { value: "tomorrow", label: "Tomorrow" },
                 { value: "week", label: "This week" },
+                { value: "next_week", label: "Next week" },
                 { value: "all", label: "Any time" },
                 { value: "past", label: "Past (last 30 days)" },
               ]}
