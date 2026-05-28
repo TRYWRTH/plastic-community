@@ -12,7 +12,15 @@ import { getNotificationPermission, savePlayerIdForCurrentUser } from "@/lib/one
 type SaveStatus = "going" | "interested";
 type SaveRow = { id: string; status: SaveStatus; notify: boolean } | null;
 
-export function SaveButtons({ eventId }: { eventId: string }) {
+export function SaveButtons({
+  eventId,
+  goingCount = 0,
+  interestedCount = 0,
+}: {
+  eventId: string;
+  goingCount?: number;
+  interestedCount?: number;
+}) {
   const { user, isAuthenticated, loading } = useAuth();
   const [signInOpen, setSignInOpen] = useState(false);
   const qc = useQueryClient();
