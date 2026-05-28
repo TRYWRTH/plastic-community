@@ -13,6 +13,7 @@ import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendNewEventNotification } from "@/lib/notifications";
+import { cleanDescription } from "@/lib/clean-description";
 import {
   EVENT_TYPES,
   
