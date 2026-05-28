@@ -1,13 +1,16 @@
-let loaderPromise: Promise<typeof google> | null = null;
+// Minimal typing — we use the API dynamically via `any` to avoid a @types dep.
+type GoogleNS = any;
+
+let loaderPromise: Promise<GoogleNS> | null = null;
 
 declare global {
   interface Window {
-    google: typeof google;
+    google: GoogleNS;
     __initGoogleMapsCallback?: () => void;
   }
 }
 
-export function loadGoogleMaps(): Promise<typeof google> {
+export function loadGoogleMaps(): Promise<GoogleNS> {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("Google Maps can only load in the browser"));
   }
