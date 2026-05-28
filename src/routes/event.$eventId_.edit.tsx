@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { ArrowLeft } from "lucide-react";
 
 import { Header } from "@/components/Header";
+import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
 import { QrScanButton } from "@/components/QrScanButton";
 import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
 import { supabase } from "@/integrations/supabase/client";
