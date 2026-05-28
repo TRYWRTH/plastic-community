@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { format, isBefore, startOfDay } from "date-fns";
-import { MapPin, Calendar, Check, Star } from "lucide-react";
+import { MapPin, Calendar, Check, Star, X } from "lucide-react";
 
 import { Header } from "@/components/Header";
 import { MagicLinkDialog } from "@/components/MagicLinkDialog";
@@ -17,6 +17,7 @@ export const Route = createFileRoute("/saved")({
 
 function SavedPage() {
   const { user, isAuthenticated, loading } = useAuth();
+  const queryClient = useQueryClient();
   const [signInOpen, setSignInOpen] = useState(false);
 
   const { data = [], isLoading } = useQuery({
@@ -38,6 +39,20 @@ function SavedPage() {
         );
     },
   });
+
+  const handleRemove = async (eventId: string) => {
+    if (!user) return;
+    queryClient.setQueryData(
+      ["my_saved_events", user.id],
+      (old: { status: string; event: { id: string } }[] | undefined) =>
+        old?.filter((item) => item.event.id !== eventId) ?? [],
+    );
+    await supabase
+      .from("event_saves")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("event_id", eventId);
+  };
 
   return (
     <div className="min-h-screen bg-paper">
@@ -116,16 +131,28 @@ function SavedPage() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-foreground">
-                              <span
-                                className="inline-flex items-center gap-1 border-2 border-foreground bg-primary px-2 py-0.5 text-primary-foreground"
-                              >
-                                {status === "going" ? (
-                                  <Check className="h-3 w-3" />
-                                ) : (
-                                  <Star className="h-3 w-3" />
-                                )}
-                                {status}
-                              </span>
+                              <div className="flex flex-col gap-0.5">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleRemove(event.id);
+                                  }}
+                                  className="inline-flex w-fit cursor-pointer items-center gap-1 border-2 border-foreground bg-primary px-2 py-0.5 font-mono text-[11px] uppercase tracking-widest text-primary-foreground hover:opacity-90"
+                                >
+                                  {status === "going" ? (
+                                    <Check className="h-3 w-3" />
+                                  ) : (
+                                    <Star className="h-3 w-3" />
+                                  )}
+                                  {status}
+                                  <X className="h-3 w-3" />
+                                </button>
+                                <span className="font-mono text-[10px] tracking-wide text-foreground/60">
+                                  tap to remove
+                                </span>
+                              </div>
                               <t.Icon className="h-3.5 w-3.5" aria-hidden="true" />
                               <span>{t.label}</span>
                             </div>
