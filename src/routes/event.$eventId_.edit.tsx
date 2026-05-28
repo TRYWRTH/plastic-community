@@ -23,7 +23,7 @@ import {
 import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
 import { cleanPlace } from "@/lib/clean-place";
 import { geocodeAddress } from "@/lib/geocode";
 
