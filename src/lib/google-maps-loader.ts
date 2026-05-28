@@ -17,7 +17,9 @@ export function loadGoogleMaps(): Promise<GoogleNS> {
   if (window.google?.maps) return Promise.resolve(window.google);
   if (loaderPromise) return loaderPromise;
 
-  const key = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
+  const key =
+    (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined) ||
+    "AIzaSyCFb9w0HHhcjTQGRtdo3NPJH5diOmnXSp4";
   if (!key) return Promise.reject(new Error("Missing VITE_GOOGLE_MAPS_API_KEY"));
 
   loaderPromise = new Promise((resolve, reject) => {
