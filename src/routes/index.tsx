@@ -278,34 +278,8 @@ function Home() {
             )}
           </div>
 
-          {/* Mobile: horizontal scrollable neighborhood pills */}
-          <div className="flex overflow-x-auto flex-nowrap gap-2 scrollbar-hide sm:hidden">
-            <button
-              type="button"
-              onClick={() => setNeighborhood("all")}
-              className={`shrink-0 truncate max-w-[120px] h-11 border-2 border-foreground px-3 font-mono text-xs uppercase tracking-wider transition-colors ${
-                neighborhood === "all"
-                  ? "bg-foreground text-background"
-                  : "bg-background text-foreground hover:bg-foreground/10"
-              }`}
-            >
-              All districts
-            </button>
-            {NEIGHBORHOODS.map((n) => (
-              <button
-                key={n.value}
-                type="button"
-                onClick={() => setNeighborhood(n.value)}
-                className={`shrink-0 truncate max-w-[120px] h-11 border-2 border-foreground px-3 font-mono text-xs uppercase tracking-wider transition-colors ${
-                  neighborhood === n.value
-                    ? "bg-foreground text-background"
-                    : "bg-background text-foreground hover:bg-foreground/10"
-                }`}
-              >
-                {n.label}
-              </button>
-            ))}
-          </div>
+
+
 
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
             <FilterSelect
