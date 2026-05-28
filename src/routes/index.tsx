@@ -353,6 +353,7 @@ function Home() {
                 { value: "today", label: "Today" },
                 { value: "tomorrow", label: "Tomorrow" },
                 { value: "week", label: "This week" },
+                { value: "next_week", label: "Next week" },
                 { value: "all", label: "Any time" },
                 { value: "past", label: "Past (last 30 days)" },
               ]}
