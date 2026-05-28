@@ -167,6 +167,16 @@ function EditEventForm({
       toast.error("Please choose a valid date and time.");
       return;
     }
+    if (multiDay) {
+      if (!endDay) {
+        toast.error("Please pick an end date.");
+        return;
+      }
+      if (endDateError) {
+        toast.error(endDateError);
+        return;
+      }
+    }
 
     setSaving(true);
     let finalCoords = coords;
