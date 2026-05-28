@@ -173,7 +173,7 @@ export function DescriptionEditor({
 
       {linkOpen && (
         <div className="mb-1 space-y-2 rounded-md border border-border/60 bg-muted/30 p-2">
-          {!hadSelectionRef.current && !editor.isActive("link") && (
+          {!hadSelectionRef.current && !linkInfoRef.current.hasLink && (
             <Input
               value={linkText}
               onChange={(e) => setLinkText(e.target.value)}
@@ -190,7 +190,7 @@ export function DescriptionEditor({
               type="url"
               inputMode="url"
               maxLength={500}
-              autoFocus={hadSelectionRef.current || editor.isActive("link")}
+              autoFocus={hadSelectionRef.current || linkInfoRef.current.hasLink}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -204,7 +204,7 @@ export function DescriptionEditor({
             <Button type="button" size="sm" variant="ghost" onClick={cancelLink}>
               Cancel
             </Button>
-            {editor.isActive("link") && (
+            {linkInfoRef.current.hasLink && (
               <Button
                 type="button"
                 size="sm"
@@ -218,7 +218,7 @@ export function DescriptionEditor({
               </Button>
             )}
             <Button type="button" size="sm" onClick={insertLink} disabled={!linkUrl.trim()}>
-              {editor.isActive("link") ? "Save" : "Add"}
+              {linkInfoRef.current.hasLink ? "Save" : "Add"}
             </Button>
           </div>
         </div>
