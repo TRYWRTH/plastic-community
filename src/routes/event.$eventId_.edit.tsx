@@ -363,7 +363,7 @@ function EditEventForm({
             <Textarea
               name="description"
               defaultValue={event.description ?? ""}
-              rows={2}
+              rows={6}
               maxLength={500}
               className="min-h-0 py-1.5 text-sm sm:text-base"
             />

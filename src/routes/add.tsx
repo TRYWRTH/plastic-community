@@ -263,7 +263,7 @@ function AddEvent() {
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={2}
+              rows={6}
               maxLength={500}
               placeholder="What makes it worth showing up?"
               className="min-h-0 py-1.5 text-sm sm:text-base"

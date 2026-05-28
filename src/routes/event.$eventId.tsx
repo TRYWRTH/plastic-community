@@ -543,7 +543,7 @@ function stripNeighborhoodSuffix(place: string, neighborhood: string) {
 }
 
 function LinkPreviewCard({ url }: { url: string }) {
-  const { data } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["link-preview", url],
     queryFn: async () => {
       const res = await fetch(
@@ -563,11 +563,25 @@ function LinkPreviewCard({ url }: { url: string }) {
       if (json.status !== "success" || !json.data) throw new Error("no data");
       return json.data;
     },
-    staleTime: 1000 * 60 * 60,
+    staleTime: 1000 * 60 * 60 * 24,
+    gcTime: 1000 * 60 * 60 * 24,
     retry: false,
   });
 
-  if (!data) return null;
+  if (isLoading) {
+    return (
+      <div className="block w-full overflow-hidden border-2 border-foreground bg-card">
+        <div className="h-[200px] w-full animate-pulse bg-muted" />
+        <div className="space-y-2 p-3">
+          <div className="h-2 w-20 animate-pulse bg-muted" />
+          <div className="h-4 w-3/4 animate-pulse bg-muted" />
+          <div className="h-3 w-full animate-pulse bg-muted" />
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !data) return null;
   const title = data.title || data.publisher;
   if (!title && !data.image?.url) return null;
 
