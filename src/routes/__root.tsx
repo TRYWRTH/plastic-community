@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/react";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { OnboardingOverlay, useOnboarding } from "@/components/OnboardingOverlay";
 
@@ -227,6 +228,7 @@ function RootComponent() {
       <FeedbackButton />
       <OnboardingHost />
       <Toaster theme="light" position="top-center" richColors />
+      <Analytics />
     </QueryClientProvider>
   );
 }
