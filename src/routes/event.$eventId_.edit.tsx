@@ -371,13 +371,7 @@ function EditEventForm({
           </Field>
 
           <Field label="Description">
-            <Textarea
-              name="description"
-              defaultValue={event.description ?? ""}
-              rows={6}
-              maxLength={500}
-              className="min-h-0 py-1.5 text-sm sm:text-base"
-            />
+            <DescriptionField defaultValue={event.description ?? ""} />
           </Field>
 
           <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:items-center">
