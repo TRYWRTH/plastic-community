@@ -131,12 +131,8 @@ function EventDetail() {
   });
 
   const { data: counts } = useEventSaveCounts(eventId);
-  const { data: goingInitials } = useEventGoingInitials(eventId);
+  const { data: goingInitials } = useEventGoingNames(eventId);
 
-  if (typeof window !== "undefined") {
-    // eslint-disable-next-line no-console
-    console.log("[EventDetail] interest data", { eventId, counts, goingInitials });
-  }
 
   const { data: nearby } = useQuery({
     queryKey: ["events", "nearby", event?.neighborhood, eventId],
