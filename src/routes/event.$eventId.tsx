@@ -628,6 +628,9 @@ function LinkPreviewImage({ src }: { src: string }) {
       />
     </div>
   );
+}
+
+
 
 const LINK_CLASS = "text-neighborhood underline underline-offset-2 hover:opacity-80";
 
