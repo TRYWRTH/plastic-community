@@ -63,6 +63,17 @@ function AddEvent() {
       ? "End date must be on or after the start date."
       : null;
 
+  const dirty =
+    title !== "" ||
+    place !== "" ||
+    link !== "" ||
+    description !== "" ||
+    neighborhood !== "Mitte" ||
+    eventType !== "music" ||
+    eventTime !== "20:00" ||
+    multiDay ||
+    repeats !== "none";
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
