@@ -544,8 +544,8 @@ function Home() {
                               </span>
                             </span>
                           )}
-                          <SaveCountsLine counts={countsMap?.get(e.id)} />
-                          <GoingInitialsLine data={initialsMap?.get(e.id)} />
+                          <SaveCountsLine counts={countsMap?.get(e.id)} className="mt-1" />
+
 
                         </div>
 
