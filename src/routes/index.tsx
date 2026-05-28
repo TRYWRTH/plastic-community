@@ -4,7 +4,8 @@ import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { format, isAfter, isBefore, startOfDay, endOfDay, addDays } from "date-fns";
-import { MapPin, Calendar, ExternalLink, Search, X } from "lucide-react";
+import { MapPin, Calendar, ExternalLink, Search, X, List, Map as MapIcon } from "lucide-react";
+import { EventsMap } from "@/components/EventsMap";
 
 import { Header } from "@/components/Header";
 import { useIsMobile } from "@/hooks/use-mobile";
