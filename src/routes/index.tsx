@@ -329,9 +329,10 @@ function Home() {
             <FilterSelect
               value={dateFilter}
               onChange={(v) => setDateFilter(v as DateFilter)}
-              placeholder="WHEN"
+              shortLabel="WHEN"
+              defaultValue="upcoming"
               options={[
-                { value: "upcoming", label: "WHEN" },
+                { value: "upcoming", label: "Upcoming" },
                 { value: "today", label: "Today" },
                 { value: "tomorrow", label: "Tomorrow" },
                 { value: "week", label: "This week" },
@@ -342,9 +343,10 @@ function Home() {
             <FilterSelect
               value={neighborhood}
               onChange={(v) => setNeighborhood(v as Neighborhood | "all")}
-              placeholder="DISTRICT"
+              shortLabel="DISTRICT"
+              defaultValue="all"
               options={[
-                { value: "all", label: "DISTRICT" },
+                { value: "all", label: "All districts" },
                 ...NEIGHBORHOODS.map((n) => ({ value: n.value, label: n.label })),
               ]}
             />
@@ -352,9 +354,10 @@ function Home() {
             <FilterSelect
               value={eventType}
               onChange={(v) => setEventType(v as EventType | "all")}
-              placeholder="CATEGORY"
+              shortLabel="CATEGORY"
+              defaultValue="all"
               options={[
-                { value: "all", label: "CATEGORY" },
+                { value: "all", label: "All categories" },
                 ...EVENT_TYPES.map((t) => ({ value: t.value, label: t.label })),
               ]}
             />
