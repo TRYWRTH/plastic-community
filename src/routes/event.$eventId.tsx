@@ -309,7 +309,11 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                 <div className="mt-3 grid gap-2 font-mono text-sm uppercase tracking-wide text-foreground sm:mt-5 sm:grid-cols-2 sm:text-xs">
                   <div className="inline-flex flex-wrap items-center gap-2">
                     <Calendar className="h-4 w-4 shrink-0 text-neighborhood" />
-                    <span>{format(new Date(event.event_date), "EEE, MMM d · HH:mm")}</span>
+                    <span>
+                      {event.end_date
+                        ? `${formatEventDateRange(new Date(event.event_date), event.end_date)} · ${format(new Date(event.event_date), "HH:mm")}`
+                        : format(new Date(event.event_date), "EEE, MMM d · HH:mm")}
+                    </span>
                     {isRecurring && (
                       <span className="inline-flex items-center gap-1 border border-foreground/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-neighborhood">
                         ↻ {String(event.repeats).toUpperCase()}
