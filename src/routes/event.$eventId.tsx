@@ -423,9 +423,9 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   </a>
                 )}
                 {event.description && (
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
                     {renderDescription(event.description)}
-                  </p>
+                  </div>
                 )}
                 {event.link && <LinkPreviewCard url={event.link} />}
               </div>
