@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cleanPlace } from "@/lib/clean-place";
+import { geocodeAddress } from "@/lib/geocode";
 
 import { Label } from "@/components/ui/label";
 import {
@@ -62,6 +63,11 @@ function AddEvent() {
       return;
     }
     setSaving(true);
+    let finalCoords = coords;
+    if (finalCoords.lat == null || finalCoords.lng == null) {
+      const geo = await geocodeAddress(`${place.trim()}, ${neighborhood}, Berlin`);
+      if (geo) finalCoords = geo;
+    }
     const basePayload = {
       title: title.trim(),
       place: cleanPlace(place.trim()),
@@ -71,8 +77,8 @@ function AddEvent() {
       description: description.trim() || null,
       
       created_by: user.id,
-      lat: coords.lat,
-      lng: coords.lng,
+      lat: finalCoords.lat,
+      lng: finalCoords.lng,
     };
     const { data, error } = await supabase
       .from("events")

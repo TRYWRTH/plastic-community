@@ -4,7 +4,8 @@ import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { format, isAfter, isBefore, startOfDay, endOfDay, addDays } from "date-fns";
-import { MapPin, Calendar, ExternalLink, Search, X } from "lucide-react";
+import { MapPin, Calendar, ExternalLink, Search, X, List, Map as MapIcon } from "lucide-react";
+import { EventsMap } from "@/components/EventsMap";
 
 import { Header } from "@/components/Header";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -89,6 +90,7 @@ function Home() {
   const { date: dateFilter, neighborhood, type: eventType } = search;
   const navigate = useNavigate({ from: "/" });
   const [searchText, setSearchText] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
   const setDateFilter = (v: DateFilter) =>
     navigate({ search: cleanSearch({ ...search, date: v }), replace: true });
@@ -308,11 +310,44 @@ function Home() {
               ]}
             />
 
+            <div className="col-span-2 flex items-stretch border-2 border-foreground sm:col-span-1">
+              <button
+                type="button"
+                aria-label="List view"
+                aria-pressed={viewMode === "list"}
+                onClick={() => setViewMode("list")}
+                className={`flex h-11 flex-1 items-center justify-center px-3 font-mono text-xs uppercase tracking-wider sm:h-[34px] ${
+                  viewMode === "list"
+                    ? "bg-foreground text-background"
+                    : "bg-background text-foreground hover:bg-foreground/10"
+                }`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                aria-label="Map view"
+                aria-pressed={viewMode === "map"}
+                onClick={() => setViewMode("map")}
+                className={`flex h-11 flex-1 items-center justify-center border-l-2 border-foreground px-3 font-mono text-xs uppercase tracking-wider sm:h-[34px] ${
+                  viewMode === "map"
+                    ? "bg-foreground text-background"
+                    : "bg-background text-foreground hover:bg-foreground/10"
+                }`}
+              >
+                <MapIcon className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* List */}
+      {viewMode === "map" ? (
+        <main className="mx-auto w-full max-w-5xl px-4 py-4">
+          <EventsMap events={filtered as any} />
+        </main>
+      ) : (
+      /* List */
       <main className="mx-auto max-w-5xl px-4 py-8">
         {isLoading ? (
           <div className="grid gap-4">
@@ -436,6 +471,7 @@ function Home() {
           </ul>
         )}
       </main>
+      )}
     </div>
   );
 }

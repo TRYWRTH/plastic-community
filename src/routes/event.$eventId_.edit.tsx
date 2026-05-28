@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cleanPlace } from "@/lib/clean-place";
+import { geocodeAddress } from "@/lib/geocode";
 
 import { Label } from "@/components/ui/label";
 import {
@@ -160,6 +161,15 @@ function EditEventForm({
     }
 
     setSaving(true);
+    let finalCoords = coords;
+    if (
+      finalCoords.lat == null ||
+      finalCoords.lng == null ||
+      nextPlace !== cleanPlace(event.place)
+    ) {
+      const geo = await geocodeAddress(`${nextPlace}, ${nextNeighborhood}, Berlin`);
+      if (geo) finalCoords = geo;
+    }
     const { data: updated, error } = await supabase
   .from("events")
   .update({
@@ -170,8 +180,8 @@ function EditEventForm({
     event_date: parsedDate.toISOString(),
     link: nextLink || null,
     description: nextDescription || null,
-    lat: coords.lat,
-    lng: coords.lng,
+    lat: finalCoords.lat,
+    lng: finalCoords.lng,
     repeats,
   })
   .eq("id", eventId)
@@ -189,8 +199,8 @@ function EditEventForm({
           link: nextLink || null,
           description: nextDescription || null,
           created_by: userId,
-          lat: coords.lat,
-          lng: coords.lng,
+          lat: finalCoords.lat,
+          lng: finalCoords.lng,
         },
         parsedDate,
         repeats,
