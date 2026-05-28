@@ -13,6 +13,7 @@ import { Route as SavedRouteImport } from './routes/saved'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AddRouteImport } from './routes/add'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
 import { Route as EventEventIdRouteImport } from './routes/event.$eventId'
 import { Route as EventEventIdEditRouteImport } from './routes/event.$eventId_.edit'
@@ -36,6 +37,11 @@ const AddRoute = AddRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsProfileRoute = SettingsProfileRouteImport.update({
+  id: '/settings/profile',
+  path: '/settings/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/saved': typeof SavedRoute
   '/event/$eventId': typeof EventEventIdRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/profile': typeof SettingsProfileRoute
   '/event/$eventId/edit': typeof EventEventIdEditRoute
   '/api/public/hooks/send-event-reminders': typeof ApiPublicHooksSendEventRemindersRoute
 }
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/saved': typeof SavedRoute
   '/event/$eventId': typeof EventEventIdRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/profile': typeof SettingsProfileRoute
   '/event/$eventId/edit': typeof EventEventIdEditRoute
   '/api/public/hooks/send-event-reminders': typeof ApiPublicHooksSendEventRemindersRoute
 }
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/saved': typeof SavedRoute
   '/event/$eventId': typeof EventEventIdRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/profile': typeof SettingsProfileRoute
   '/event/$eventId_/edit': typeof EventEventIdEditRoute
   '/api/public/hooks/send-event-reminders': typeof ApiPublicHooksSendEventRemindersRoute
 }
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/event/$eventId'
     | '/settings/notifications'
+    | '/settings/profile'
     | '/event/$eventId/edit'
     | '/api/public/hooks/send-event-reminders'
   fileRoutesByTo: FileRoutesByTo
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/event/$eventId'
     | '/settings/notifications'
+    | '/settings/profile'
     | '/event/$eventId/edit'
     | '/api/public/hooks/send-event-reminders'
   id:
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/event/$eventId'
     | '/settings/notifications'
+    | '/settings/profile'
     | '/event/$eventId_/edit'
     | '/api/public/hooks/send-event-reminders'
   fileRoutesById: FileRoutesById
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   SavedRoute: typeof SavedRoute
   EventEventIdRoute: typeof EventEventIdRoute
   SettingsNotificationsRoute: typeof SettingsNotificationsRoute
+  SettingsProfileRoute: typeof SettingsProfileRoute
   EventEventIdEditRoute: typeof EventEventIdEditRoute
   ApiPublicHooksSendEventRemindersRoute: typeof ApiPublicHooksSendEventRemindersRoute
 }
@@ -163,6 +176,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/profile': {
+      id: '/settings/profile'
+      path: '/settings/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof SettingsProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings/notifications': {
@@ -203,9 +223,20 @@ const rootRouteChildren: RootRouteChildren = {
   SavedRoute: SavedRoute,
   EventEventIdRoute: EventEventIdRoute,
   SettingsNotificationsRoute: SettingsNotificationsRoute,
+  SettingsProfileRoute: SettingsProfileRoute,
   EventEventIdEditRoute: EventEventIdEditRoute,
   ApiPublicHooksSendEventRemindersRoute: ApiPublicHooksSendEventRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
