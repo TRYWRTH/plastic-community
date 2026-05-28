@@ -276,6 +276,7 @@ function EditEventForm({
       externalUserIds,
     });
 
+    setSaved(true);
     navigate({ to: "/event/$eventId", params: { eventId } });
   };
 
