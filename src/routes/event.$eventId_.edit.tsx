@@ -350,19 +350,21 @@ function EditEventForm({
               }`}
             >
               <div className="min-h-0">
-                <Field label="End date" required={multiDay}>
-                  <Input
-                    type="date"
-                    value={endDay}
-                    min={eventDay}
-                    onChange={(ev) => setEndDay(ev.target.value)}
-                  />
-                  {endDateError && (
-                    <p className="mt-1 text-[11px] text-destructive sm:text-xs">
-                      {endDateError}
-                    </p>
-                  )}
-                </Field>
+                <div className="grid grid-cols-1 sm:grid-cols-[3fr_2fr]">
+                  <Field label="End date" required={multiDay}>
+                    <Input
+                      type="date"
+                      value={endDay}
+                      min={eventDay}
+                      onChange={(ev) => setEndDay(ev.target.value)}
+                    />
+                    {endDateError && (
+                      <p className="mt-1 text-[11px] text-destructive sm:text-xs">
+                        {endDateError}
+                      </p>
+                    )}
+                  </Field>
+                </div>
               </div>
             </div>
           </div>
