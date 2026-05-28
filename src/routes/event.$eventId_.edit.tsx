@@ -128,6 +128,7 @@ function EditEventForm({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
   const [place, setPlace] = useState(event.place);
   
@@ -275,6 +276,7 @@ function EditEventForm({
       externalUserIds,
     });
 
+    setSaved(true);
     navigate({ to: "/event/$eventId", params: { eventId } });
   };
 
@@ -282,7 +284,7 @@ function EditEventForm({
     <div className="min-h-screen">
       <Header />
       <main className="mx-auto max-w-xl px-3 py-2 sm:px-4 sm:py-6">
-        <UnsavedChangesGuard when={dirty && !saving} />
+        <UnsavedChangesGuard when={dirty && !saving && !saved} />
         <Link
           to="/event/$eventId"
           params={{ eventId }}
