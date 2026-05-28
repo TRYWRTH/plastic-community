@@ -50,10 +50,17 @@ function AddEvent() {
   const [eventType, setEventType] = useState<EventType>("music");
   const [eventDay, setEventDay] = useState(format(new Date(Date.now() + 86400000), "yyyy-MM-dd"));
   const [eventTime, setEventTime] = useState("20:00");
+  const [multiDay, setMultiDay] = useState(false);
+  const [endDay, setEndDay] = useState("");
   const [link, setLink] = useState("");
   const [description, setDescription] = useState("");
   const [repeats, setRepeats] = useState<RepeatOption>("none");
   const [saving, setSaving] = useState(false);
+
+  const endDateError =
+    multiDay && endDay && endDay < eventDay
+      ? "End date must be on or after the start date."
+      : null;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
