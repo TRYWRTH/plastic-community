@@ -377,14 +377,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   </div>
                 )}
 
-                <SaveCountsLine
-                  counts={counts}
-                  className="mt-3 inline-block font-mono text-[11px] uppercase tracking-widest text-foreground sm:mt-4"
-                />
-                <GoingInitialsLine
-                  data={goingInitials}
-                  className="mt-1 block font-mono text-[11px] uppercase tracking-widest text-foreground"
-                />
+
               </div>
               <div className="space-y-4 pt-4 sm:space-y-5 sm:p-8">
                 <div className="flex flex-wrap items-center gap-2">
