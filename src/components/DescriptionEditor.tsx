@@ -3,6 +3,7 @@ import { Bold, Italic, Link2 } from "lucide-react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import Placeholder from "@tiptap/extension-placeholder";
 import { Markdown } from "tiptap-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +46,7 @@ export function DescriptionEditor({
           class: "text-primary underline",
         },
       }),
+      Placeholder.configure({ placeholder: placeholder ?? "" }),
       Markdown.configure({
         html: false,
         linkify: true,
