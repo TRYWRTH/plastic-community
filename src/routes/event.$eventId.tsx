@@ -625,7 +625,8 @@ function ExtLink({ href, children }: { href: string; children: React.ReactNode }
 }
 
 function renderTextSegment(text: string, keyPrefix: string): React.ReactNode[] {
-  const re = /(https?:\/\/[^\s)]+)|(@[A-Za-z0-9_.]+)/g;
+  // @handle only when at start or after whitespace (not part of an email)
+  const re = /(https?:\/\/[^\s)]+)|(?:^|(?<=\s))(@[A-Za-z0-9_.]+)/g;
   const out: React.ReactNode[] = [];
   let last = 0;
   let m: RegExpExecArray | null;
