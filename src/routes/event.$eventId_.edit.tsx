@@ -8,7 +8,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { Header } from "@/components/Header";
 import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
-import { InsertLinkControl } from "@/components/InsertLinkControl";
+import { DescriptionEditor } from "@/components/DescriptionEditor";
 import { QrScanButton } from "@/components/QrScanButton";
 import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
 import { supabase } from "@/integrations/supabase/client";
