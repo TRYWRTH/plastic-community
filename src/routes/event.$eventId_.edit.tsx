@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { cleanDescription } from "@/lib/clean-description";
 import { ArrowLeft } from "lucide-react";
 
 import { Header } from "@/components/Header";
