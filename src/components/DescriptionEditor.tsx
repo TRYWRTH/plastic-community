@@ -17,6 +17,24 @@ type Props = {
   rows?: number;
 };
 
+/** Check whether any part of the current selection contains a link mark,
+ *  and return the first href found. */
+function selectionContainsLink(editor: Editor): { hasLink: boolean; href: string } {
+  const { from, to } = editor.state.selection;
+  let href = "";
+  editor.state.doc.nodesBetween(from, to, (node) => {
+    if (node.marks) {
+      const linkMark = node.marks.find((m) => m.type.name === "link");
+      if (linkMark) {
+        href = linkMark.attrs.href as string;
+        return false; // stop traversing
+      }
+    }
+    return true;
+  });
+  return { hasLink: !!href, href };
+}
+
 export function DescriptionEditor({
   value,
   onChange,
