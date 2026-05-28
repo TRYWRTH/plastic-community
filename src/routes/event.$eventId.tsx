@@ -382,7 +382,11 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
               </div>
               <div className="space-y-4 pt-4 sm:space-y-5 sm:p-8">
                 <div className="flex flex-wrap items-center gap-2">
-                  <SaveButtons eventId={event.id} />
+                  <SaveButtons
+                    eventId={event.id}
+                    goingCount={counts?.going_count ?? 0}
+                    interestedCount={counts?.interested_count ?? 0}
+                  />
                 </div>
                 <EventInterestPanel counts={counts} goingInitials={goingInitials} />
 
