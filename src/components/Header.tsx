@@ -1,6 +1,8 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Plus, LogOut, Bookmark, UserRound, Bell, HelpCircle, LogIn, Search, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { Button } from "@/components/ui/button";
@@ -19,7 +21,17 @@ export function Header() {
   const navigate = useNavigate();
   const [signInOpen, setSignInOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  
+
+  useEffect(() => {
+    const handler = () => {
+      toast.error("Your session expired. Please sign in again.");
+      setSignInOpen(true);
+    };
+    window.addEventListener("whisperring:session-expired", handler);
+    return () => window.removeEventListener("whisperring:session-expired", handler);
+  }, []);
+
+
 
   const signOut = async () => {
     await supabase.auth.signOut();
