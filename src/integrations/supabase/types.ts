@@ -207,7 +207,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      default_username_from_email: { Args: { email: string }; Returns: string }
     }
     Enums: {
       event_repeat: "none" | "weekly" | "biweekly" | "monthly"
