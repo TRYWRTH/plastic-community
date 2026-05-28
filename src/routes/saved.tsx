@@ -40,6 +40,20 @@ function SavedPage() {
     },
   });
 
+  const handleRemove = async (eventId: string) => {
+    if (!user) return;
+    queryClient.setQueryData(
+      ["my_saved_events", user.id],
+      (old: { status: string; event: { id: string } }[] | undefined) =>
+        old?.filter((item) => item.event.id !== eventId) ?? [],
+    );
+    await supabase
+      .from("event_saves")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("event_id", eventId);
+  };
+
   return (
     <div className="min-h-screen bg-paper">
       <Header />
