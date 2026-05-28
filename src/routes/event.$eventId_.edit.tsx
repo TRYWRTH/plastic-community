@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cleanPlace } from "@/lib/clean-place";
+import { geocodeAddress } from "@/lib/geocode";
 
 import { Label } from "@/components/ui/label";
 import {
