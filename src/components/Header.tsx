@@ -102,6 +102,11 @@ export function Header() {
                   {user?.email ?? "Account"}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/settings/profile">
+                    <User className="mr-2 h-4 w-4" /> Profile
+                  </Link>
+                </DropdownMenuItem>
                 {/* Notification settings hidden temporarily — feature kept for later testing */}
                 {false && (
                   <DropdownMenuItem asChild>
