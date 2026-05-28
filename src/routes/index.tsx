@@ -90,6 +90,7 @@ function Home() {
   const { date: dateFilter, neighborhood, type: eventType } = search;
   const navigate = useNavigate({ from: "/" });
   const [searchText, setSearchText] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
   const setDateFilter = (v: DateFilter) =>
     navigate({ search: cleanSearch({ ...search, date: v }), replace: true });
