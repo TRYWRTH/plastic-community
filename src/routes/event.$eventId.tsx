@@ -22,7 +22,7 @@ import { EventInterestPanel } from "@/components/EventInterestPanel";
 
 import { ShareButton } from "@/components/ShareButton";
 import { useEventSaveCounts } from "@/lib/use-event-save-counts";
-import { useEventGoingInitials } from "@/lib/use-event-going-initials";
+import { useEventGoingNames } from "@/lib/use-event-going-initials";
 import { supabase } from "@/integrations/supabase/client";
 import { formatEventDateRange } from "@/lib/format-date-range";
 import { useAuth } from "@/lib/use-auth";
@@ -131,12 +131,8 @@ function EventDetail() {
   });
 
   const { data: counts } = useEventSaveCounts(eventId);
-  const { data: goingInitials } = useEventGoingInitials(eventId);
+  const { data: goingInitials } = useEventGoingNames(eventId);
 
-  if (typeof window !== "undefined") {
-    // eslint-disable-next-line no-console
-    console.log("[EventDetail] interest data", { eventId, counts, goingInitials });
-  }
 
   const { data: nearby } = useQuery({
     queryKey: ["events", "nearby", event?.neighborhood, eventId],

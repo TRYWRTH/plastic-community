@@ -133,6 +133,27 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           created_at: string
@@ -187,10 +208,9 @@ export type Database = {
     }
     Functions: {
       get_event_going_initials: {
-        Args: never
+        Args: { event_ids: string[] }
         Returns: {
           event_id: string
-          going_count: number
           initials: string[]
         }[]
       }
