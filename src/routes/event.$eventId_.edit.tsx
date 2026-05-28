@@ -161,25 +161,22 @@ function EditEventForm({
 
     setSaving(true);
     const { data: updated, error } = await supabase
-      .from("events")
-      .update({
-        title: nextTitle,
-        place: nextPlace,
-        neighborhood: nextNeighborhood,
-        event_type: nextEventType,
-        event_date: parsedDate.toISOString(),
-        link: nextLink || null,
-        description: nextDescription || null,
-        
-        lat: coords.lat,
-        lng: coords.lng,
-        repeats,
-      })
-      .eq("id", eventId)
-      .eq("created_by", userId)
-      .select("*")
-      .maybeSingle();
-
+  .from("events")
+  .update({
+    title: nextTitle,
+    place: nextPlace,
+    neighborhood: nextNeighborhood,
+    event_type: nextEventType,
+    event_date: parsedDate.toISOString(),
+    link: nextLink || null,
+    description: nextDescription || null,
+    lat: coords.lat,
+    lng: coords.lng,
+    repeats,
+  })
+  .eq("id", eventId)
+  .select("*")
+  .maybeSingle();
     // If repeats changed from none -> something, generate future instances now.
     const initialRepeats = (event.repeats as RepeatOption) ?? "none";
     if (updated && initialRepeats === "none" && repeats !== "none") {
