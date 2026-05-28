@@ -18,8 +18,8 @@ import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { SaveButtons } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
-import { SaveCountsLine } from "@/components/SaveCountsLine";
-import { GoingInitialsLine } from "@/components/GoingInitialsLine";
+import { EventInterestPanel } from "@/components/EventInterestPanel";
+
 import { ShareButton } from "@/components/ShareButton";
 import { useEventSaveCounts } from "@/lib/use-event-save-counts";
 import { useEventGoingInitials } from "@/lib/use-event-going-initials";
@@ -377,19 +377,14 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   </div>
                 )}
 
-                <SaveCountsLine
-                  counts={counts}
-                  className="mt-3 inline-block font-mono text-[11px] uppercase tracking-widest text-foreground sm:mt-4"
-                />
-                <GoingInitialsLine
-                  data={goingInitials}
-                  className="mt-1 block font-mono text-[11px] uppercase tracking-widest text-foreground"
-                />
+
               </div>
               <div className="space-y-4 pt-4 sm:space-y-5 sm:p-8">
                 <div className="flex flex-wrap items-center gap-2">
                   <SaveButtons eventId={event.id} />
                 </div>
+                <EventInterestPanel counts={counts} goingInitials={goingInitials} />
+
                 {event.event_date && (
                   <div>
                     <AddToCalendarButton

@@ -11,9 +11,8 @@ import { Header } from "@/components/Header";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { EnablePushBanner } from "@/components/EnablePushBanner";
 import { SaveCountsLine } from "@/components/SaveCountsLine";
-import { GoingInitialsLine } from "@/components/GoingInitialsLine";
 import { useAllEventSaveCounts } from "@/lib/use-event-save-counts";
-import { useAllEventGoingInitials } from "@/lib/use-event-going-initials";
+
 import { supabase } from "@/integrations/supabase/client";
 import {
   EVENT_TYPES,
@@ -84,7 +83,7 @@ function Home() {
     queryFn: fetchEvents,
   });
   const { data: countsMap } = useAllEventSaveCounts();
-  const { data: initialsMap } = useAllEventGoingInitials();
+
   const isMobile = useIsMobile();
 
   const search = Route.useSearch();
@@ -544,8 +543,8 @@ function Home() {
                               </span>
                             </span>
                           )}
-                          <SaveCountsLine counts={countsMap?.get(e.id)} />
-                          <GoingInitialsLine data={initialsMap?.get(e.id)} />
+                          <SaveCountsLine counts={countsMap?.get(e.id)} className="mt-1" />
+
 
                         </div>
 
