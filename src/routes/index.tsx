@@ -1,6 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
-import { z } from "zod";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { format, isAfter, isBefore, startOfDay, endOfDay, addDays } from "date-fns";
@@ -37,34 +35,7 @@ import {
 const DATE_FILTERS = ["all", "today", "tomorrow", "week", "next_week", "upcoming", "past"] as const;
 type DateFilter = (typeof DATE_FILTERS)[number];
 
-const NEIGHBORHOOD_VALUES = NEIGHBORHOODS.map((n) => n.value) as [Neighborhood, ...Neighborhood[]];
-const EVENT_TYPE_VALUES = EVENT_TYPES.map((t) => t.value) as [EventType, ...EventType[]];
-
-const searchSchema = z.object({
-  date: fallback(z.enum(DATE_FILTERS), "upcoming").default("upcoming"),
-  neighborhood: fallback(
-    z.union([z.literal("all"), z.enum(NEIGHBORHOOD_VALUES)]),
-    "all",
-  ).default("all"),
-  type: fallback(
-    z.union([z.literal("all"), z.enum(EVENT_TYPE_VALUES)]),
-    "all",
-  ).default("all"),
-});
-
-type HomeSearch = z.infer<typeof searchSchema>;
-
-// Strip default values so the URL stays clean (e.g. `/` instead of `/?date=upcoming&...`).
-function cleanSearch(s: HomeSearch): Partial<HomeSearch> {
-  const out: Partial<HomeSearch> = {};
-  if (s.date !== "upcoming") out.date = s.date;
-  if (s.neighborhood !== "all") out.neighborhood = s.neighborhood;
-  if (s.type !== "all") out.type = s.type;
-  return out;
-}
-
 export const Route = createFileRoute("/")({
-  validateSearch: zodValidator(searchSchema),
   component: Home,
 });
 
@@ -86,9 +57,9 @@ function Home() {
 
   const isMobile = useIsMobile();
 
-  const search = Route.useSearch();
-  const { date: dateFilter, neighborhood, type: eventType } = search;
-  const navigate = useNavigate({ from: "/" });
+  const [dateFilter, setDateFilter] = useState<DateFilter>("upcoming");
+  const [neighborhood, setNeighborhood] = useState<Neighborhood | "all">("all");
+  const [eventType, setEventType] = useState<EventType | "all">("all");
   const [searchText, setSearchText] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -109,14 +80,6 @@ function Home() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [mobileSearchOpen]);
-
-  const navOpts = { replace: true, resetScroll: false };
-  const setDateFilter = (v: DateFilter) =>
-    navigate({ search: cleanSearch({ ...search, date: v }), ...navOpts });
-  const setNeighborhood = (v: Neighborhood | "all") =>
-    navigate({ search: cleanSearch({ ...search, neighborhood: v }), ...navOpts });
-  const setEventType = (v: EventType | "all") =>
-    navigate({ search: cleanSearch({ ...search, type: v }), ...navOpts });
 
 
 
