@@ -63,6 +63,11 @@ function AddEvent() {
       return;
     }
     setSaving(true);
+    let finalCoords = coords;
+    if (finalCoords.lat == null || finalCoords.lng == null) {
+      const geo = await geocodeAddress(`${place.trim()}, ${neighborhood}, Berlin`);
+      if (geo) finalCoords = geo;
+    }
     const basePayload = {
       title: title.trim(),
       place: cleanPlace(place.trim()),
@@ -72,8 +77,8 @@ function AddEvent() {
       description: description.trim() || null,
       
       created_by: user.id,
-      lat: coords.lat,
-      lng: coords.lng,
+      lat: finalCoords.lat,
+      lng: finalCoords.lng,
     };
     const { data, error } = await supabase
       .from("events")
