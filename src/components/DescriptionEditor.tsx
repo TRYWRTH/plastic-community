@@ -164,7 +164,7 @@ export function DescriptionEditor({
         <span className="mx-1 h-4 w-px bg-border/70" aria-hidden />
         <ToolbarBtn
           label="Link"
-          active={editor.isActive("link")}
+          active={selectionContainsLink(editor).hasLink}
           onClick={openLink}
         >
           <Link2 className="h-3.5 w-3.5" />
