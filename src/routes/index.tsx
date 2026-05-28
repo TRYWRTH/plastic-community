@@ -295,17 +295,16 @@ function Home() {
                 { value: "past", label: "Past (last 30 days)" },
               ]}
             />
-            <div className="hidden sm:block">
-              <FilterSelect
-                value={neighborhood}
-                onChange={(v) => setNeighborhood(v as Neighborhood | "all")}
-                placeholder="District"
-                options={[
-                  { value: "all", label: "All districts" },
-                  ...NEIGHBORHOODS.map((n) => ({ value: n.value, label: n.label })),
-                ]}
-              />
-            </div>
+            <FilterSelect
+              value={neighborhood}
+              onChange={(v) => setNeighborhood(v as Neighborhood | "all")}
+              placeholder="District"
+              options={[
+                { value: "all", label: "All districts" },
+                ...NEIGHBORHOODS.map((n) => ({ value: n.value, label: n.label })),
+              ]}
+            />
+
             <FilterSelect
               value={eventType}
               onChange={(v) => setEventType(v as EventType | "all")}
