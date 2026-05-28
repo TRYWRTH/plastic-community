@@ -417,7 +417,7 @@ function Home() {
                             </span>
                           )}
                           {e.link && (
-                            <span className="inline-flex items-center gap-1 text-link">
+                            <span className="inline-flex items-center gap-1 text-neighborhood">
                               <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                               Website
                             </span>

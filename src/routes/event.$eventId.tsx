@@ -407,24 +407,22 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   />
                 </div>
                 {event.link && (
-                  <div className="space-y-3">
-                    <a
-                      href={event.link}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="inline-flex items-center gap-2 text-sm font-medium text-link underline underline-offset-4 hover:text-foreground"
-                    >
-                      <ExternalLink className="h-4 w-4 shrink-0" />
-                      Website
-                    </a>
-                    <LinkPreviewCard url={event.link} />
-                  </div>
+                  <a
+                    href={event.link}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-neighborhood underline underline-offset-4 hover:opacity-80"
+                  >
+                    <ExternalLink className="h-4 w-4 shrink-0" />
+                    Website
+                  </a>
                 )}
                 {event.description && (
                   <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
                     {renderDescription(event.description)}
                   </p>
                 )}
+                {event.link && <LinkPreviewCard url={event.link} />}
               </div>
             </article>
 
@@ -578,7 +576,7 @@ function LinkPreviewCard({ url }: { url: string }) {
       href={url}
       target="_blank"
       rel="noreferrer noopener"
-      className="group block w-full max-w-md overflow-hidden border-2 border-foreground bg-card transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
+      className="group block w-full overflow-hidden border-2 border-foreground bg-card transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
     >
       {data.image?.url && (
         <div className="relative aspect-[1.91/1] w-full overflow-hidden border-b-2 border-foreground bg-muted">
@@ -625,7 +623,8 @@ function ExtLink({ href, children }: { href: string; children: React.ReactNode }
 }
 
 function renderTextSegment(text: string, keyPrefix: string): React.ReactNode[] {
-  const re = /(https?:\/\/[^\s)]+)|(@[A-Za-z0-9_.]+)/g;
+  // @handle only when at start or after whitespace (not part of an email)
+  const re = /(https?:\/\/[^\s)]+)|(?:^|(?<=\s))(@[A-Za-z0-9_.]+)/g;
   const out: React.ReactNode[] = [];
   let last = 0;
   let m: RegExpExecArray | null;
