@@ -61,7 +61,7 @@ export function DescriptionEditor({
       },
     },
     onUpdate: ({ editor }) => {
-      const md = editor.storage.markdown.getMarkdown() as string;
+      const md = (editor.storage as any).markdown.getMarkdown() as string;
       const truncated = md.length > maxLength ? md.slice(0, maxLength) : md;
       onChange(truncated);
     },
@@ -70,7 +70,7 @@ export function DescriptionEditor({
   // Sync external value changes (e.g. reset, async load) without breaking caret on every keystroke.
   useEffect(() => {
     if (!editor) return;
-    const current = editor.storage.markdown.getMarkdown() as string;
+    const current = (editor.storage as any).markdown.getMarkdown() as string;
     if (value !== current) {
       editor.commands.setContent(value || "", { emitUpdate: false });
     }
