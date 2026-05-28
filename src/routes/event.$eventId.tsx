@@ -383,6 +383,8 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                 <div className="flex flex-wrap items-center gap-2">
                   <SaveButtons eventId={event.id} />
                 </div>
+                <EventInterestPanel counts={counts} goingInitials={goingInitials} />
+
                 {event.event_date && (
                   <div>
                     <AddToCalendarButton
