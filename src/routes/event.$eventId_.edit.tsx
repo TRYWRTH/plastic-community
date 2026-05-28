@@ -499,9 +499,19 @@ function DescriptionField({ defaultValue }: { defaultValue: string }) {
         maxLength={1500}
         className="min-h-0 py-1.5 text-sm sm:text-base"
       />
-      <p className="text-right font-mono text-[11px] text-muted-foreground sm:text-xs">
-        {value.length}/1500
-      </p>
+      <div className="flex items-center justify-between gap-2">
+        <InsertLinkControl
+          onInsert={(md) =>
+            setValue((prev) => {
+              const sep = prev && !prev.endsWith(" ") && !prev.endsWith("\n") ? " " : "";
+              return (prev + sep + md).slice(0, 1500);
+            })
+          }
+        />
+        <p className="font-mono text-[11px] text-muted-foreground sm:text-xs">
+          {value.length}/1500
+        </p>
+      </div>
     </>
   );
 }
