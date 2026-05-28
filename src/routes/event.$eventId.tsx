@@ -251,9 +251,6 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
         ) : (
           <>
             <article className="mt-6 sm:mt-8 sm:border-2 sm:border-foreground sm:bg-card sm:shadow-stamp">
-              {event.image_url && (
-                <EventHeroImage src={event.image_url} alt={event.title} />
-              )}
               <div className="pb-4 sm:border-b-2 sm:border-foreground sm:p-8 sm:pb-8">
                 <div className="flex items-center justify-between gap-3">
                   {(() => {
@@ -410,7 +407,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   />
                 </div>
                 {event.link && (
-                  <div>
+                  <div className="space-y-3">
                     <a
                       href={event.link}
                       target="_blank"
@@ -420,6 +417,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                       <ExternalLink className="h-4 w-4 shrink-0" />
                       Website
                     </a>
+                    <LinkPreviewCard url={event.link} />
                   </div>
                 )}
                 {event.description && (
@@ -546,30 +544,73 @@ function stripNeighborhoodSuffix(place: string, neighborhood: string) {
   return cleaned.endsWith(suffix) ? cleaned.slice(0, -suffix.length) : cleaned;
 }
 
-function EventHeroImage({ src, alt }: { src: string; alt: string }) {
-  const [hidden, setHidden] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  if (hidden) return null;
+function LinkPreviewCard({ url }: { url: string }) {
+  const { data } = useQuery({
+    queryKey: ["link-preview", url],
+    queryFn: async () => {
+      const res = await fetch(
+        `https://api.microlink.io/?url=${encodeURIComponent(url)}`,
+      );
+      if (!res.ok) throw new Error("preview failed");
+      const json = (await res.json()) as {
+        status?: string;
+        data?: {
+          title?: string;
+          description?: string;
+          image?: { url?: string };
+          publisher?: string;
+          url?: string;
+        };
+      };
+      if (json.status !== "success" || !json.data) throw new Error("no data");
+      return json.data;
+    },
+    staleTime: 1000 * 60 * 60,
+    retry: false,
+  });
+
+  if (!data) return null;
+  const title = data.title || data.publisher;
+  if (!title && !data.image?.url) return null;
+
   return (
-    <div className="relative w-full overflow-hidden border-b-2 border-foreground bg-muted">
-      <div className="relative h-[280px] w-full sm:h-[380px]">
-        {!loaded && (
-          <div className="absolute inset-0 animate-pulse bg-muted" aria-hidden="true" />
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer noopener"
+      className="group block w-full max-w-md overflow-hidden border-2 border-foreground bg-card transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
+    >
+      {data.image?.url && (
+        <div className="relative aspect-[1.91/1] w-full overflow-hidden border-b-2 border-foreground bg-muted">
+          <img
+            src={data.image.url}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover"
+            onError={(e) => {
+              (e.currentTarget.parentElement as HTMLElement).style.display = "none";
+            }}
+          />
+        </div>
+      )}
+      <div className="space-y-1 p-3">
+        {data.publisher && (
+          <div className="font-mono text-[10px] uppercase tracking-widest text-foreground/70">
+            {data.publisher}
+          </div>
         )}
-        <img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          onLoad={() => setLoaded(true)}
-          onError={() => setHidden(true)}
-          className="h-full w-full object-cover"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/55 to-transparent"
-        />
+        {title && (
+          <div className="font-brand text-base uppercase leading-tight text-foreground group-hover:text-neighborhood">
+            {title}
+          </div>
+        )}
+        {data.description && (
+          <p className="line-clamp-2 text-xs text-foreground/80">
+            {data.description}
+          </p>
+        )}
       </div>
-    </div>
+    </a>
   );
 }
 
