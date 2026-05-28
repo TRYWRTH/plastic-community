@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { format, isAfter, isBefore, startOfDay, endOfDay, addDays } from "date-fns";
 import { MapPin, Calendar, ExternalLink, Search, X, List, Map as MapIcon } from "lucide-react";
 import { EventsMap } from "@/components/EventsMap";
@@ -91,6 +91,24 @@ function Home() {
   const navigate = useNavigate({ from: "/" });
   const [searchText, setSearchText] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const mobileSearchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const open = () => setMobileSearchOpen(true);
+    window.addEventListener("whisperring:open-search", open);
+    return () => window.removeEventListener("whisperring:open-search", open);
+  }, []);
+
+  useEffect(() => {
+    if (!mobileSearchOpen) return;
+    mobileSearchRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileSearchOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileSearchOpen]);
 
   const setDateFilter = (v: DateFilter) =>
     navigate({ search: cleanSearch({ ...search, date: v }), replace: true });
@@ -253,10 +271,39 @@ function Home() {
 
 
 
+      {/* Mobile search overlay */}
+      {mobileSearchOpen && (
+        <div className="fixed inset-x-0 top-0 z-50 border-b-2 border-foreground bg-background sm:hidden">
+          <div className="mx-auto flex h-14 max-w-5xl items-center gap-2 px-3">
+            <Search className="h-4 w-4 shrink-0 text-foreground" />
+            <input
+              ref={mobileSearchRef}
+              type="text"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="Search events…"
+              aria-label="Search events"
+              className="h-9 w-full rounded-none border-0 bg-transparent font-mono text-xs uppercase tracking-wider placeholder:text-foreground/50 focus:outline-none focus:ring-0"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setMobileSearchOpen(false);
+              }}
+              aria-label="Close search"
+              className="grid h-8 w-8 shrink-0 place-items-center border-2 border-foreground bg-background hover:bg-foreground hover:text-background"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       <section className="sticky top-14 z-30 border-b-2 border-foreground bg-background">
         <div className="mx-auto max-w-5xl space-y-2 px-4 py-3">
-          <div className="relative w-full">
+          {/* Desktop-only search bar */}
+          <div className="relative hidden w-full sm:block">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground" />
             <input
               type="text"
@@ -264,7 +311,7 @@ function Home() {
               onChange={(e) => setSearchText(e.target.value)}
               placeholder="Search events…"
               aria-label="Search events"
-              className="h-11 w-full rounded-none border-2 border-foreground bg-background pl-9 pr-9 font-mono text-xs uppercase tracking-wider placeholder:text-foreground/50 focus:outline-none focus:ring-0 sm:h-9"
+              className="h-9 w-full rounded-none border-2 border-foreground bg-background pl-9 pr-9 font-mono text-xs uppercase tracking-wider placeholder:text-foreground/50 focus:outline-none focus:ring-0"
             />
             {searchText && (
               <button
@@ -278,10 +325,7 @@ function Home() {
             )}
           </div>
 
-
-
-
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+          <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:items-center">
             <FilterSelect
               value={dateFilter}
               onChange={(v) => setDateFilter(v as DateFilter)}
@@ -315,13 +359,14 @@ function Home() {
               ]}
             />
 
-            <div className="col-span-2 flex items-stretch border-2 border-foreground sm:col-span-1">
+            {/* Desktop view toggle */}
+            <div className="hidden items-stretch border-2 border-foreground sm:flex">
               <button
                 type="button"
                 aria-label="List view"
                 aria-pressed={viewMode === "list"}
                 onClick={() => setViewMode("list")}
-                className={`flex h-11 flex-1 items-center justify-center px-3 font-mono text-xs uppercase tracking-wider sm:h-[34px] ${
+                className={`flex h-[34px] items-center justify-center px-3 font-mono text-xs uppercase tracking-wider ${
                   viewMode === "list"
                     ? "bg-foreground text-background"
                     : "bg-background text-foreground hover:bg-foreground/10"
@@ -334,7 +379,7 @@ function Home() {
                 aria-label="Map view"
                 aria-pressed={viewMode === "map"}
                 onClick={() => setViewMode("map")}
-                className={`flex h-11 flex-1 items-center justify-center border-l-2 border-foreground px-3 font-mono text-xs uppercase tracking-wider sm:h-[34px] ${
+                className={`flex h-[34px] items-center justify-center border-l-2 border-foreground px-3 font-mono text-xs uppercase tracking-wider ${
                   viewMode === "map"
                     ? "bg-foreground text-background"
                     : "bg-background text-foreground hover:bg-foreground/10"
@@ -346,6 +391,37 @@ function Home() {
           </div>
         </div>
       </section>
+
+      {/* Results header (count + view toggle). Toggle is mobile-only; count shows on all sizes. */}
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 pt-3 sm:pt-4">
+        <span className="font-mono text-[11px] uppercase tracking-widest text-foreground/60">
+          {isLoading ? "…" : `${filtered.length} event${filtered.length === 1 ? "" : "s"}`}
+        </span>
+        <div className="flex items-center gap-1 sm:hidden">
+          <button
+            type="button"
+            aria-label="List view"
+            aria-pressed={viewMode === "list"}
+            onClick={() => setViewMode("list")}
+            className={`grid h-7 w-7 place-items-center ${
+              viewMode === "list" ? "text-primary" : "text-foreground/40 hover:text-foreground"
+            }`}
+          >
+            <List className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="Map view"
+            aria-pressed={viewMode === "map"}
+            onClick={() => setViewMode("map")}
+            className={`grid h-7 w-7 place-items-center ${
+              viewMode === "map" ? "text-primary" : "text-foreground/40 hover:text-foreground"
+            }`}
+          >
+            <MapIcon className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
 
       {viewMode === "map" ? (
         <main className="mx-auto w-full max-w-5xl px-4 py-4">
