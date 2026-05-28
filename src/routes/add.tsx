@@ -170,13 +170,13 @@ function AddEvent() {
     <div className="min-h-screen">
       <Header />
       <main className="mx-auto max-w-xl px-3 py-2 sm:px-4 sm:py-6">
-        <button
-          type="button"
-          onClick={() => window.history.back()}
+        <UnsavedChangesGuard when={dirty && !saving} />
+        <Link
+          to="/"
           className="inline-flex h-11 items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-widest text-foreground hover:text-primary"
         >
           <ArrowLeft className="h-4 w-4" /> Back
-        </button>
+        </Link>
 
         <h1 className="mt-1 font-display text-xl font-bold sm:text-3xl">Add an event</h1>
         <p className="mt-0.5 text-xs text-muted-foreground sm:text-base">
