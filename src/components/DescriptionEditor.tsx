@@ -1,115 +1,163 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bold, Italic, Link2 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import { useEditor, EditorContent, type Editor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import { Markdown } from "tiptap-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
 type Props = {
   value: string;
   onChange: (next: string) => void;
   name?: string;
-  rows?: number;
   maxLength?: number;
   placeholder?: string;
+  rows?: number;
 };
-
-type Sel = { start: number; end: number };
 
 export function DescriptionEditor({
   value,
   onChange,
   name,
-  rows = 6,
   maxLength = 1500,
   placeholder,
 }: Props) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [linkOpen, setLinkOpen] = useState(false);
-  const [selection, setSelection] = useState<Sel | null>(null);
   const [linkText, setLinkText] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
+  const hadSelectionRef = useRef(false);
 
-  const currentSelection = (): Sel => {
-    const ta = textareaRef.current;
-    return {
-      start: ta?.selectionStart ?? value.length,
-      end: ta?.selectionEnd ?? value.length,
-    };
-  };
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: false,
+        codeBlock: false,
+        blockquote: false,
+        horizontalRule: false,
+      }),
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        HTMLAttributes: {
+          rel: "noopener noreferrer",
+          target: "_blank",
+          class: "text-primary underline",
+        },
+      }),
+      Markdown.configure({
+        html: false,
+        linkify: true,
+        breaks: true,
+        transformPastedText: true,
+      }),
+    ],
+    content: value || "",
+    editorProps: {
+      attributes: {
+        class:
+          "tiptap-editor min-h-[7.5rem] w-full whitespace-pre-wrap break-words rounded-md border border-input bg-background px-3 py-2 text-sm sm:text-base outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        ...(placeholder ? { "data-placeholder": placeholder } : {}),
+      },
+    },
+    onUpdate: ({ editor }) => {
+      const md = editor.storage.markdown.getMarkdown() as string;
+      const truncated = md.length > maxLength ? md.slice(0, maxLength) : md;
+      onChange(truncated);
+    },
+  });
 
-  const applyReplacement = (sel: Sel, replacement: string, caretOffset?: number) => {
-    const before = value.slice(0, sel.start);
-    const after = value.slice(sel.end);
-    const next = (before + replacement + after).slice(0, maxLength);
-    onChange(next);
-    const caret = before.length + (caretOffset ?? replacement.length);
-    requestAnimationFrame(() => {
-      const ta = textareaRef.current;
-      if (!ta) return;
-      ta.focus();
-      ta.setSelectionRange(caret, caret);
-    });
-  };
+  // Sync external value changes (e.g. reset, async load) without breaking caret on every keystroke.
+  useEffect(() => {
+    if (!editor) return;
+    const current = editor.storage.markdown.getMarkdown() as string;
+    if (value !== current) {
+      editor.commands.setContent(value || "", { emitUpdate: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, editor]);
 
-  const wrap = (marker: string, placeholderText: string) => {
-    const sel = currentSelection();
-    const selected = value.slice(sel.start, sel.end);
-    const inner = selected || placeholderText;
-    const replacement = `${marker}${inner}${marker}`;
-    const caret = selected
-      ? sel.start + replacement.length
-      : sel.start + marker.length + inner.length;
-    applyReplacement(sel, replacement, caret - sel.start);
-  };
+  if (!editor) {
+    return (
+      <div className="min-h-[7.5rem] w-full rounded-md border border-input bg-background" />
+    );
+  }
 
   const openLink = () => {
-    const sel = currentSelection();
-    const selected = value.slice(sel.start, sel.end);
-    setSelection(sel);
-    setLinkText(selected);
-    setLinkUrl("");
+    const { from, to, empty } = editor.state.selection;
+    hadSelectionRef.current = !empty;
+    const selectedText = empty ? "" : editor.state.doc.textBetween(from, to, " ");
+    const existing = editor.getAttributes("link").href as string | undefined;
+    setLinkText(selectedText);
+    setLinkUrl(existing ?? "");
     setLinkOpen(true);
   };
 
   const cancelLink = () => {
     setLinkOpen(false);
-    setLinkUrl("");
     setLinkText("");
-    setSelection(null);
+    setLinkUrl("");
   };
 
   const insertLink = () => {
     const u = linkUrl.trim();
     if (!u) return;
     const normalized = /^https?:\/\//i.test(u) ? u : `https://${u}`;
-    const display = (linkText.trim() || u);
-    const md = `[${display}](${normalized})`;
-    const sel = selection ?? currentSelection();
-    applyReplacement(sel, md);
+    const chain = editor.chain().focus();
+    if (hadSelectionRef.current) {
+      chain
+        .extendMarkRange("link")
+        .setLink({ href: normalized })
+        .run();
+    } else {
+      const display = linkText.trim() || u;
+      chain
+        .insertContent({
+          type: "text",
+          text: display,
+          marks: [{ type: "link", attrs: { href: normalized } }],
+        })
+        .run();
+    }
     cancelLink();
   };
-
-  const hasSelection = !!(selection && selection.start !== selection.end);
 
   return (
     <div>
       <div className="mb-1 flex items-center gap-0.5 rounded-md border border-border/60 bg-muted/40 px-1 py-1">
-        <ToolbarBtn label="Bold" onClick={() => wrap("**", "bold")}>
+        <ToolbarBtn
+          label="Bold"
+          active={editor.isActive("bold")}
+          onClick={() => editor.chain().focus().toggleBold().run()}
+        >
           <Bold className="h-3.5 w-3.5" />
         </ToolbarBtn>
-        <ToolbarBtn label="Italic" onClick={() => wrap("*", "italic")}>
+        <ToolbarBtn
+          label="Italic"
+          active={editor.isActive("italic")}
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+        >
           <Italic className="h-3.5 w-3.5" />
         </ToolbarBtn>
         <span className="mx-1 h-4 w-px bg-border/70" aria-hidden />
-        <ToolbarBtn label="Link" onClick={openLink}>
+        <ToolbarBtn
+          label="Link"
+          active={editor.isActive("link")}
+          onClick={() => {
+            if (editor.isActive("link")) {
+              editor.chain().focus().extendMarkRange("link").unsetLink().run();
+              return;
+            }
+            openLink();
+          }}
+        >
           <Link2 className="h-3.5 w-3.5" />
         </ToolbarBtn>
       </div>
 
       {linkOpen && (
         <div className="mb-1 space-y-2 rounded-md border border-border/60 bg-muted/30 p-2">
-          {!hasSelection && (
+          {!hadSelectionRef.current && (
             <Input
               value={linkText}
               onChange={(e) => setLinkText(e.target.value)}
@@ -126,7 +174,7 @@ export function DescriptionEditor({
               type="url"
               inputMode="url"
               maxLength={500}
-              autoFocus={hasSelection}
+              autoFocus={hadSelectionRef.current}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
@@ -147,38 +195,9 @@ export function DescriptionEditor({
         </div>
       )}
 
-      <Textarea
-        ref={textareaRef}
-        name={name}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        rows={rows}
-        maxLength={maxLength}
-        placeholder={placeholder}
-        className="min-h-0 py-1.5 text-sm sm:text-base"
-      />
+      <EditorContent editor={editor} />
 
-      {value.trim() && (
-        <div className="mt-2 rounded-md border border-border/60 bg-muted/20 p-2">
-          <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-            Preview
-          </p>
-          <div className="prose prose-sm max-w-none break-words text-sm [&_a]:text-primary [&_a]:underline">
-            <ReactMarkdown
-              components={{
-                a: ({ href, children }) => (
-                  <a href={href} target="_blank" rel="noopener noreferrer">
-                    {children}
-                  </a>
-                ),
-                p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
-              }}
-            >
-              {value}
-            </ReactMarkdown>
-          </div>
-        </div>
-      )}
+      {name ? <input type="hidden" name={name} value={value} /> : null}
     </div>
   );
 }
@@ -186,10 +205,12 @@ export function DescriptionEditor({
 function ToolbarBtn({
   label,
   onClick,
+  active,
   children,
 }: {
   label: string;
   onClick: () => void;
+  active?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -198,9 +219,18 @@ function ToolbarBtn({
       onClick={onClick}
       title={label}
       aria-label={label}
-      className="inline-flex h-7 w-7 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+      aria-pressed={active}
+      className={
+        "inline-flex h-7 w-7 items-center justify-center rounded transition-colors " +
+        (active
+          ? "bg-background text-foreground"
+          : "text-muted-foreground hover:bg-background hover:text-foreground")
+      }
     >
       {children}
     </button>
   );
 }
+
+// Suppress unused export warning for Editor type
+export type { Editor };
