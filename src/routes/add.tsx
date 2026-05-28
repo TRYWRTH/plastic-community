@@ -344,9 +344,19 @@ function AddEvent() {
               placeholder="What makes it worth showing up?"
               className="min-h-0 py-1.5 text-sm sm:text-base"
             />
-            <p className="text-right font-mono text-[11px] text-muted-foreground sm:text-xs">
-              {description.length}/1500
-            </p>
+            <div className="flex items-center justify-between gap-2">
+              <InsertLinkControl
+                onInsert={(md) =>
+                  setDescription((prev) => {
+                    const sep = prev && !prev.endsWith(" ") && !prev.endsWith("\n") ? " " : "";
+                    return (prev + sep + md).slice(0, 1500);
+                  })
+                }
+              />
+              <p className="font-mono text-[11px] text-muted-foreground sm:text-xs">
+                {description.length}/1500
+              </p>
+            </div>
           </Field>
 
           <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:items-center">
