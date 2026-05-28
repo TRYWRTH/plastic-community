@@ -218,9 +218,15 @@ export function SaveButtons({
           variant={current === "going" ? "default" : "outline"}
           onClick={() => mutate.mutate(current === "going" ? null : "going")}
           disabled={mutate.isPending}
+          className="relative pr-6"
         >
           <Check className="h-4 w-4" />
           Going
+          {goingCount > 0 && (
+            <span className="absolute right-1 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center border-2 border-foreground bg-primary text-[10px] font-bold text-primary-foreground shadow-stamp-sm">
+              {goingCount}
+            </span>
+          )}
         </Button>
         <Button
           variant={current === "interested" ? "default" : "outline"}
@@ -228,9 +234,15 @@ export function SaveButtons({
             mutate.mutate(current === "interested" ? null : "interested")
           }
           disabled={mutate.isPending}
+          className="relative pr-6"
         >
           <Star className="h-4 w-4" />
           Interested
+          {interestedCount > 0 && (
+            <span className="absolute right-1 top-1/2 -translate-y-1/2 flex h-5 w-5 items-center justify-center border-2 border-foreground bg-muted text-[10px] font-bold text-foreground shadow-stamp-sm">
+              {interestedCount}
+            </span>
+          )}
         </Button>
       </div>
       {/* Per-event notify toggle hidden temporarily — feature kept for later testing */}
