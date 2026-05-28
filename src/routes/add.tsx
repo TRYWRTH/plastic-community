@@ -210,7 +210,7 @@ function AddEvent() {
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr] sm:gap-4">
             <Field label="Date" required>
               <Input
                 type="date"
@@ -249,19 +249,21 @@ function AddEvent() {
               }`}
             >
               <div className="min-h-0">
-                <Field label="End date" required={multiDay}>
-                  <Input
-                    type="date"
-                    value={endDay}
-                    min={eventDay}
-                    onChange={(ev) => setEndDay(ev.target.value)}
-                  />
-                  {endDateError && (
-                    <p className="mt-1 text-[11px] text-destructive sm:text-xs">
-                      {endDateError}
-                    </p>
-                  )}
-                </Field>
+                <div className="grid grid-cols-1 sm:grid-cols-[3fr_2fr]">
+                  <Field label="End date" required={multiDay}>
+                    <Input
+                      type="date"
+                      value={endDay}
+                      min={eventDay}
+                      onChange={(ev) => setEndDay(ev.target.value)}
+                    />
+                    {endDateError && (
+                      <p className="mt-1 text-[11px] text-destructive sm:text-xs">
+                        {endDateError}
+                      </p>
+                    )}
+                  </Field>
+                </div>
               </div>
             </div>
           </div>
