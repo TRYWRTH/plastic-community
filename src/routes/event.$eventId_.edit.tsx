@@ -280,13 +280,14 @@ function EditEventForm({
     <div className="min-h-screen">
       <Header />
       <main className="mx-auto max-w-xl px-3 py-2 sm:px-4 sm:py-6">
-        <button
-          type="button"
-          onClick={() => window.history.back()}
+        <UnsavedChangesGuard when={dirty && !saving} />
+        <Link
+          to="/event/$eventId"
+          params={{ eventId }}
           className="inline-flex h-11 items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-widest text-foreground hover:text-primary"
         >
           <ArrowLeft className="h-4 w-4" /> Back
-        </button>
+        </Link>
 
         <h1 className="mt-1 font-display text-xl font-bold sm:text-3xl">Edit event</h1>
         <p className="mt-0.5 text-xs text-muted-foreground sm:text-base">
@@ -295,6 +296,7 @@ function EditEventForm({
 
         <form
           onSubmit={submit}
+          onInput={() => setTouched(true)}
           className="mt-3 space-y-2.5 sm:mt-6 sm:space-y-4 [&_input]:h-9 [&_input]:py-1 [&_input]:text-sm sm:[&_input]:h-10 sm:[&_input]:text-base [&_button[role=combobox]]:h-9 sm:[&_button[role=combobox]]:h-10"
         >
           <Field label="Title" required>
