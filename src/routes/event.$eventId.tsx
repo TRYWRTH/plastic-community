@@ -234,12 +234,13 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
       <Header />
       <main className="mx-auto max-w-2xl px-3 py-3 sm:px-4 sm:py-8">
         <div className="flex items-center">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-foreground hover:text-neighborhood sm:text-xs"
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="inline-flex h-11 items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-widest text-foreground hover:text-primary"
           >
-            <ArrowLeft className="h-3.5 w-3.5" /> Back
-          </Link>
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
         </div>
 
         {isLoading ? (

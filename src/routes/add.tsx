@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { ArrowLeft } from "lucide-react";
 
 import { Header } from "@/components/Header";
 import { QrScanButton } from "@/components/QrScanButton";
@@ -151,12 +152,13 @@ function AddEvent() {
     <div className="min-h-screen">
       <Header />
       <main className="mx-auto max-w-xl px-3 py-2 sm:px-4 sm:py-6">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-foreground hover:text-primary sm:text-xs"
+        <button
+          type="button"
+          onClick={() => window.history.back()}
+          className="inline-flex h-11 items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-widest text-foreground hover:text-primary"
         >
-          ← Back
-        </Link>
+          <ArrowLeft className="h-4 w-4" /> Back
+        </button>
 
         <h1 className="mt-1 font-display text-xl font-bold sm:text-3xl">Add an event</h1>
         <p className="mt-0.5 text-xs text-muted-foreground sm:text-base">
