@@ -137,6 +137,13 @@ function EditEventForm({
   const [repeats, setRepeats] = useState<RepeatOption>((event.repeats as RepeatOption) ?? "none");
   const initialDateOnly = format(new Date(event.event_date), "yyyy-MM-dd");
   const initialTimeOnly = format(new Date(event.event_date), "HH:mm");
+  const [eventDay, setEventDay] = useState(initialDateOnly);
+  const [multiDay, setMultiDay] = useState(!!event.end_date);
+  const [endDay, setEndDay] = useState(event.end_date ?? "");
+  const endDateError =
+    multiDay && endDay && endDay < eventDay
+      ? "End date must be on or after the start date."
+      : null;
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
