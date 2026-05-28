@@ -332,7 +332,7 @@ function Home() {
               shortLabel="WHEN"
               defaultValue="upcoming"
               options={[
-                { value: "upcoming", label: "Upcoming" },
+                { value: "upcoming", label: "UPCOMING" },
                 { value: "today", label: "Today" },
                 { value: "tomorrow", label: "Tomorrow" },
                 { value: "week", label: "This week" },
@@ -346,7 +346,7 @@ function Home() {
               shortLabel="DISTRICT"
               defaultValue="all"
               options={[
-                { value: "all", label: "All districts" },
+                { value: "all", label: "ALL DISTRICTS" },
                 ...NEIGHBORHOODS.map((n) => ({ value: n.value, label: n.label })),
               ]}
             />
@@ -357,7 +357,7 @@ function Home() {
               shortLabel="CATEGORY"
               defaultValue="all"
               options={[
-                { value: "all", label: "All categories" },
+                { value: "all", label: "ALL CATEGORIES" },
                 ...EVENT_TYPES.map((t) => ({ value: t.value, label: t.label })),
               ]}
             />
