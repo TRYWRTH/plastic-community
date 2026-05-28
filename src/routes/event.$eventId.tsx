@@ -578,19 +578,7 @@ function LinkPreviewCard({ url }: { url: string }) {
       rel="noreferrer noopener"
       className="group block w-full overflow-hidden border-2 border-foreground bg-card transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
     >
-      {data.image?.url && (
-        <div className="relative aspect-[1.91/1] w-full overflow-hidden border-b-2 border-foreground bg-muted">
-          <img
-            src={data.image.url}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover"
-            onError={(e) => {
-              (e.currentTarget.parentElement as HTMLElement).style.display = "none";
-            }}
-          />
-        </div>
-      )}
+      {data.image?.url && <LinkPreviewImage src={data.image.url} />}
       <div className="space-y-1 p-3">
         {data.publisher && (
           <div className="font-mono text-[10px] uppercase tracking-widest text-foreground/70">
@@ -611,6 +599,38 @@ function LinkPreviewCard({ url }: { url: string }) {
     </a>
   );
 }
+
+function LinkPreviewImage({ src }: { src: string }) {
+  const [orientation, setOrientation] = useState<"landscape" | "portrait" | null>(null);
+  const [hidden, setHidden] = useState(false);
+  if (hidden) return null;
+  const isPortrait = orientation === "portrait";
+  return (
+    <div
+      className={`relative flex w-full items-center justify-center overflow-hidden border-b-2 border-foreground bg-muted ${
+        isPortrait ? "max-h-[300px]" : "h-[200px]"
+      }`}
+    >
+      <img
+        src={src}
+        alt=""
+        loading="lazy"
+        onLoad={(e) => {
+          const img = e.currentTarget;
+          setOrientation(img.naturalWidth >= img.naturalHeight ? "landscape" : "portrait");
+        }}
+        onError={() => setHidden(true)}
+        className={
+          isPortrait
+            ? "max-h-[300px] w-auto object-contain"
+            : "h-full w-full object-cover"
+        }
+      />
+    </div>
+  );
+}
+
+
 
 const LINK_CLASS = "text-neighborhood underline underline-offset-2 hover:opacity-80";
 
