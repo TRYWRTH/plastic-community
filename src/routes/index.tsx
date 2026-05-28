@@ -342,7 +342,12 @@ function Home() {
         </div>
       </section>
 
-      {/* List */}
+      {viewMode === "map" ? (
+        <main className="mx-auto w-full max-w-5xl px-4 py-4">
+          <EventsMap events={filtered as any} />
+        </main>
+      ) : (
+      /* List */
       <main className="mx-auto max-w-5xl px-4 py-8">
         {isLoading ? (
           <div className="grid gap-4">
