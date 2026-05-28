@@ -27,7 +27,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-background">
+    <header className="bg-background">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-3 sm:px-4">
       <Link to="/" className="flex min-w-0 items-baseline gap-2">
         <span className="sr-only">Whisper Ring</span>
