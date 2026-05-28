@@ -32,7 +32,7 @@ export function UnsavedChangesGuard({ when }: { when: boolean }) {
   }, [when]);
 
   return (
-    <AlertDialog open={status === "blocked"} onOpenChange={(o) => !o && reset()}>
+    <AlertDialog open={status === "blocked"} onOpenChange={(o) => { if (!o) reset?.(); }}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Leave without saving?</AlertDialogTitle>
@@ -41,8 +41,8 @@ export function UnsavedChangesGuard({ when }: { when: boolean }) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogAction onClick={reset}>STAY</AlertDialogAction>
-          <AlertDialogCancel onClick={proceed}>LEAVE</AlertDialogCancel>
+          <AlertDialogAction onClick={() => reset?.()}>STAY</AlertDialogAction>
+          <AlertDialogCancel onClick={() => proceed?.()}>LEAVE</AlertDialogCancel>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
