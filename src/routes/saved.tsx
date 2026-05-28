@@ -17,6 +17,7 @@ export const Route = createFileRoute("/saved")({
 
 function SavedPage() {
   const { user, isAuthenticated, loading } = useAuth();
+  const queryClient = useQueryClient();
   const [signInOpen, setSignInOpen] = useState(false);
 
   const { data = [], isLoading } = useQuery({
