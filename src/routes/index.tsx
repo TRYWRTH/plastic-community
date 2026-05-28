@@ -329,9 +329,10 @@ function Home() {
             <FilterSelect
               value={dateFilter}
               onChange={(v) => setDateFilter(v as DateFilter)}
-              placeholder="WHEN"
+              shortLabel="WHEN"
+              defaultValue="upcoming"
               options={[
-                { value: "upcoming", label: "WHEN" },
+                { value: "upcoming", label: "UPCOMING" },
                 { value: "today", label: "Today" },
                 { value: "tomorrow", label: "Tomorrow" },
                 { value: "week", label: "This week" },
@@ -342,9 +343,10 @@ function Home() {
             <FilterSelect
               value={neighborhood}
               onChange={(v) => setNeighborhood(v as Neighborhood | "all")}
-              placeholder="DISTRICT"
+              shortLabel="DISTRICT"
+              defaultValue="all"
               options={[
-                { value: "all", label: "DISTRICT" },
+                { value: "all", label: "ALL DISTRICTS" },
                 ...NEIGHBORHOODS.map((n) => ({ value: n.value, label: n.label })),
               ]}
             />
@@ -352,9 +354,10 @@ function Home() {
             <FilterSelect
               value={eventType}
               onChange={(v) => setEventType(v as EventType | "all")}
-              placeholder="CATEGORY"
+              shortLabel="CATEGORY"
+              defaultValue="all"
               options={[
-                { value: "all", label: "CATEGORY" },
+                { value: "all", label: "ALL CATEGORIES" },
                 ...EVENT_TYPES.map((t) => ({ value: t.value, label: t.label })),
               ]}
             />
@@ -562,18 +565,24 @@ function stripNeighborhoodSuffix(place: string, neighborhood: string) {
 function FilterSelect({
   value,
   onChange,
-  placeholder,
+  shortLabel,
+  defaultValue,
   options,
 }: {
   value: string;
   onChange: (v: string) => void;
-  placeholder: string;
+  shortLabel: string;
+  defaultValue: string;
   options: { value: string; label: string }[];
 }) {
+  const isDefault = value === defaultValue;
+  const selected = options.find((o) => o.value === value);
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="h-11 w-full rounded-none border-2 border-foreground bg-background px-2 font-mono text-xs uppercase tracking-wider [&>span]:block [&>span]:truncate sm:h-9 sm:w-auto sm:min-w-[8rem] sm:max-w-[14rem] sm:px-3">
-        <SelectValue placeholder={placeholder} />
+        <span className="block truncate">
+          {isDefault ? shortLabel : selected?.label ?? shortLabel}
+        </span>
       </SelectTrigger>
       <SelectContent className="rounded-none border-2 border-foreground">
         {options.map((o) => (

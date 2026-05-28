@@ -272,10 +272,13 @@ function AddEvent() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={6}
-              maxLength={500}
+              maxLength={1500}
               placeholder="What makes it worth showing up?"
               className="min-h-0 py-1.5 text-sm sm:text-base"
             />
+            <p className="text-right font-mono text-[11px] text-muted-foreground sm:text-xs">
+              {description.length}/1500
+            </p>
           </Field>
 
           <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:items-center">
