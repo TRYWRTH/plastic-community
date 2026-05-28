@@ -578,19 +578,7 @@ function LinkPreviewCard({ url }: { url: string }) {
       rel="noreferrer noopener"
       className="group block w-full overflow-hidden border-2 border-foreground bg-card transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
     >
-      {data.image?.url && (
-        <div className="relative aspect-[1.91/1] w-full overflow-hidden border-b-2 border-foreground bg-muted">
-          <img
-            src={data.image.url}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover"
-            onError={(e) => {
-              (e.currentTarget.parentElement as HTMLElement).style.display = "none";
-            }}
-          />
-        </div>
-      )}
+      {data.image?.url && <LinkPreviewImage src={data.image.url} />}
       <div className="space-y-1 p-3">
         {data.publisher && (
           <div className="font-mono text-[10px] uppercase tracking-widest text-foreground/70">
