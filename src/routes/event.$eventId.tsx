@@ -407,7 +407,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   />
                 </div>
                 {event.link && (
-                  <div>
+                  <div className="space-y-3">
                     <a
                       href={event.link}
                       target="_blank"
@@ -417,6 +417,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                       <ExternalLink className="h-4 w-4 shrink-0" />
                       Website
                     </a>
+                    <LinkPreviewCard url={event.link} />
                   </div>
                 )}
                 {event.description && (
