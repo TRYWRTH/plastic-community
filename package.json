@@ -50,6 +50,7 @@
     "@tanstack/router-plugin": "^1.167.28",
     "@tanstack/zod-adapter": "^1.167.0",
     "@tiptap/extension-link": "^3.23.6",
+    "@tiptap/extension-placeholder": "^3.23.6",
     "@tiptap/pm": "^3.23.6",
     "@tiptap/react": "^3.23.6",
     "@tiptap/starter-kit": "^3.23.6",
