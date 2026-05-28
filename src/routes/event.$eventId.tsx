@@ -383,9 +383,32 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
               <div className="space-y-4 pt-4 sm:space-y-5 sm:p-8">
                 <div className="flex flex-wrap items-center gap-2">
                   <SaveButtons eventId={event.id} />
-
                 </div>
-                <EventInterestPanel counts={counts} goingInitials={goingInitials} />
+                {(() => {
+                  const going = counts?.going_count ?? 0;
+                  const interested = counts?.interested_count ?? 0;
+                  const names = goingInitials?.names ?? [];
+                  if (going === 0 && interested === 0) return null;
+                  const shown = names.slice(0, 5);
+                  return (
+                    <div className="flex items-center gap-1.5">
+                      {shown.map((name, i) => (
+                        <span
+                          key={`${name}-${i}`}
+                          aria-label={name}
+                          className="grid h-6 w-6 place-items-center rounded-full border-2 border-foreground bg-foreground font-mono text-[10px] font-bold uppercase leading-none text-[oklch(0.78_0.18_145)]"
+                        >
+                          {(name?.trim()?.[0] ?? "?").toUpperCase()}
+                        </span>
+                      ))}
+                      <span className="font-mono text-[11px] uppercase tracking-widest text-foreground/60">
+                        {going > 0 && `${going} going`}
+                        {going > 0 && interested > 0 && " \u00B7 "}
+                        {interested > 0 && `${interested} interested`}
+                      </span>
+                    </div>
+                  );
+                })()}
 
                 {event.event_date && (
                   <div>
