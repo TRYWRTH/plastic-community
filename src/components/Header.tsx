@@ -17,6 +17,9 @@ import {
 import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 
 export function Header() {
+  const { isAuthenticated, user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [signInOpen, setSignInOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
@@ -28,9 +31,7 @@ export function Header() {
     return () => window.removeEventListener("whisperring:session-expired", handler);
   }, []);
 
-  const [signInOpen, setSignInOpen] = useState(false);
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  
+
 
   const signOut = async () => {
     await supabase.auth.signOut();
