@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { Header } from "@/components/Header";
 import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
+import { DescriptionEditor } from "@/components/DescriptionEditor";
 import { InsertLinkControl } from "@/components/InsertLinkControl";
 import { QrScanButton } from "@/components/QrScanButton";
 import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
