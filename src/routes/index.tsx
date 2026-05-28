@@ -403,22 +403,22 @@ function Home() {
             aria-label="List view"
             aria-pressed={viewMode === "list"}
             onClick={() => setViewMode("list")}
-            className={`grid h-7 w-7 place-items-center ${
+            className={`grid h-8 w-8 place-items-center ${
               viewMode === "list" ? "text-primary" : "text-foreground/40 hover:text-foreground"
             }`}
           >
-            <List className="h-4 w-4" />
+            <List className="h-5 w-5" />
           </button>
           <button
             type="button"
             aria-label="Map view"
             aria-pressed={viewMode === "map"}
             onClick={() => setViewMode("map")}
-            className={`grid h-7 w-7 place-items-center ${
+            className={`grid h-8 w-8 place-items-center ${
               viewMode === "map" ? "text-primary" : "text-foreground/40 hover:text-foreground"
             }`}
           >
-            <MapIcon className="h-4 w-4" />
+            <MapIcon className="h-5 w-5" />
           </button>
         </div>
       </div>
