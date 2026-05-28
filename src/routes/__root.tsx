@@ -160,6 +160,53 @@ function RootComponent() {
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
 
+  // Global handler for invalid/expired refresh tokens. Supabase surfaces this
+  // as an AuthApiError with status 400; without intervention the user is
+  // stuck in a broken signed-in state. Sign them out and prompt re-login.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let handling = false;
+    const isRefreshTokenError = (err: unknown): boolean => {
+      if (!err) return false;
+      const msg =
+        (typeof err === "string" && err) ||
+        (err as { message?: string })?.message ||
+        "";
+      const code = (err as { code?: string })?.code || "";
+      return (
+        /invalid refresh token|refresh token not found|refresh_token_not_found/i.test(
+          msg,
+        ) || code === "refresh_token_not_found"
+      );
+    };
+
+    const handle = async (err: unknown) => {
+      if (handling || !isRefreshTokenError(err)) return;
+      handling = true;
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        /* ignore */
+      }
+      queryClient.clear();
+      router.invalidate();
+      window.dispatchEvent(new CustomEvent("whisperring:session-expired"));
+      handling = false;
+    };
+
+    const onRejection = (e: PromiseRejectionEvent) => void handle(e.reason);
+    const onError = (e: ErrorEvent) => void handle(e.error ?? e.message);
+
+    window.addEventListener("unhandledrejection", onRejection);
+    window.addEventListener("error", onError);
+    return () => {
+      window.removeEventListener("unhandledrejection", onRejection);
+      window.removeEventListener("error", onError);
+    };
+  }, [router, queryClient]);
+
+
   useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
 
