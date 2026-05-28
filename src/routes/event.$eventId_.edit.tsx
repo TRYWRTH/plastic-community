@@ -83,7 +83,7 @@ function EditEvent() {
     );
   }
 
-  if (!user || user.id !== event.created_by) {
+if (!user || (user.id !== event.created_by && user.id !== import.meta.env.VITE_ADMIN_USER_ID)) {
     return (
       <div className="min-h-screen">
         <Header />
