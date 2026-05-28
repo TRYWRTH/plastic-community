@@ -34,7 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const DATE_FILTERS = ["all", "today", "tomorrow", "week", "upcoming", "past"] as const;
+const DATE_FILTERS = ["all", "today", "tomorrow", "week", "next_week", "upcoming", "past"] as const;
 type DateFilter = (typeof DATE_FILTERS)[number];
 
 const NEIGHBORHOOD_VALUES = NEIGHBORHOODS.map((n) => n.value) as [Neighborhood, ...Neighborhood[]];
