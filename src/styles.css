@@ -98,6 +98,32 @@
   }
 }
 
+@layer components {
+  .tiptap-editor p {
+    margin: 0;
+  }
+  .tiptap-editor p + p {
+    margin-top: 0.5rem;
+  }
+  .tiptap-editor a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+  }
+  .tiptap-editor strong {
+    font-weight: 700;
+  }
+  .tiptap-editor em {
+    font-style: italic;
+  }
+  .tiptap-editor p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+    height: 0;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
