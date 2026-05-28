@@ -413,3 +413,23 @@ function Field({
   );
 }
 
+function DescriptionField({ defaultValue }: { defaultValue: string }) {
+  const [value, setValue] = useState(defaultValue);
+  return (
+    <>
+      <Textarea
+        name="description"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        rows={6}
+        maxLength={1500}
+        className="min-h-0 py-1.5 text-sm sm:text-base"
+      />
+      <p className="text-right font-mono text-[11px] text-muted-foreground sm:text-xs">
+        {value.length}/1500
+      </p>
+    </>
+  );
+}
+
+
