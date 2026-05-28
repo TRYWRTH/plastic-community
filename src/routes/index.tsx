@@ -110,12 +110,14 @@ function Home() {
     return () => window.removeEventListener("keydown", onKey);
   }, [mobileSearchOpen]);
 
+  const navOpts = viewMode === "map" ? { replace: true, resetScroll: false } : { replace: true };
   const setDateFilter = (v: DateFilter) =>
-    navigate({ search: cleanSearch({ ...search, date: v }), replace: true });
+    navigate({ search: cleanSearch({ ...search, date: v }), ...navOpts });
   const setNeighborhood = (v: Neighborhood | "all") =>
-    navigate({ search: cleanSearch({ ...search, neighborhood: v }), replace: true });
+    navigate({ search: cleanSearch({ ...search, neighborhood: v }), ...navOpts });
   const setEventType = (v: EventType | "all") =>
-    navigate({ search: cleanSearch({ ...search, type: v }), replace: true });
+    navigate({ search: cleanSearch({ ...search, type: v }), ...navOpts });
+
 
 
 
