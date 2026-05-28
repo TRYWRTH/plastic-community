@@ -145,13 +145,7 @@ export function DescriptionEditor({
         <ToolbarBtn
           label="Link"
           active={editor.isActive("link")}
-          onClick={() => {
-            if (editor.isActive("link")) {
-              editor.chain().focus().extendMarkRange("link").unsetLink().run();
-              return;
-            }
-            openLink();
-          }}
+          onClick={openLink}
         >
           <Link2 className="h-3.5 w-3.5" />
         </ToolbarBtn>
@@ -159,7 +153,56 @@ export function DescriptionEditor({
 
       {linkOpen && (
         <div className="mb-1 space-y-2 rounded-md border border-border/60 bg-muted/30 p-2">
-          {!hadSelectionRef.current && (
+          {!hadSelectionRef.current && !editor.isActive("link") && (
+            <Input
+              value={linkText}
+              onChange={(e) => setLinkText(e.target.value)}
+              placeholder="Link text (e.g. Tickets)"
+              maxLength={120}
+              autoFocus
+            />
+          )}
+          <div className="flex flex-wrap gap-2">
+            <Input
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              placeholder="https://…"
+              type="url"
+              inputMode="url"
+              maxLength={500}
+              autoFocus={hadSelectionRef.current || editor.isActive("link")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  insertLink();
+                } else if (e.key === "Escape") {
+                  e.preventDefault();
+                  cancelLink();
+                }
+              }}
+            />
+            <Button type="button" size="sm" variant="ghost" onClick={cancelLink}>
+              Cancel
+            </Button>
+            {editor.isActive("link") && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  editor.chain().focus().extendMarkRange("link").unsetLink().run();
+                  cancelLink();
+                }}
+              >
+                Remove
+              </Button>
+            )}
+            <Button type="button" size="sm" onClick={insertLink} disabled={!linkUrl.trim()}>
+              {editor.isActive("link") ? "Save" : "Add"}
+            </Button>
+          </div>
+        </div>
+      )}
             <Input
               value={linkText}
               onChange={(e) => setLinkText(e.target.value)}
