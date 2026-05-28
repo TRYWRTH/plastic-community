@@ -128,6 +128,7 @@ function EditEventForm({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
   const [place, setPlace] = useState(event.place);
   
