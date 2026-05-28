@@ -317,7 +317,7 @@ function Home() {
       )}
 
       {/* Filters */}
-      <section className="sticky top-14 z-30 border-b-2 border-foreground bg-background">
+      <section className="sticky top-0 z-30 border-b-2 border-foreground bg-background">
         <div className="mx-auto max-w-5xl space-y-2 px-4 py-3">
           {/* Desktop-only search bar */}
           <div className="relative hidden w-full sm:block">
