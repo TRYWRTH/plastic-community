@@ -103,6 +103,7 @@ function AddEvent() {
       .insert({
         ...basePayload,
         event_date: parsedDate.toISOString(),
+        end_date: multiDay && endDay ? endDay : null,
         repeats,
       })
       .select("id")
