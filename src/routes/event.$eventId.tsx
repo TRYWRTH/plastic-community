@@ -600,6 +600,35 @@ function LinkPreviewCard({ url }: { url: string }) {
   );
 }
 
+function LinkPreviewImage({ src }: { src: string }) {
+  const [orientation, setOrientation] = useState<"landscape" | "portrait" | null>(null);
+  const [hidden, setHidden] = useState(false);
+  if (hidden) return null;
+  const isPortrait = orientation === "portrait";
+  return (
+    <div
+      className={`relative flex w-full items-center justify-center overflow-hidden border-b-2 border-foreground bg-muted ${
+        isPortrait ? "max-h-[300px]" : "h-[200px]"
+      }`}
+    >
+      <img
+        src={src}
+        alt=""
+        loading="lazy"
+        onLoad={(e) => {
+          const img = e.currentTarget;
+          setOrientation(img.naturalWidth >= img.naturalHeight ? "landscape" : "portrait");
+        }}
+        onError={() => setHidden(true)}
+        className={
+          isPortrait
+            ? "max-h-[300px] w-auto object-contain"
+            : "h-full w-full object-cover"
+        }
+      />
+    </div>
+  );
+
 const LINK_CLASS = "text-neighborhood underline underline-offset-2 hover:opacity-80";
 
 function ExtLink({ href, children }: { href: string; children: React.ReactNode }) {
