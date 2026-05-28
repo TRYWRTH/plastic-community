@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Plus, LogOut, Bookmark, UserRound, Bell, HelpCircle, LogIn } from "lucide-react";
+import { Plus, LogOut, Bookmark, UserRound, Bell, HelpCircle, LogIn, Search } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
