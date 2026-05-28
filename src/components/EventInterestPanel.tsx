@@ -43,16 +43,7 @@ export function EventInterestPanel({
   const initials = goingInitials?.initials ?? [];
 
   if (going === 0 && interested === 0) {
-    return (
-      <div
-        className={cn(
-          "border-2 border-dashed border-foreground/40 bg-background px-4 py-3 font-mono text-[11px] uppercase tracking-widest text-foreground/60",
-          className,
-        )}
-      >
-        Nobody yet — be the first!
-      </div>
-    );
+    return null;
   }
 
   return (
