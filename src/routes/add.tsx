@@ -13,6 +13,7 @@ import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendNewEventNotification } from "@/lib/notifications";
+import { cleanDescription } from "@/lib/clean-description";
 import {
   EVENT_TYPES,
   
@@ -113,7 +114,7 @@ function AddEvent() {
       neighborhood,
       event_type: eventType,
       link: link.trim() || null,
-      description: description.trim() || null,
+      description: cleanDescription(description) || null,
       
       created_by: user.id,
       lat: finalCoords.lat,
