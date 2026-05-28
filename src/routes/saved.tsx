@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { format, isBefore, startOfDay } from "date-fns";
-import { MapPin, Calendar, Check, Star } from "lucide-react";
+import { MapPin, Calendar, Check, Star, X } from "lucide-react";
 
 import { Header } from "@/components/Header";
 import { MagicLinkDialog } from "@/components/MagicLinkDialog";
