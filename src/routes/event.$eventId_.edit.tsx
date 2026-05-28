@@ -196,6 +196,7 @@ function EditEventForm({
     neighborhood: nextNeighborhood,
     event_type: nextEventType,
     event_date: parsedDate.toISOString(),
+    end_date: multiDay && endDay ? endDay : null,
     link: nextLink || null,
     description: nextDescription || null,
     lat: finalCoords.lat,
