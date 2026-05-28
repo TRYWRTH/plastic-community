@@ -110,7 +110,7 @@ function Home() {
     return () => window.removeEventListener("keydown", onKey);
   }, [mobileSearchOpen]);
 
-  const navOpts = viewMode === "map" ? { replace: true, resetScroll: false } : { replace: true };
+  const navOpts = { replace: true, resetScroll: false };
   const setDateFilter = (v: DateFilter) =>
     navigate({ search: cleanSearch({ ...search, date: v }), ...navOpts });
   const setNeighborhood = (v: Neighborhood | "all") =>
