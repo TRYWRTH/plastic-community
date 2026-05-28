@@ -502,23 +502,13 @@ function DescriptionField({ defaultValue }: { defaultValue: string }) {
   const [value, setValue] = useState(defaultValue);
   return (
     <>
-      <Textarea
+      <DescriptionEditor
         name="description"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
-        rows={6}
+        onChange={setValue}
         maxLength={1500}
-        className="min-h-0 py-1.5 text-sm sm:text-base"
       />
-      <div className="flex items-center justify-between gap-2">
-        <InsertLinkControl
-          onInsert={(md) =>
-            setValue((prev) => {
-              const sep = prev && !prev.endsWith(" ") && !prev.endsWith("\n") ? " " : "";
-              return (prev + sep + md).slice(0, 1500);
-            })
-          }
-        />
+      <div className="flex items-center justify-end gap-2">
         <p className="font-mono text-[11px] text-muted-foreground sm:text-xs">
           {value.length}/1500
         </p>
