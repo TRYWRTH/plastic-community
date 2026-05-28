@@ -22,7 +22,7 @@ import { EventInterestPanel } from "@/components/EventInterestPanel";
 
 import { ShareButton } from "@/components/ShareButton";
 import { useEventSaveCounts } from "@/lib/use-event-save-counts";
-import { useEventGoingInitials } from "@/lib/use-event-going-initials";
+import { useEventGoingNames } from "@/lib/use-event-going-initials";
 import { supabase } from "@/integrations/supabase/client";
 import { formatEventDateRange } from "@/lib/format-date-range";
 import { useAuth } from "@/lib/use-auth";
