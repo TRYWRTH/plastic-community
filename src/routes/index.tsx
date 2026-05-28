@@ -91,6 +91,24 @@ function Home() {
   const navigate = useNavigate({ from: "/" });
   const [searchText, setSearchText] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const mobileSearchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const open = () => setMobileSearchOpen(true);
+    window.addEventListener("whisperring:open-search", open);
+    return () => window.removeEventListener("whisperring:open-search", open);
+  }, []);
+
+  useEffect(() => {
+    if (!mobileSearchOpen) return;
+    mobileSearchRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileSearchOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileSearchOpen]);
 
   const setDateFilter = (v: DateFilter) =>
     navigate({ search: cleanSearch({ ...search, date: v }), replace: true });
