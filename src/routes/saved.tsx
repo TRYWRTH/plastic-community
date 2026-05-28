@@ -8,6 +8,8 @@ import { Header } from "@/components/Header";
 import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 
