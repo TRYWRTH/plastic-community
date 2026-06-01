@@ -25,18 +25,27 @@ export function formatEventDateRange(
       : format(start, "EEE, MMM d");
   }
 
-  // end is "yyyy-MM-dd"
-  const [ey, em, ed] = endDateOnly.split("-").map(Number);
-  const end = new Date(ey, em - 1, ed);
+  // end_date may be "yyyy-MM-dd" or "yyyy-MM-ddTHH:mm"
+  const endDate = parseEndDateEod(endDateOnly);
+  const endTimeStr = endDateOnly.includes("T") ? ` · ${format(endDate, "HH:mm")}` : "";
 
-  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-    return `${format(start, "d")}–${format(end, "d MMM").toUpperCase()}`;
+  if (start.getMonth() === endDate.getMonth() && start.getFullYear() === endDate.getFullYear()) {
+    return `${format(start, "d")}–${format(endDate, "d MMM").toUpperCase()}${endTimeStr}`;
   }
-  return `${format(start, "d MMM").toUpperCase()}–${format(end, "d MMM").toUpperCase()}`;
+  return `${format(start, "d MMM").toUpperCase()}–${format(endDate, "d MMM").toUpperCase()}${endTimeStr}`;
 }
 
-/** Parse "yyyy-MM-dd" end_date into a local Date at end-of-day (23:59:59.999). */
-export function parseEndDateEod(endDateOnly: string): Date {
-  const [y, m, d] = endDateOnly.split("-").map(Number);
+/**
+ * Parse end_date value into a local Date.
+ * Accepts "yyyy-MM-dd" (end-of-day) or "yyyy-MM-ddTHH:mm" (exact time).
+ */
+export function parseEndDateEod(endDate: string): Date {
+  if (endDate.includes("T")) {
+    const [datePart, timePart] = endDate.split("T");
+    const [y, m, d] = datePart.split("-").map(Number);
+    const [hh, mm] = timePart.split(":").map(Number);
+    return new Date(y, m - 1, d, hh, mm, 0, 0);
+  }
+  const [y, m, d] = endDate.split("-").map(Number);
   return new Date(y, m - 1, d, 23, 59, 59, 999);
 }

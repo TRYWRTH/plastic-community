@@ -56,6 +56,7 @@ function AddEvent() {
   const [eventTime, setEventTime] = useState("20:00");
   const [multiDay, setMultiDay] = useState(false);
   const [endDay, setEndDay] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [link, setLink] = useState("");
   const [description, setDescription] = useState("");
   const [repeats, setRepeats] = useState<RepeatOption>("none");
@@ -126,7 +127,7 @@ function AddEvent() {
       .insert({
         ...basePayload,
         event_date: parsedDate.toISOString(),
-        end_date: multiDay && endDay ? endDay : null,
+        end_date: multiDay && endDay ? (endTime ? `${endDay}T${endTime}` : endDay) : null,
         repeats,
       })
       .select("id")
@@ -241,48 +242,26 @@ function AddEvent() {
           </div>
 
           <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-              <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
-                <input
-                  type="checkbox"
-                  checked={multiDay}
-                  onChange={(e) => {
-                    setMultiDay(e.target.checked);
-                    if (!e.target.checked) setEndDay("");
-                    else if (!endDay) setEndDay(eventDay);
-                  }}
-                  className="h-4 w-4 accent-primary"
-                />
-                Add end date
-              </label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground sm:text-sm">Repeats:</span>
-                <Select value={repeats} onValueChange={(v) => setRepeats(v as RepeatOption)}>
-                  <SelectTrigger className="h-7 w-32 rounded-none border border-foreground/30 bg-background px-2 font-mono text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {REPEAT_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value} className="font-mono text-xs">
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            {repeats !== "none" && (
-              <p className="text-[11px] text-muted-foreground sm:text-xs">
-                Future instances auto-created up to 3 months ahead.
-              </p>
-            )}
+            <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
+              <input
+                type="checkbox"
+                checked={multiDay}
+                onChange={(e) => {
+                  setMultiDay(e.target.checked);
+                  if (!e.target.checked) { setEndDay(""); setEndTime(""); }
+                  else if (!endDay) setEndDay(eventDay);
+                }}
+                className="h-4 w-4 accent-primary"
+              />
+              Add end date
+            </label>
             <div
               className={`grid overflow-hidden transition-all duration-300 ease-out ${
-                multiDay ? "mt-2 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                multiDay ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
               }`}
             >
-              <div className="min-h-0">
-                <div className="grid grid-cols-1 sm:grid-cols-[3fr_2fr]">
+              <div className="min-h-0 pt-1">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr]">
                   <Field label="End date" required={multiDay}>
                     <Input
                       type="date"
@@ -296,10 +275,32 @@ function AddEvent() {
                       </p>
                     )}
                   </Field>
+                  <Field label="End time (optional)">
+                    <Input
+                      type="time"
+                      value={endTime}
+                      onChange={(ev) => setEndTime(ev.target.value)}
+                    />
+                  </Field>
                 </div>
               </div>
             </div>
           </div>
+
+          <Field label="Repeats" hint={repeats !== "none" ? "Future instances auto-created up to 3 months ahead." : undefined}>
+            <Select value={repeats} onValueChange={(v) => setRepeats(v as RepeatOption)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {REPEAT_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
 
           <Field label="Place" required>
             <PlaceAutocompleteInput
