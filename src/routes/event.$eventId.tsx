@@ -185,7 +185,7 @@ function EventDetail() {
   // title + created_by (copies are stored with repeats='none').
   const { data: seriesSiblingCount } = useQuery({
     queryKey: ["events", "series-check", event?.title, event?.created_by, eventId],
-    enabled: !!event?.title && !!event?.created_by && !isRecurring,
+    enabled: !!event?.title && !!event?.created_by && !(event?.repeats && event.repeats !== "none"),
     queryFn: async () => {
       const { count, error } = await supabase
         .from("events")
