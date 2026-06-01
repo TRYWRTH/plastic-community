@@ -222,26 +222,29 @@ function AddEvent() {
             />
           </Field>
 
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr] sm:gap-4">
-            <Field label="Date" required>
-              <Input
-                type="date"
-                value={eventDay}
-                onChange={(e) => setEventDay(e.target.value)}
-                required
-              />
-            </Field>
-            <Field label="Time" required>
-              <Input
-                type="time"
-                value={eventTime}
-                onChange={(e) => setEventTime(e.target.value)}
-                required
-              />
-            </Field>
-          </div>
-
+          {/* Date section — all three rows grouped with even spacing */}
           <div className="space-y-2">
+            {/* Row 1: Date + Time */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr] sm:gap-4">
+              <Field label="Date" required>
+                <Input
+                  type="date"
+                  value={eventDay}
+                  onChange={(e) => setEventDay(e.target.value)}
+                  required
+                />
+              </Field>
+              <Field label="Time" required>
+                <Input
+                  type="time"
+                  value={eventTime}
+                  onChange={(e) => setEventTime(e.target.value)}
+                  required
+                />
+              </Field>
+            </div>
+
+            {/* Row 2: Add end date checkbox */}
             <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
               <input
                 type="checkbox"
@@ -255,13 +258,15 @@ function AddEvent() {
               />
               Add end date
             </label>
+
+            {/* End date/time fields — animated expand */}
             <div
               className={`grid overflow-hidden transition-all duration-300 ease-out ${
                 multiDay ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
               }`}
             >
-              <div className="min-h-0 pt-1">
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr]">
+              <div className="min-h-0">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr] sm:gap-4">
                   <Field label="End date" required={multiDay}>
                     <Input
                       type="date"
@@ -285,22 +290,29 @@ function AddEvent() {
                 </div>
               </div>
             </div>
-          </div>
 
-          <Field label="Repeats" hint={repeats !== "none" ? "Future instances auto-created up to 3 months ahead." : undefined}>
-            <Select value={repeats} onValueChange={(v) => setRepeats(v as RepeatOption)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {REPEAT_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
+            {/* Row 3: Repeats */}
+            <div className="space-y-1">
+              <label className="text-xs font-medium sm:text-sm">Repeats</label>
+              <Select value={repeats} onValueChange={(v) => setRepeats(v as RepeatOption)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {REPEAT_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {repeats !== "none" && (
+                <p className="text-[11px] text-muted-foreground">
+                  Future instances auto-created up to 3 months ahead.
+                </p>
+              )}
+            </div>
+          </div>
 
           <Field label="Place" required>
             <PlaceAutocompleteInput
