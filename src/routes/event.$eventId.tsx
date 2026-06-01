@@ -606,6 +606,27 @@ function stripNeighborhoodSuffix(place: string, neighborhood: string) {
   return cleaned.endsWith(suffix) ? cleaned.slice(0, -suffix.length) : cleaned;
 }
 
+function LinkFallback({ url, domain }: { url: string; domain: string }) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer noopener"
+      className="group flex w-full items-center gap-3 border-2 border-foreground bg-card px-4 py-3 transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
+    >
+      <ExternalLink className="h-4 w-4 shrink-0 text-foreground/60" />
+      <div className="min-w-0">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-foreground/60">
+          {domain}
+        </div>
+        <div className="truncate font-mono text-xs text-foreground group-hover:text-neighborhood">
+          {url}
+        </div>
+      </div>
+    </a>
+  );
+}
+
 function LinkPreviewCard({ url }: { url: string }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["link-preview", url],
@@ -645,9 +666,11 @@ function LinkPreviewCard({ url }: { url: string }) {
     );
   }
 
-  if (isError || !data) return null;
+  const domain = (() => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return url; } })();
+
+  if (isError || !data) return <LinkFallback url={url} domain={domain} />;
   const title = data.title || data.publisher;
-  if (!title && !data.image?.url) return null;
+  if (!title && !data.image?.url) return <LinkFallback url={url} domain={domain} />;
 
   return (
     <a
