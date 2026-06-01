@@ -453,7 +453,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                     }
                   />
                 </div>
-                {event.link && (
+                {event.link && !isImageUrl(event.link) && (
                   <a
                     href={event.link}
                     target="_blank"
@@ -464,12 +464,20 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                     Website
                   </a>
                 )}
+                {event.link && isImageUrl(event.link) && (
+                  <img
+                    src={event.link}
+                    alt={event.title}
+                    className="w-full object-cover"
+                    loading="lazy"
+                  />
+                )}
                 {event.description && (
                   <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
                     {renderDescription(event.description)}
                   </div>
                 )}
-                {event.link && <LinkPreviewCard url={event.link} />}
+                {event.link && !isImageUrl(event.link) && <LinkPreviewCard url={event.link} />}
               </div>
             </article>
 
@@ -738,6 +746,15 @@ function renderTextSegment(text: string, keyPrefix: string): React.ReactNode[] {
   return out;
 }
 
+function isImageUrl(url: string): boolean {
+  try {
+    const path = new URL(url).pathname.toLowerCase();
+    return /\.(jpg|jpeg|png|gif|webp)$/.test(path);
+  } catch {
+    return /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+  }
+}
+
 function renderDescription(text: string): React.ReactNode {
   // Convert @handles (at start or after whitespace) to markdown links to Instagram,
   // so react-markdown renders them as clickable links alongside [text](url) and bare URLs.
@@ -753,6 +770,14 @@ function renderDescription(text: string): React.ReactNode {
           <ExtLink href={href ?? "#"}>{children}</ExtLink>
         ),
         p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+        img: ({ src, alt }) => (
+          <img
+            src={src ?? ""}
+            alt={alt ?? ""}
+            className="my-2 w-full rounded-none object-cover"
+            loading="lazy"
+          />
+        ),
       }}
     >
       {withHandles}
