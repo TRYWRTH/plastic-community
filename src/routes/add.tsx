@@ -240,20 +240,42 @@ function AddEvent() {
             </Field>
           </div>
 
-          <div>
-            <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
-              <input
-                type="checkbox"
-                checked={multiDay}
-                onChange={(e) => {
-                  setMultiDay(e.target.checked);
-                  if (!e.target.checked) setEndDay("");
-                  else if (!endDay) setEndDay(eventDay);
-                }}
-                className="h-4 w-4 accent-primary"
-              />
-              Multi-day event
-            </label>
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
+                <input
+                  type="checkbox"
+                  checked={multiDay}
+                  onChange={(e) => {
+                    setMultiDay(e.target.checked);
+                    if (!e.target.checked) setEndDay("");
+                    else if (!endDay) setEndDay(eventDay);
+                  }}
+                  className="h-4 w-4 accent-primary"
+                />
+                Add end date
+              </label>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground sm:text-sm">Repeats:</span>
+                <Select value={repeats} onValueChange={(v) => setRepeats(v as RepeatOption)}>
+                  <SelectTrigger className="h-7 w-32 rounded-none border border-foreground/30 bg-background px-2 font-mono text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {REPEAT_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value} className="font-mono text-xs">
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {repeats !== "none" && (
+              <p className="text-[11px] text-muted-foreground sm:text-xs">
+                Future instances auto-created up to 3 months ahead.
+              </p>
+            )}
             <div
               className={`grid overflow-hidden transition-all duration-300 ease-out ${
                 multiDay ? "mt-2 grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
@@ -311,21 +333,6 @@ function AddEvent() {
                   </SelectItem>
                 ))}
 
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <Field label="Repeats" hint={repeats !== "none" ? "Future instances auto-created up to 3 months ahead." : undefined}>
-            <Select value={repeats} onValueChange={(v) => setRepeats(v as RepeatOption)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {REPEAT_OPTIONS.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>
-                    {o.label}
-                  </SelectItem>
-                ))}
               </SelectContent>
             </Select>
           </Field>

@@ -49,7 +49,7 @@ export async function createRecurringInstances(
   const rows = dates.map((d) => ({
     ...base,
     event_date: d.toISOString(),
-    repeats: "none" as const,
+    repeats,
   }));
 
   const { error } = await supabase.from("events").insert(rows);
