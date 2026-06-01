@@ -153,7 +153,22 @@ function RootComponent() {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "TOKEN_REFRESHED") {
+        queryClient.invalidateQueries();
+        return;
+      }
+      if (event === "SIGNED_OUT") {
+        try {
+          localStorage.clear();
+        } catch {
+          /* ignore */
+        }
+        queryClient.clear();
+        router.invalidate();
+        window.dispatchEvent(new CustomEvent("whisperring:session-expired"));
+        return;
+      }
       router.invalidate();
       queryClient.invalidateQueries();
     });
