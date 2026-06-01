@@ -88,13 +88,11 @@ function Home() {
     const now = new Date();
     const cutoffPast = addDays(startOfDay(now), -30);
 
-    // Collapse recurring event series: for events with repeats != 'none' OR
-    // copies generated from a recurring series (same title + created_by with
-    // future dates), only keep the nearest upcoming instance per group.
     const todayStart = startOfDay(now);
+    const upcomingCutoff = addDays(todayStart, 14);
     const hiddenIds = new Set<string>();
 
-    // Group future events by title+created_by
+    // Group future events by title+created_by to detect recurring series copies.
     const futureByKey = new Map<string, typeof events>();
     for (const e of events) {
       if (!e.event_date) continue;
@@ -110,8 +108,16 @@ function Home() {
       const sorted = [...arr].sort(
         (a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime(),
       );
-      const [, ...rest] = sorted;
-      for (const e of rest) hiddenIds.add(e.id);
+      if (dateFilter === "upcoming") {
+        // Show every occurrence within the 14-day window; hide anything beyond it.
+        for (const e of sorted) {
+          if (isAfter(new Date(e.event_date), upcomingCutoff)) hiddenIds.add(e.id);
+        }
+      } else {
+        // All other views: show only the nearest upcoming occurrence.
+        const [, ...rest] = sorted;
+        for (const e of rest) hiddenIds.add(e.id);
+      }
     }
 
     const result = events.filter((e) => {
@@ -165,8 +171,8 @@ function Home() {
         }
         // upcoming: include if event hasn't ended yet (covers multi-day still running)
         if (dateFilter === "upcoming" && rangeEnd && isBefore(rangeEnd, startOfDay(now))) return false;
-        // upcoming: cap recurring events to 14 days ahead so they don't flood the feed
-        if (dateFilter === "upcoming" && e.repeats && e.repeats !== "none" && d && isAfter(d, addDays(now, 14))) return false;
+        // upcoming: cap single-occurrence events to 14 days (series copies already handled by dedup above)
+        if (dateFilter === "upcoming" && d && isAfter(d, upcomingCutoff)) return false;
       }
 
       if (neighborhood !== "all" && e.neighborhood !== neighborhood) return false;
@@ -550,8 +556,6 @@ function stripNeighborhoodSuffix(place: string, neighborhood: string) {
 function FilterSelect({
   value,
   onChange,
-  shortLabel,
-  defaultValue,
   options,
 }: {
   value: string;
@@ -560,13 +564,10 @@ function FilterSelect({
   defaultValue: string;
   options: { value: string; label: string }[];
 }) {
-  const selected = options.find((o) => o.value === value);
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-11 w-full rounded-none border-2 border-foreground bg-background px-2 font-mono text-xs uppercase tracking-wider [&>span]:block [&>span]:truncate sm:h-9 sm:w-auto sm:min-w-[8rem] sm:max-w-[14rem] sm:px-3">
-        <span className="block truncate">
-          {selected?.label ?? shortLabel}
-        </span>
+      <SelectTrigger className="h-11 w-full rounded-none border-2 border-foreground bg-background px-2 font-mono text-xs uppercase tracking-wider sm:h-9 sm:w-auto sm:min-w-[8rem] sm:max-w-[14rem] sm:px-3">
+        <SelectValue />
       </SelectTrigger>
       <SelectContent className="rounded-none border-2 border-foreground">
         {options.map((o) => (
