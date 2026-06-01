@@ -59,6 +59,7 @@ export function DescriptionEditor({
       Link.configure({
         openOnClick: false,
         autolink: true,
+        linkOnPaste: true,
         HTMLAttributes: {
           rel: "noopener noreferrer",
           target: "_blank",
