@@ -57,6 +57,12 @@ function Home() {
 
   const isMobile = useIsMobile();
 
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   const [dateFilter, setDateFilter] = useState<DateFilter>("upcoming");
   const [neighborhood, setNeighborhood] = useState<Neighborhood | "all">("all");
   const [eventType, setEventType] = useState<EventType | "all">("all");
@@ -85,7 +91,6 @@ function Home() {
 
 
   const filtered = useMemo(() => {
-    const now = new Date();
     const cutoffPast = addDays(startOfDay(now), -30);
 
     const todayStart = startOfDay(now);
@@ -169,8 +174,10 @@ function Home() {
           if (isAfter(d, endOfNextWeek)) return false;
           if (isBefore(rangeEnd, startOfNextWeek)) return false;
         }
-        // upcoming: include if event hasn't ended yet (covers multi-day still running)
-        if (dateFilter === "upcoming" && rangeEnd && isBefore(rangeEnd, startOfDay(now))) return false;
+        // upcoming: exclude events whose exact start time has already passed
+        if (dateFilter === "upcoming" && d && isBefore(d, now)) return false;
+        // upcoming: include multi-day events still running (end hasn't passed)
+        if (dateFilter === "upcoming" && rangeEnd && !d && isBefore(rangeEnd, now)) return false;
         // upcoming: cap single-occurrence events to 14 days (series copies already handled by dedup above)
         if (dateFilter === "upcoming" && d && isAfter(d, upcomingCutoff)) return false;
       }
@@ -203,7 +210,7 @@ function Home() {
       if (bBad) return -1;
       return ta - tb;
     });
-  }, [events, dateFilter, neighborhood, eventType, searchText]);
+  }, [events, dateFilter, neighborhood, eventType, searchText, now]);
 
   const recurringByKey = useMemo(() => {
     const todayStart = startOfDay(new Date());
@@ -348,6 +355,21 @@ function Home() {
                 ...EVENT_TYPES.map((t) => ({ value: t.value, label: t.label })),
               ]}
             />
+
+            {(dateFilter !== "upcoming" || neighborhood !== "all" || eventType !== "all") && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDateFilter("upcoming");
+                  setNeighborhood("all");
+                  setEventType("all");
+                }}
+                className="col-span-3 flex h-9 items-center gap-1 px-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50 hover:text-foreground sm:col-span-1 sm:h-auto"
+              >
+                <X className="h-3 w-3" />
+                Reset
+              </button>
+            )}
 
             {/* Desktop view toggle */}
             <div className="hidden items-stretch border-2 border-foreground sm:flex">

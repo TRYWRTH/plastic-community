@@ -180,6 +180,24 @@ function EventDetail() {
     },
   });
 
+  // True if this event belongs to a recurring series — either it is the root
+  // (repeats != 'none') or it is a copy that has siblings sharing the same
+  // title + created_by (copies are stored with repeats='none').
+  const { data: seriesSiblingCount } = useQuery({
+    queryKey: ["events", "series-check", event?.title, event?.created_by, eventId],
+    enabled: !!event?.title && !!event?.created_by && !isRecurring,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("events")
+        .select("id", { count: "exact", head: true })
+        .eq("title", event!.title)
+        .eq("created_by", event!.created_by)
+        .neq("id", eventId);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
 
 
 
@@ -211,7 +229,9 @@ function EventDetail() {
     navigate({ to: "/" });
   };
 
-  const isRecurring = !!event && event.repeats && event.repeats !== "none";
+  const isRecurring =
+    !!event &&
+    ((event.repeats && event.repeats !== "none") || (seriesSiblingCount ?? 0) > 0);
 
 const isCreator = !!event && (
   user?.id === event.created_by || 
