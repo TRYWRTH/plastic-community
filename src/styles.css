@@ -1,0 +1,226 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-glow: var(--primary);
+  --color-link: var(--link);
+  --color-neighborhood: var(--neighborhood);
+
+  --font-display: "Archivo Black", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-brand: "Archivo Black", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root {
+  --radius: 0px;
+
+  /* Brutalist zine — concrete + washed red */
+  --background: oklch(0.95 0.005 80);   /* #F2F0EB-ish concrete */
+  --foreground: oklch(0.18 0 0);        /* near-black */
+
+  --card: oklch(0.97 0.004 80);
+  --card-foreground: oklch(0.18 0 0);
+
+  --popover: oklch(0.97 0.004 80);
+  --popover-foreground: oklch(0.18 0 0);
+
+  --primary: oklch(0.89 0.30 134);      /* fluorescent green #39FF14 */
+  --primary-foreground: oklch(0.18 0 0); /* black label on green */
+
+  --secondary: oklch(0.90 0.005 80);
+  --secondary-foreground: oklch(0.18 0 0);
+
+  --muted: oklch(0.90 0.005 80);
+  --muted-foreground: oklch(0.40 0.005 80);
+
+  --accent: oklch(0.89 0.30 134);
+  --accent-foreground: oklch(0.18 0 0);
+
+  --destructive: oklch(0.35 0.15 27);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  --border: oklch(0.18 0 0);            /* hard black border */
+  --input: oklch(0.99 0 0);
+  --ring: oklch(0.18 0 0);
+
+  --link: oklch(0.35 0.15 134);         /* dark green, readable on concrete */
+  --neighborhood: #00CC00;              /* darker neon green for neighborhood tags */
+
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+}
+
+@layer components {
+  .tiptap-editor p {
+    margin: 0;
+  }
+  .tiptap-editor p + p {
+    margin-top: 0.5rem;
+  }
+  .tiptap-editor a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+  }
+  .tiptap-editor strong {
+    font-weight: 700;
+  }
+  .tiptap-editor em {
+    font-style: italic;
+  }
+  .tiptap-editor p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+    height: 0;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .font-brand {
+    font-family: var(--font-brand);
+  }
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  /* Subtle photocopy noise — pure CSS, no images */
+  .bg-paper {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+      radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    background-size: 3px 3px, 7px 7px;
+    background-position: 0 0, 1px 2px;
+  }
+  
+  /* Hard offset shadow — newspaper/zine stamp */
+  .shadow-stamp {
+    box-shadow: 4px 4px 0 0 var(--foreground);
+  }
+  .shadow-stamp-sm {
+    box-shadow: 3px 3px 0 0 var(--foreground);
+  }
+
+  /* Hide scrollbar for horizontal scrollable lists */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Normalize native date/time inputs on iOS Safari — strip the inner
+   webkit pseudo-element artifacts that create a double-border / extra
+   line, so time inputs match date inputs visually. */
+input[type="time"],
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 0;
+}
+input[type="time"]::-webkit-date-and-time-value,
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.5em;
+  padding: 0;
+  margin: 0;
+}
+input[type="time"]::-webkit-inner-spin-button,
+input[type="time"]::-webkit-clear-button {
+  display: none;
+  -webkit-appearance: none;
+}
+
+
+gmp-place-autocomplete {
+  color-scheme: light;
+  position: relative;
+  display: block;
+  width: 100%;
+  anchor-name: --gmp-place-anchor;
+}
+
+/* New PlaceAutocompleteElement popover — force it to anchor under the input.
+   On browsers without CSS anchor positioning support, the popover defaults
+   to the top of the viewport on mobile, so we pin it manually. */
+[popover].pcc-ag,
+gmp-place-autocomplete [popover],
+.place-autocomplete-element-popover,
+.place-autocomplete-element-popover-container {
+  position: absolute !important;
+  position-anchor: --gmp-place-anchor;
+  top: anchor(bottom) !important;
+  left: anchor(left) !important;
+  width: anchor-size(width) !important;
+  margin: 2px 0 0 0 !important;
+  inset: auto !important;
+  z-index: 9999 !important;
+}
+
+/* Legacy autocomplete (pac-container) fallback */
+.pac-container,
+.pac-container.pac-logo {
+  z-index: 9999 !important;
+  border: 2px solid var(--foreground) !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 0 var(--foreground) !important;
+  font-family: var(--font-sans) !important;
+  margin-top: 2px;
+}
