@@ -229,24 +229,47 @@ function EditEventForm({
   .eq("id", eventId)
   .select("*")
   .maybeSingle();
-    // If repeats changed from none -> something, generate future instances now.
     const initialRepeats = (event.repeats as RepeatOption) ?? "none";
-    if (updated && initialRepeats === "none" && repeats !== "none") {
-      await createRecurringInstances(
-        {
-          title: nextTitle,
-          place: nextPlace,
-          neighborhood: nextNeighborhood,
-          event_type: nextEventType,
-          link: nextLink || null,
-          description: nextDescription || null,
-          created_by: userId,
-          lat: finalCoords.lat,
-          lng: finalCoords.lng,
-        },
-        parsedDate,
-        repeats,
-      );
+
+    if (updated) {
+      // Cascade shared fields to all future sibling instances (same creator + original title).
+      // Each sibling keeps its own event_date; only metadata is synced.
+      const siblingFields: Record<string, unknown> = {
+        title: nextTitle,
+        place: nextPlace,
+        neighborhood: nextNeighborhood,
+        event_type: nextEventType,
+        link: nextLink || null,
+        description: nextDescription || null,
+        lat: finalCoords.lat,
+        lng: finalCoords.lng,
+      };
+      await supabase
+        .from("events")
+        .update(siblingFields)
+        .eq("created_by", userId)
+        .eq("title", event.title)
+        .neq("id", eventId)
+        .gte("event_date", new Date().toISOString());
+
+      // If repeats changed from none -> something, generate future instances now.
+      if (initialRepeats === "none" && repeats !== "none") {
+        await createRecurringInstances(
+          {
+            title: nextTitle,
+            place: nextPlace,
+            neighborhood: nextNeighborhood,
+            event_type: nextEventType,
+            link: nextLink || null,
+            description: nextDescription || null,
+            created_by: userId,
+            lat: finalCoords.lat,
+            lng: finalCoords.lng,
+          },
+          parsedDate,
+          repeats,
+        );
+      }
     }
     setSaving(false);
 

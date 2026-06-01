@@ -107,8 +107,6 @@ function Home() {
     }
     for (const arr of futureByKey.values()) {
       if (arr.length < 2) continue;
-      const hasRecurring = arr.some((e) => e.repeats && e.repeats !== "none");
-      if (!hasRecurring) continue;
       const sorted = [...arr].sort(
         (a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime(),
       );
