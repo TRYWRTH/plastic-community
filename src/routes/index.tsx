@@ -165,6 +165,8 @@ function Home() {
         }
         // upcoming: include if event hasn't ended yet (covers multi-day still running)
         if (dateFilter === "upcoming" && rangeEnd && isBefore(rangeEnd, startOfDay(now))) return false;
+        // upcoming: cap recurring events to 14 days ahead so they don't flood the feed
+        if (dateFilter === "upcoming" && e.repeats && e.repeats !== "none" && d && isAfter(d, addDays(now, 14))) return false;
       }
 
       if (neighborhood !== "all" && e.neighborhood !== neighborhood) return false;
@@ -558,13 +560,12 @@ function FilterSelect({
   defaultValue: string;
   options: { value: string; label: string }[];
 }) {
-  const isDefault = value === defaultValue;
   const selected = options.find((o) => o.value === value);
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="h-11 w-full rounded-none border-2 border-foreground bg-background px-2 font-mono text-xs uppercase tracking-wider [&>span]:block [&>span]:truncate sm:h-9 sm:w-auto sm:min-w-[8rem] sm:max-w-[14rem] sm:px-3">
         <span className="block truncate">
-          {isDefault ? shortLabel : selected?.label ?? shortLabel}
+          {selected?.label ?? shortLabel}
         </span>
       </SelectTrigger>
       <SelectContent className="rounded-none border-2 border-foreground">
