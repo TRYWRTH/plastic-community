@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import { format } from "date-fns";
 import {
   MapPin,
@@ -793,7 +794,7 @@ function renderDescription(text: string): React.ReactNode {
   );
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={[remarkGfm, remarkBreaks]}
       components={{
         a: ({ href, children }) => (
           <ExtLink href={href ?? "#"}>{children}</ExtLink>

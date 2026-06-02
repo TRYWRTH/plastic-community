@@ -126,13 +126,8 @@ export function cleanDescription(input: string): string {
         continue;
       }
 
-      // Regular prose: merge soft-wrapped lines into one paragraph unless
-      // the current line clearly ends a sentence — even then we keep it as
-      // one paragraph (paragraphs are separated by blank lines, which were
-      // already used to split blocks above).
-      buf = buf ? buf + " " + line : line;
-      // Avoid void warning
-      void PUNCT_END_RE;
+      // Preserve line breaks as the user typed them.
+      out.push(line);
     }
     pushBuf();
     return out.join("\n");

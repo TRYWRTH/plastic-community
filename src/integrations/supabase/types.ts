@@ -238,6 +238,7 @@ export type Database = {
         | "Marzahn-Hellersdorf"
         | "Lichtenberg"
         | "Reinickendorf"
+        | "Brandenburg"
       save_status: "going" | "interested"
     }
     CompositeTypes: {
@@ -392,6 +393,7 @@ export const Constants = {
         "Marzahn-Hellersdorf",
         "Lichtenberg",
         "Reinickendorf",
+        "Brandenburg",
       ],
       save_status: ["going", "interested"],
     },
