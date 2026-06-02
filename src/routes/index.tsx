@@ -407,20 +407,37 @@ function Home() {
               ]}
             />
 
-            {/* Calendar date-picker — desktop only; mobile version lives in the icon group below */}
-            <div className="hidden sm:block">
+
+            {(dateFilter !== "upcoming" || neighborhood !== "all" || eventType !== "all" || pickedDate) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDateFilter("upcoming");
+                  setNeighborhood("all");
+                  setEventType("all");
+                  setPickedDate(undefined);
+                }}
+                className="col-span-3 flex h-9 items-center gap-1 px-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50 hover:text-foreground sm:col-span-1 sm:h-auto"
+              >
+                <X className="h-3 w-3" />
+                Reset
+              </button>
+            )}
+
+            {/* Desktop view toggle + calendar */}
+            <div className="hidden items-stretch border-2 border-foreground sm:flex">
               <Popover open={calOpen} onOpenChange={setCalOpen}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
                     aria-label="Filter by date"
-                    className={`grid h-[38px] w-[38px] place-items-center rounded-none border-2 ${
+                    className={`flex h-[42px] items-center justify-center px-3 ${
                       pickedDate
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-foreground bg-background text-foreground hover:bg-foreground/10"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background text-foreground hover:bg-foreground/10"
                     }`}
                   >
-                    <Calendar className="h-4 w-4" />
+                    <Calendar className="h-[22px] w-[22px]" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto rounded-none border-2 border-foreground p-0" align="start">
@@ -465,51 +482,31 @@ function Home() {
                   )}
                 </PopoverContent>
               </Popover>
-            </div>
-
-            {(dateFilter !== "upcoming" || neighborhood !== "all" || eventType !== "all" || pickedDate) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setDateFilter("upcoming");
-                  setNeighborhood("all");
-                  setEventType("all");
-                  setPickedDate(undefined);
-                }}
-                className="col-span-3 flex h-9 items-center gap-1 px-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50 hover:text-foreground sm:col-span-1 sm:h-auto"
-              >
-                <X className="h-3 w-3" />
-                Reset
-              </button>
-            )}
-
-            {/* Desktop view toggle */}
-            <div className="hidden items-stretch border-2 border-foreground sm:flex">
               <button
                 type="button"
                 aria-label="List view"
                 aria-pressed={viewMode === "list"}
                 onClick={() => setViewMode("list")}
-                className={`flex h-[38px] items-center justify-center px-3 font-mono text-xs uppercase tracking-wider ${
+                className={`flex h-[42px] items-center justify-center border-l-2 border-foreground px-3 ${
                   viewMode === "list"
                     ? "bg-foreground text-background"
                     : "bg-background text-foreground hover:bg-foreground/10"
                 }`}
               >
-                <List className="h-5 w-5" />
+                <List className="h-[22px] w-[22px]" />
               </button>
               <button
                 type="button"
                 aria-label="Map view"
                 aria-pressed={viewMode === "map"}
                 onClick={() => setViewMode("map")}
-                className={`flex h-[38px] items-center justify-center border-l-2 border-foreground px-3 font-mono text-xs uppercase tracking-wider ${
+                className={`flex h-[42px] items-center justify-center border-l-2 border-foreground px-3 ${
                   viewMode === "map"
                     ? "bg-foreground text-background"
                     : "bg-background text-foreground hover:bg-foreground/10"
                 }`}
               >
-                <MapIcon className="h-5 w-5" />
+                <MapIcon className="h-[22px] w-[22px]" />
               </button>
             </div>
           </div>
@@ -528,11 +525,11 @@ function Home() {
               <button
                 type="button"
                 aria-label="Filter by date"
-                className={`grid h-9 w-9 place-items-center ${
+                className={`grid h-10 w-10 place-items-center ${
                   pickedDate ? "text-primary" : "text-foreground/40 hover:text-foreground"
                 }`}
               >
-                <Calendar className="h-5 w-5" />
+                <Calendar className="h-[22px] w-[22px]" />
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto rounded-none border-2 border-foreground p-0" align="end">
@@ -582,22 +579,22 @@ function Home() {
             aria-label="List view"
             aria-pressed={viewMode === "list"}
             onClick={() => setViewMode("list")}
-            className={`grid h-9 w-9 place-items-center ${
+            className={`grid h-10 w-10 place-items-center ${
               viewMode === "list" ? "text-primary" : "text-foreground/40 hover:text-foreground"
             }`}
           >
-            <List className="h-5 w-5" />
+            <List className="h-[22px] w-[22px]" />
           </button>
           <button
             type="button"
             aria-label="Map view"
             aria-pressed={viewMode === "map"}
             onClick={() => setViewMode("map")}
-            className={`grid h-9 w-9 place-items-center ${
+            className={`grid h-10 w-10 place-items-center ${
               viewMode === "map" ? "text-primary" : "text-foreground/40 hover:text-foreground"
             }`}
           >
-            <MapIcon className="h-5 w-5" />
+            <MapIcon className="h-[22px] w-[22px]" />
           </button>
         </div>
       </div>
