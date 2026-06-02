@@ -407,63 +407,65 @@ function Home() {
               ]}
             />
 
-            {/* Calendar date-picker */}
-            <Popover open={calOpen} onOpenChange={setCalOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="Filter by date"
-                  className={`grid h-11 w-full place-items-center rounded-none border-2 sm:h-[38px] sm:w-[38px] ${
-                    pickedDate
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-foreground bg-background text-foreground hover:bg-foreground/10"
-                  }`}
-                >
-                  <Calendar className="h-4 w-4" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto rounded-none border-2 border-foreground p-0" align="start">
-                <CalendarPicker
-                  mode="single"
-                  selected={pickedDate}
-                  onSelect={(d) => {
-                    if (d && pickedDate && isSameDay(d, pickedDate)) {
-                      setPickedDate(undefined);
-                    } else {
-                      setPickedDate(d);
-                    }
-                    setCalOpen(false);
-                  }}
-                  modifiers={{ hasEvents: (d) => eventDates.has(format(d, "yyyy-MM-dd")) }}
-                  modifiersClassNames={{ hasEvents: "bg-primary text-primary-foreground rounded-md" }}
-                  components={{
-                    DayButton: ({ day, modifiers, children, ...props }: React.ComponentProps<typeof DayButton>) => (
-                      <CalendarDayButton
-                        day={day}
-                        modifiers={modifiers}
-                        {...props}
-                        className={[props.className, modifiers.today ? "font-bold" : ""].filter(Boolean).join(" ")}
+            {/* Calendar date-picker — desktop only; mobile version lives in the icon group below */}
+            <div className="hidden sm:block">
+              <Popover open={calOpen} onOpenChange={setCalOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Filter by date"
+                    className={`grid h-[38px] w-[38px] place-items-center rounded-none border-2 ${
+                      pickedDate
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-foreground bg-background text-foreground hover:bg-foreground/10"
+                    }`}
+                  >
+                    <Calendar className="h-4 w-4" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto rounded-none border-2 border-foreground p-0" align="start">
+                  <CalendarPicker
+                    mode="single"
+                    selected={pickedDate}
+                    onSelect={(d) => {
+                      if (d && pickedDate && isSameDay(d, pickedDate)) {
+                        setPickedDate(undefined);
+                      } else {
+                        setPickedDate(d);
+                      }
+                      setCalOpen(false);
+                    }}
+                    modifiers={{ hasEvents: (d) => eventDates.has(format(d, "yyyy-MM-dd")) }}
+                    modifiersClassNames={{ hasEvents: "bg-primary text-primary-foreground rounded-md" }}
+                    components={{
+                      DayButton: ({ day, modifiers, children, ...props }: React.ComponentProps<typeof DayButton>) => (
+                        <CalendarDayButton
+                          day={day}
+                          modifiers={modifiers}
+                          {...props}
+                          className={[props.className, modifiers.today ? "font-bold" : ""].filter(Boolean).join(" ")}
+                        >
+                          {children}
+                        </CalendarDayButton>
+                      ),
+                    }}
+                    className="p-3"
+                  />
+                  {pickedDate && (
+                    <div className="border-t-2 border-foreground px-3 py-2">
+                      <button
+                        type="button"
+                        onClick={() => { setPickedDate(undefined); setCalOpen(false); }}
+                        className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50 hover:text-foreground"
                       >
-                        {children}
-                      </CalendarDayButton>
-                    ),
-                  }}
-                  className="p-3"
-                />
-                {pickedDate && (
-                  <div className="border-t-2 border-foreground px-3 py-2">
-                    <button
-                      type="button"
-                      onClick={() => { setPickedDate(undefined); setCalOpen(false); }}
-                      className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50 hover:text-foreground"
-                    >
-                      <X className="h-3 w-3" />
-                      Clear date
-                    </button>
-                  </div>
-                )}
-              </PopoverContent>
-            </Popover>
+                        <X className="h-3 w-3" />
+                        Clear date
+                      </button>
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
+            </div>
 
             {(dateFilter !== "upcoming" || neighborhood !== "all" || eventType !== "all" || pickedDate) && (
               <button
@@ -519,13 +521,68 @@ function Home() {
         <span className="font-mono text-[11px] uppercase tracking-widest text-foreground/60">
           {isLoading ? "…" : `${filtered.length} event${filtered.length === 1 ? "" : "s"}`}
         </span>
-        <div className="flex items-center gap-1 sm:hidden">
+        <div className="flex items-center gap-0.5 sm:hidden">
+          {/* Mobile calendar picker */}
+          <Popover open={calOpen} onOpenChange={setCalOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label="Filter by date"
+                className={`grid h-9 w-9 place-items-center ${
+                  pickedDate ? "text-primary" : "text-foreground/40 hover:text-foreground"
+                }`}
+              >
+                <Calendar className="h-5 w-5" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto rounded-none border-2 border-foreground p-0" align="end">
+              <CalendarPicker
+                mode="single"
+                selected={pickedDate}
+                onSelect={(d) => {
+                  if (d && pickedDate && isSameDay(d, pickedDate)) {
+                    setPickedDate(undefined);
+                  } else {
+                    setPickedDate(d);
+                  }
+                  setCalOpen(false);
+                }}
+                modifiers={{ hasEvents: (d) => eventDates.has(format(d, "yyyy-MM-dd")) }}
+                modifiersClassNames={{ hasEvents: "bg-primary text-primary-foreground rounded-md" }}
+                components={{
+                  DayButton: ({ day, modifiers, children, ...props }: React.ComponentProps<typeof DayButton>) => (
+                    <CalendarDayButton
+                      day={day}
+                      modifiers={modifiers}
+                      {...props}
+                      className={[props.className, modifiers.today ? "font-bold" : ""].filter(Boolean).join(" ")}
+                    >
+                      {children}
+                    </CalendarDayButton>
+                  ),
+                }}
+                className="p-3"
+              />
+              {pickedDate && (
+                <div className="border-t-2 border-foreground px-3 py-2">
+                  <button
+                    type="button"
+                    onClick={() => { setPickedDate(undefined); setCalOpen(false); }}
+                    className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50 hover:text-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                    Clear date
+                  </button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
           <button
             type="button"
             aria-label="List view"
             aria-pressed={viewMode === "list"}
             onClick={() => setViewMode("list")}
-            className={`grid h-8 w-8 place-items-center ${
+            className={`grid h-9 w-9 place-items-center ${
               viewMode === "list" ? "text-primary" : "text-foreground/40 hover:text-foreground"
             }`}
           >
@@ -536,7 +593,7 @@ function Home() {
             aria-label="Map view"
             aria-pressed={viewMode === "map"}
             onClick={() => setViewMode("map")}
-            className={`grid h-8 w-8 place-items-center ${
+            className={`grid h-9 w-9 place-items-center ${
               viewMode === "map" ? "text-primary" : "text-foreground/40 hover:text-foreground"
             }`}
           >
@@ -705,7 +762,7 @@ function FilterSelect({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-11 w-full rounded-none border-2 border-foreground bg-background px-2 font-mono text-xs uppercase tracking-wider sm:h-9 sm:w-auto sm:min-w-[8rem] sm:max-w-[14rem] sm:px-3">
+      <SelectTrigger className="h-11 w-full rounded-none border-2 border-foreground bg-background px-1 font-mono text-[9px] uppercase tracking-normal sm:h-9 sm:w-auto sm:min-w-[8rem] sm:max-w-[14rem] sm:px-3 sm:text-xs sm:tracking-wider">
         <SelectValue />
       </SelectTrigger>
       <SelectContent className="rounded-none border-2 border-foreground">
