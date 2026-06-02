@@ -432,7 +432,7 @@ function Home() {
                   <button
                     type="button"
                     aria-label="Filter by date"
-                    className={`flex h-9 items-center justify-center px-3 ${
+                    className={`flex items-center justify-center px-3 ${
                       pickedDate
                         ? "bg-primary text-primary-foreground"
                         : "bg-background text-foreground hover:bg-foreground/10"
@@ -488,7 +488,7 @@ function Home() {
                 aria-label="List view"
                 aria-pressed={viewMode === "list"}
                 onClick={() => setViewMode("list")}
-                className={`flex h-[42px] items-center justify-center border-l-2 border-foreground px-3 ${
+                className={`flex items-center justify-center border-l-2 border-foreground px-3 ${
                   viewMode === "list"
                     ? "bg-foreground text-background"
                     : "bg-background text-foreground hover:bg-foreground/10"
@@ -501,7 +501,7 @@ function Home() {
                 aria-label="Map view"
                 aria-pressed={viewMode === "map"}
                 onClick={() => setViewMode("map")}
-                className={`flex h-[42px] items-center justify-center border-l-2 border-foreground px-3 ${
+                className={`flex items-center justify-center border-l-2 border-foreground px-3 ${
                   viewMode === "map"
                     ? "bg-foreground text-background"
                     : "bg-background text-foreground hover:bg-foreground/10"
