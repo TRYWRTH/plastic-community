@@ -432,7 +432,7 @@ function Home() {
                   <button
                     type="button"
                     aria-label="Filter by date"
-                    className={`flex h-[38px] items-center justify-center px-3 ${
+                    className={`flex h-9 items-center justify-center px-3 ${
                       pickedDate
                         ? "bg-primary text-primary-foreground"
                         : "bg-background text-foreground hover:bg-foreground/10"
