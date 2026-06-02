@@ -442,7 +442,7 @@ function Home() {
                         day={day}
                         modifiers={modifiers}
                         {...props}
-                        className={[props.className, modifiers.today ? "font-bold ring-2 ring-foreground ring-offset-1 rounded-md" : ""].filter(Boolean).join(" ")}
+                        className={[props.className, modifiers.today ? "font-bold" : ""].filter(Boolean).join(" ")}
                       >
                         {children}
                       </CalendarDayButton>
