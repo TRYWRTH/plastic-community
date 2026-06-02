@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { format, isAfter, isBefore, startOfDay, endOfDay, addDays, isSameDay } from "date-fns";
 import { MapPin, Calendar, ExternalLink, Search, X, List, Map as MapIcon } from "lucide-react";
-import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { Calendar as CalendarPicker, CalendarDayButton } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { DayButton } from "react-day-picker";
 import { EventsMap } from "@/components/EventsMap";
 
 import { Header } from "@/components/Header";
@@ -427,7 +428,18 @@ function Home() {
                   }}
                   modifiers={{ hasEvents: (d) => eventDates.has(format(d, "yyyy-MM-dd")) }}
                   modifiersClassNames={{ hasEvents: "bg-primary text-primary-foreground rounded-md" }}
-                  classNames={{ today: "font-bold" }}
+                  components={{
+                    DayButton: ({ day, modifiers, children, ...props }: React.ComponentProps<typeof DayButton>) => (
+                      <CalendarDayButton
+                        day={day}
+                        modifiers={modifiers}
+                        {...props}
+                        className={[props.className, modifiers.today ? "font-bold" : ""].filter(Boolean).join(" ")}
+                      >
+                        {children}
+                      </CalendarDayButton>
+                    ),
+                  }}
                   className="p-3"
                 />
                 {pickedDate && (
