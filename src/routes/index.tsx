@@ -145,14 +145,17 @@ function Home() {
       const sorted = [...arr].sort(
         (a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime(),
       );
-      if (dateFilter === "upcoming" && !pickedDate) {
-        // Show every occurrence within the 14-day window; hide anything beyond it.
-        // When a specific date is picked, skip the cap so all occurrences on that day show.
+      if (pickedDate) {
+        // A specific date is selected — skip dedup entirely so every occurrence
+        // on that day is visible. The isSameDay check below handles narrowing.
+        continue;
+      } else if (dateFilter === "upcoming") {
+        // Upcoming view: show occurrences within the 14-day window, hide the rest.
         for (const e of sorted) {
           if (isAfter(new Date(e.event_date), upcomingCutoff)) hiddenIds.add(e.id);
         }
       } else {
-        // All other views: show only the nearest upcoming occurrence.
+        // All other filters: show only the nearest upcoming occurrence.
         const [, ...rest] = sorted;
         for (const e of rest) hiddenIds.add(e.id);
       }
@@ -215,9 +218,11 @@ function Home() {
         if (dateFilter === "upcoming" && !pickedDate && d && isAfter(d, upcomingCutoff)) return false;
       }
 
-      // Date-picker filter: show only events on the picked date
-      if (pickedDate && d && !isSameDay(d, pickedDate)) return false;
-      if (pickedDate && !d) return false;
+      // Date-picker filter: compare as local YYYY-MM-DD strings to avoid timezone mismatch
+      if (pickedDate) {
+        if (!d) return false;
+        if (format(d, "yyyy-MM-dd") !== format(pickedDate, "yyyy-MM-dd")) return false;
+      }
 
       if (neighborhood !== "all" && e.neighborhood !== neighborhood) return false;
       if (eventType !== "all" && e.event_type !== eventType) return false;
