@@ -139,6 +139,7 @@ function EditEventForm({
     lng: event.lng,
   });
   const [repeats, setRepeats] = useState<RepeatOption>((event.repeats as RepeatOption) ?? "none");
+  const [isSecret, setIsSecret] = useState(event.is_secret ?? false);
   const initialDateOnly = format(new Date(event.event_date), "yyyy-MM-dd");
   const initialTimeOnly = format(new Date(event.event_date), "HH:mm");
   const [eventDay, setEventDay] = useState(initialDateOnly);
@@ -165,7 +166,8 @@ function EditEventForm({
     eventDay !== initialDateOnly ||
     multiDay !== !!event.end_date ||
     endDay !== initialEndDay ||
-    endTime !== initialEndTime;
+    endTime !== initialEndTime ||
+    isSecret !== (event.is_secret ?? false);
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     setSaved(true);
@@ -229,6 +231,7 @@ function EditEventForm({
     lat: finalCoords.lat,
     lng: finalCoords.lng,
     repeats,
+    is_secret: isSecret,
   })
   .eq("id", eventId)
   .select("*")
@@ -247,6 +250,7 @@ function EditEventForm({
         description: nextDescription || null,
         lat: finalCoords.lat,
         lng: finalCoords.lng,
+        is_secret: isSecret,
       };
       await supabase
         .from("events")
@@ -470,10 +474,22 @@ function EditEventForm({
                     </span>
                   </SelectItem>
                 ))}
-
               </SelectContent>
             </Select>
           </Field>
+
+          <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
+            <input
+              type="checkbox"
+              checked={isSecret}
+              onChange={(e) => setIsSecret(e.target.checked)}
+              className="h-4 w-4 accent-primary"
+            />
+            Secret event
+            <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40">
+              — hides location from public
+            </span>
+          </label>
 
           <Field label="Link">
             <div className="flex gap-2">

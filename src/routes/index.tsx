@@ -483,7 +483,7 @@ function Home() {
                           <t.Icon className="h-3.5 w-3.5" aria-hidden="true" />
                           <span>{t.label}</span>
                         </div>
-                        <h3 className="mt-1 truncate font-brand text-xl uppercase text-foreground group-hover:text-primary">
+                        <h3 className="mt-1 line-clamp-2 sm:truncate sm:line-clamp-none font-brand text-xl uppercase text-foreground group-hover:text-primary">
                           {e.title}
                         </h3>
                         <div className="mt-2 flex flex-col gap-1 font-mono text-xs uppercase tracking-wide text-foreground">
@@ -505,7 +505,14 @@ function Home() {
                               ) : null;
                             })()}
                           </span>
-                          {isMobile ? (
+                          {e.is_secret ? (
+                            <span className="inline-flex items-center gap-1">
+                              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                              <span className="border border-foreground/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-foreground/70">
+                                Secret
+                              </span>
+                            </span>
+                          ) : isMobile ? (
                             <span className="inline-flex min-w-0 max-w-full items-start gap-1 self-start text-left">
                               <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                               <span className="min-w-0 break-words">

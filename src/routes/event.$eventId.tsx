@@ -344,16 +344,22 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   </div>
                   <div className="inline-flex items-start gap-2">
                     <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-neighborhood" />
-                    <a
-                      href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="break-words text-link underline-offset-2 hover:underline"
-                    >
-                      {stripNeighborhoodSuffix(event.place, neighborhoodLabel)}
-                      {" · "}
-                      <span className="text-neighborhood">{neighborhoodLabel}</span>
-                    </a>
+                    {event.is_secret ? (
+                      <span className="text-sm text-foreground/60 italic">
+                        Secret location — contact the organiser
+                      </span>
+                    ) : (
+                      <a
+                        href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="break-words text-link underline-offset-2 hover:underline"
+                      >
+                        {stripNeighborhoodSuffix(event.place, neighborhoodLabel)}
+                        {" · "}
+                        <span className="text-neighborhood">{neighborhoodLabel}</span>
+                      </a>
+                    )}
                   </div>
                 </div>
                 {(() => {

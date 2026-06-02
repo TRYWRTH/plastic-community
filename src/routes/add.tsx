@@ -60,6 +60,7 @@ function AddEvent() {
   const [link, setLink] = useState("");
   const [description, setDescription] = useState("");
   const [repeats, setRepeats] = useState<RepeatOption>("none");
+  const [isSecret, setIsSecret] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -129,6 +130,7 @@ function AddEvent() {
         event_date: parsedDate.toISOString(),
         end_date: multiDay && endDay ? (endTime ? `${endDay}T${endTime}` : endDay) : null,
         repeats,
+        is_secret: isSecret,
       })
       .select("id")
       .single();
@@ -345,10 +347,22 @@ function AddEvent() {
                     </span>
                   </SelectItem>
                 ))}
-
               </SelectContent>
             </Select>
           </Field>
+
+          <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
+            <input
+              type="checkbox"
+              checked={isSecret}
+              onChange={(e) => setIsSecret(e.target.checked)}
+              className="h-4 w-4 accent-primary"
+            />
+            Secret event
+            <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40">
+              — hides location from public
+            </span>
+          </label>
 
           <Field label="Link">
             <div className="flex gap-2">

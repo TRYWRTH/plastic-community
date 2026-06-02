@@ -42,8 +42,9 @@ export function cleanDescription(input: string): string {
   if (!input) return "";
   let s = input;
 
-  // Strip HTML tags (but leave bracketed markdown alone)
-  s = s.replace(/<\/?[a-zA-Z][^>]*>/g, "");
+  // Strip HTML tags but preserve markdown autolinks like <https://...> and <email@...>.
+  // HTML tag names are [a-zA-Z][a-zA-Z0-9-]* (no colon/dot), so <https://...> won't match.
+  s = s.replace(/<\/?[a-zA-Z][a-zA-Z0-9-]*(?:\s[^>]*)?\/?>/g, "");
 
   // Normalize line endings
   s = s.replace(/\r\n?/g, "\n");
