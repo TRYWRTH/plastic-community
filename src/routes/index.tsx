@@ -671,7 +671,7 @@ function Home() {
                                 : "Date TBA"}
                             </span>
                             {isOngoing && (
-                              <span className="inline-flex items-center border border-primary px-1.5 py-0.5 text-[10px] tracking-widest text-primary">
+                              <span className="inline-flex items-center border border-foreground/40 px-1.5 py-0.5 text-[10px] tracking-widest text-foreground">
                                 ONGOING
                               </span>
                             )}
