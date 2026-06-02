@@ -170,7 +170,9 @@ function Home() {
 
       if (dateFilter === "past") {
         if (!d) return false;
-        if (!isBefore(d, startOfDay(now))) return false;
+        // Event is past only once its end (or start if no end) has passed
+        const effectiveEnd = rangeEnd ?? d;
+        if (!isBefore(effectiveEnd, startOfDay(now))) return false;
         if (isBefore(d, cutoffPast)) return false;
       } else {
         if (dateFilter === "today") {
@@ -208,10 +210,8 @@ function Home() {
           if (isAfter(d, endOfNextWeek)) return false;
           if (isBefore(rangeEnd, startOfNextWeek)) return false;
         }
-        // upcoming: exclude events whose exact start time has already passed
-        if (dateFilter === "upcoming" && d && isBefore(d, now)) return false;
-        // upcoming: include multi-day events still running (end hasn't passed)
-        if (dateFilter === "upcoming" && rangeEnd && !d && isBefore(rangeEnd, now)) return false;
+        // upcoming: exclude only when the full event range (end or start) has passed
+        if (dateFilter === "upcoming" && d && isBefore(rangeEnd ?? d, now)) return false;
 
       }
 
@@ -305,7 +305,13 @@ function Home() {
           >
             Brought to you by Plastic Productions
           </a>
-          <h1 className="mt-3 font-brand text-[3rem] uppercase leading-[0.95] text-foreground text-balance sm:text-[7.5rem]">
+          <h1
+            className="mt-3 font-brand text-[3rem] uppercase leading-[0.95] text-balance sm:text-[7.5rem]"
+            style={{
+              color: "transparent",
+              WebkitTextStroke: "clamp(1.5px, 0.025em, 3px) oklch(0.89 0.30 134)",
+            }}
+          >
             Whisper
             <br />
             Ring
@@ -625,6 +631,9 @@ function Home() {
               const n = neighborhoodMeta(e.neighborhood);
               const rawDate = e.event_date ? new Date(e.event_date) : null;
               const d = rawDate && !isNaN(rawDate.getTime()) ? rawDate : null;
+              const cardEndD = e.end_date ? parseEndDateEod(e.end_date) : null;
+              const cardRangeEnd = cardEndD && d && cardEndD > d ? cardEndD : d;
+              const isOngoing = !!(d && cardEndD && cardRangeEnd && !isBefore(now, d) && !isBefore(cardRangeEnd, now));
               return (
                 <li key={e.id} className="min-w-0 w-full max-w-full">
                   <Link
@@ -661,6 +670,11 @@ function Home() {
                                   : format(d, "EEE, HH:mm")
                                 : "Date TBA"}
                             </span>
+                            {isOngoing && (
+                              <span className="inline-flex items-center border border-primary px-1.5 py-0.5 text-[10px] tracking-widest text-primary">
+                                ONGOING
+                              </span>
+                            )}
                             {(() => {
                               const rep = recurringByKey.get(`${e.created_by}::${e.title}`);
                               return rep ? (
