@@ -306,10 +306,10 @@ function Home() {
             Brought to you by Plastic Productions
           </a>
           <h1
-            className="mt-3 font-brand text-[3rem] uppercase leading-[0.95] text-balance sm:text-[7.5rem]"
+            className="mt-3 font-brand text-[3rem] uppercase leading-[0.95] text-balance text-foreground sm:text-[7.5rem]"
             style={{
-              color: "transparent",
               WebkitTextStroke: "clamp(1.5px, 0.025em, 3px) oklch(0.89 0.30 134)",
+              paintOrder: "stroke fill",
             }}
           >
             Whisper
