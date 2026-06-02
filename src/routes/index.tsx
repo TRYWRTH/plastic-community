@@ -127,7 +127,6 @@ function Home() {
     const cutoffPast = addDays(startOfDay(now), -30);
 
     const todayStart = startOfDay(now);
-    const upcomingCutoff = addDays(todayStart, 14);
     const hiddenIds = new Set<string>();
 
     // Group future events by title+created_by to detect recurring series copies.
@@ -150,13 +149,8 @@ function Home() {
         // A specific date is selected — skip dedup entirely so every occurrence
         // on that day is visible. The isSameDay check below handles narrowing.
         continue;
-      } else if (dateFilter === "upcoming") {
-        // Upcoming view: show occurrences within the 14-day window, hide the rest.
-        for (const e of sorted) {
-          if (isAfter(new Date(e.event_date), upcomingCutoff)) hiddenIds.add(e.id);
-        }
       } else {
-        // All other filters: show only the nearest upcoming occurrence.
+        // Show only the nearest upcoming occurrence of recurring series.
         const [, ...rest] = sorted;
         for (const e of rest) hiddenIds.add(e.id);
       }
@@ -215,8 +209,7 @@ function Home() {
         if (dateFilter === "upcoming" && d && isBefore(d, now)) return false;
         // upcoming: include multi-day events still running (end hasn't passed)
         if (dateFilter === "upcoming" && rangeEnd && !d && isBefore(rangeEnd, now)) return false;
-        // upcoming: cap to 14 days — but bypass when a specific date is picked in the calendar
-        if (dateFilter === "upcoming" && !pickedDate && d && isAfter(d, upcomingCutoff)) return false;
+
       }
 
       // Date-picker filter: compare as local YYYY-MM-DD strings to avoid timezone mismatch
