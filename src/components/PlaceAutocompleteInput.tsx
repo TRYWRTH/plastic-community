@@ -134,16 +134,17 @@ export function PlaceAutocompleteInput({
           return;
         }
 
-        const berlinBounds = new window.google.maps.LatLngBounds(
-          { lat: 52.3382, lng: 13.0883 },
-          { lat: 52.6755, lng: 13.7612 },
+        // Bias towards Berlin + Brandenburg region (soft bias, not a hard restriction).
+        // strictBounds is omitted so results outside the box are still returned.
+        const brandenburgBounds = new window.google.maps.LatLngBounds(
+          { lat: 51.36, lng: 11.27 },  // SW corner of Brandenburg
+          { lat: 53.56, lng: 14.77 },  // NE corner of Brandenburg
         );
         const ac = new places.Autocomplete(inputRef.current, {
           fields: ["name", "formatted_address", "geometry", "address_components", "types"],
           componentRestrictions: { country: "de" },
           types: ["establishment", "geocode"],
-          bounds: berlinBounds,
-          strictBounds: true,
+          bounds: brandenburgBounds,
         });
         autocompleteRef.current = ac;
 
