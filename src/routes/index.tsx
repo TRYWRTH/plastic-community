@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { format, isAfter, isBefore, startOfDay, endOfDay, addDays, isSameDay } from "date-fns";
 import { MapPin, Calendar, ExternalLink, Search, X, List, Map as MapIcon } from "lucide-react";
-import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { Calendar as CalendarPicker, CalendarDayButton } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { DayButton } from "react-day-picker";
 import { EventsMap } from "@/components/EventsMap";
 
 import { Header } from "@/components/Header";
@@ -73,16 +74,29 @@ function Home() {
   const [searchText, setSearchText] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
-  // Set of "yyyy-MM-dd" strings for every date that has at least one event.
+  // Fetch all distinct event dates for calendar highlighting — separate lightweight query.
+  const { data: rawEventDates } = useQuery({
+    queryKey: ["event-dates-all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select("event_date")
+        .order("event_date", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
   const eventDates = useMemo(() => {
     const s = new Set<string>();
-    for (const e of events) {
-      if (!e.event_date) continue;
-      const d = new Date(e.event_date);
+    for (const row of rawEventDates ?? []) {
+      if (!row.event_date) continue;
+      const d = new Date(row.event_date);
       if (!isNaN(d.getTime())) s.add(format(d, "yyyy-MM-dd"));
     }
     return s;
-  }, [events]);
+  }, [rawEventDates]);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
 
@@ -402,9 +416,18 @@ function Home() {
                     }
                     setCalOpen(false);
                   }}
-                  modifiers={{ hasEvents: (d) => eventDates.has(format(d, "yyyy-MM-dd")) }}
-                  modifiersClassNames={{
-                    hasEvents: "after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-primary after:content-['']",
+                  components={{
+                    DayButton: ({ day, children, ...props }: React.ComponentProps<typeof DayButton>) => {
+                      const hasEvents = eventDates.has(format(day.date, "yyyy-MM-dd"));
+                      return (
+                        <CalendarDayButton day={day} {...props}>
+                          {children}
+                          {hasEvents && (
+                            <span className="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary" />
+                          )}
+                        </CalendarDayButton>
+                      );
+                    },
                   }}
                   className="p-3"
                 />
