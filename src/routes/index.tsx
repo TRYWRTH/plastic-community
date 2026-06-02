@@ -77,28 +77,26 @@ function Home() {
   const { data: rawEventDates } = useQuery({
     queryKey: ["event-dates-all"],
     queryFn: async () => {
-      // Only fetch upcoming dates (from now, not start of day) so highlighted
-      // calendar days match what the feed actually shows when clicked.
-      const nowIso = new Date().toISOString();
       const { data, error } = await supabase
         .from("events")
         .select("event_date")
-        .gte("event_date", nowIso)
         .order("event_date", { ascending: true });
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0, // always fresh — lightweight query, just dates
   });
 
   const eventDates = useMemo(() => {
+    const now = new Date();
     const s = new Set<string>();
     for (const row of rawEventDates ?? []) {
       if (!row.event_date) continue;
-      // Use local date string so it matches the calendar's own local date rendering
-      // and isSameDay() comparisons in the feed filter — both work in local time.
       const d = new Date(row.event_date);
-      if (!isNaN(d.getTime())) s.add(format(d, "yyyy-MM-dd"));
+      if (isNaN(d.getTime())) continue;
+      // Only include upcoming events (matching the feed's real-time cutoff).
+      // Use local date for consistency with isSameDay() in the filter.
+      if (d > now) s.add(format(d, "yyyy-MM-dd"));
     }
     return s;
   }, [rawEventDates]);
@@ -147,8 +145,9 @@ function Home() {
       const sorted = [...arr].sort(
         (a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime(),
       );
-      if (dateFilter === "upcoming") {
+      if (dateFilter === "upcoming" && !pickedDate) {
         // Show every occurrence within the 14-day window; hide anything beyond it.
+        // When a specific date is picked, skip the cap so all occurrences on that day show.
         for (const e of sorted) {
           if (isAfter(new Date(e.event_date), upcomingCutoff)) hiddenIds.add(e.id);
         }
@@ -212,8 +211,8 @@ function Home() {
         if (dateFilter === "upcoming" && d && isBefore(d, now)) return false;
         // upcoming: include multi-day events still running (end hasn't passed)
         if (dateFilter === "upcoming" && rangeEnd && !d && isBefore(rangeEnd, now)) return false;
-        // upcoming: cap single-occurrence events to 14 days (series copies already handled by dedup above)
-        if (dateFilter === "upcoming" && d && isAfter(d, upcomingCutoff)) return false;
+        // upcoming: cap to 14 days — but bypass when a specific date is picked in the calendar
+        if (dateFilter === "upcoming" && !pickedDate && d && isAfter(d, upcomingCutoff)) return false;
       }
 
       // Date-picker filter: show only events on the picked date
