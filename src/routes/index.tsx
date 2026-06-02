@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { format, isAfter, isBefore, startOfDay, endOfDay, addDays } from "date-fns";
+import { format, isAfter, isBefore, startOfDay, endOfDay, addDays, isSameDay } from "date-fns";
 import { MapPin, Calendar, ExternalLink, Search, X, List, Map as MapIcon } from "lucide-react";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { EventsMap } from "@/components/EventsMap";
 
 import { Header } from "@/components/Header";
@@ -64,10 +66,23 @@ function Home() {
   }, []);
 
   const [dateFilter, setDateFilter] = useState<DateFilter>("upcoming");
+  const [pickedDate, setPickedDate] = useState<Date | undefined>(undefined);
+  const [calOpen, setCalOpen] = useState(false);
   const [neighborhood, setNeighborhood] = useState<Neighborhood | "all">("all");
   const [eventType, setEventType] = useState<EventType | "all">("all");
   const [searchText, setSearchText] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
+
+  // Set of "yyyy-MM-dd" strings for every date that has at least one event.
+  const eventDates = useMemo(() => {
+    const s = new Set<string>();
+    for (const e of events) {
+      if (!e.event_date) continue;
+      const d = new Date(e.event_date);
+      if (!isNaN(d.getTime())) s.add(format(d, "yyyy-MM-dd"));
+    }
+    return s;
+  }, [events]);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const mobileSearchRef = useRef<HTMLInputElement>(null);
 
@@ -182,6 +197,10 @@ function Home() {
         if (dateFilter === "upcoming" && d && isAfter(d, upcomingCutoff)) return false;
       }
 
+      // Date-picker filter: show only events on the picked date
+      if (pickedDate && d && !isSameDay(d, pickedDate)) return false;
+      if (pickedDate && !d) return false;
+
       if (neighborhood !== "all" && e.neighborhood !== neighborhood) return false;
       if (eventType !== "all" && e.event_type !== eventType) return false;
 
@@ -210,7 +229,7 @@ function Home() {
       if (bBad) return -1;
       return ta - tb;
     });
-  }, [events, dateFilter, neighborhood, eventType, searchText, now]);
+  }, [events, dateFilter, pickedDate, neighborhood, eventType, searchText, now]);
 
   const recurringByKey = useMemo(() => {
     const todayStart = startOfDay(new Date());
@@ -356,13 +375,62 @@ function Home() {
               ]}
             />
 
-            {(dateFilter !== "upcoming" || neighborhood !== "all" || eventType !== "all") && (
+            {/* Calendar date-picker */}
+            <Popover open={calOpen} onOpenChange={setCalOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Filter by date"
+                  className={`grid h-11 w-full place-items-center rounded-none border-2 sm:h-[38px] sm:w-[38px] ${
+                    pickedDate
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-foreground bg-background text-foreground hover:bg-foreground/10"
+                  }`}
+                >
+                  <Calendar className="h-4 w-4" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto rounded-none border-2 border-foreground p-0" align="start">
+                <CalendarPicker
+                  mode="single"
+                  selected={pickedDate}
+                  onSelect={(d) => {
+                    if (d && pickedDate && isSameDay(d, pickedDate)) {
+                      setPickedDate(undefined);
+                    } else {
+                      setPickedDate(d);
+                    }
+                    setCalOpen(false);
+                  }}
+                  modifiers={{ hasEvents: (d) => eventDates.has(format(d, "yyyy-MM-dd")) }}
+                  modifiersClassNames={{
+                    hasEvents: "after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:h-1 after:w-1 after:rounded-full after:bg-primary after:content-['']",
+                  }}
+                  className="p-3"
+                />
+                {pickedDate && (
+                  <div className="border-t-2 border-foreground px-3 py-2">
+                    <button
+                      type="button"
+                      onClick={() => { setPickedDate(undefined); setCalOpen(false); }}
+                      className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50 hover:text-foreground"
+                    >
+                      <X className="h-3 w-3" />
+                      Clear date
+                    </button>
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+
+            {(dateFilter !== "upcoming" || neighborhood !== "all" || eventType !== "all" || pickedDate) && (
               <button
                 type="button"
                 onClick={() => {
                   setDateFilter("upcoming");
                   setNeighborhood("all");
                   setEventType("all");
+                  setPickedDate(undefined);
                 }}
                 className="col-span-3 flex h-9 items-center gap-1 px-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50 hover:text-foreground sm:col-span-1 sm:h-auto"
               >
