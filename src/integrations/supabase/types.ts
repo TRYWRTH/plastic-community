@@ -239,6 +239,20 @@ export type Database = {
         | "Lichtenberg"
         | "Reinickendorf"
         | "Brandenburg"
+        | "Baden-Württemberg"
+        | "Bayern"
+        | "Bremen"
+        | "Hamburg"
+        | "Hessen"
+        | "Mecklenburg-Vorpommern"
+        | "Niedersachsen"
+        | "Nordrhein-Westfalen"
+        | "Rheinland-Pfalz"
+        | "Saarland"
+        | "Sachsen"
+        | "Sachsen-Anhalt"
+        | "Schleswig-Holstein"
+        | "Thüringen"
       save_status: "going" | "interested"
     }
     CompositeTypes: {
@@ -394,6 +408,20 @@ export const Constants = {
         "Lichtenberg",
         "Reinickendorf",
         "Brandenburg",
+        "Baden-Württemberg",
+        "Bayern",
+        "Bremen",
+        "Hamburg",
+        "Hessen",
+        "Mecklenburg-Vorpommern",
+        "Niedersachsen",
+        "Nordrhein-Westfalen",
+        "Rheinland-Pfalz",
+        "Saarland",
+        "Sachsen",
+        "Sachsen-Anhalt",
+        "Schleswig-Holstein",
+        "Thüringen",
       ],
       save_status: ["going", "interested"],
     },

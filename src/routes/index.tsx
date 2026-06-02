@@ -17,7 +17,8 @@ import { useAllEventSaveCounts } from "@/lib/use-event-save-counts";
 import { supabase } from "@/integrations/supabase/client";
 import {
   EVENT_TYPES,
-  NEIGHBORHOODS,
+  BERLIN_DISTRICTS,
+  GERMAN_STATES,
   eventTypeMeta,
   neighborhoodMeta,
   type EventType,
@@ -269,6 +270,22 @@ function Home() {
     return map;
   }, [events]);
 
+  // Build district filter options: all Berlin districts always shown,
+  // non-Berlin states only when at least one event uses them.
+  const districtOptions = useMemo(() => {
+    const usedStates = new Set(
+      events
+        .map((e) => e.neighborhood)
+        .filter((n): n is Neighborhood => !!n && GERMAN_STATES.some((s) => s.value === n)),
+    );
+    const stateOptions = GERMAN_STATES.filter((s) => usedStates.has(s.value));
+    return [
+      { value: "all" as const, label: "ALL DISTRICTS" },
+      ...BERLIN_DISTRICTS.map((n) => ({ value: n.value, label: n.label })),
+      ...stateOptions.map((n) => ({ value: n.value, label: n.label })),
+    ];
+  }, [events]);
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-paper">
       <Header />
@@ -375,10 +392,7 @@ function Home() {
               onChange={(v) => setNeighborhood(v as Neighborhood | "all")}
               shortLabel="DISTRICT"
               defaultValue="all"
-              options={[
-                { value: "all", label: "ALL DISTRICTS" },
-                ...NEIGHBORHOODS.map((n) => ({ value: n.value, label: n.label })),
-              ]}
+              options={districtOptions}
             />
 
             <FilterSelect
@@ -427,7 +441,7 @@ function Home() {
                         day={day}
                         modifiers={modifiers}
                         {...props}
-                        className={[props.className, modifiers.today ? "font-bold" : ""].filter(Boolean).join(" ")}
+                        className={[props.className, modifiers.today ? "font-bold ring-2 ring-foreground ring-offset-1 rounded-md" : ""].filter(Boolean).join(" ")}
                       >
                         {children}
                       </CalendarDayButton>

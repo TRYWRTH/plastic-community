@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { loadGooglePlaces } from "@/lib/google-places";
 import { cleanPlace } from "@/lib/clean-place";
+import { GERMAN_STATES } from "@/lib/constants";
 
 
 export type PlaceResult = {
@@ -197,8 +198,19 @@ export function PlaceAutocompleteInput({
               }
             }
           } else {
-            // Any address outside Berlin is labelled "Brandenburg" (catch-all for the wider region).
-            detectedNeighborhood = "Brandenburg";
+            // Extract the German state (administrative_area_level_1) for non-Berlin addresses.
+            const stateComponent = components.find((c) =>
+              c.types?.includes("administrative_area_level_1"),
+            );
+            const stateName = stateComponent?.long_name ?? null;
+            if (stateName) {
+              const matched = GERMAN_STATES.find(
+                (s) => s.label.toLowerCase() === stateName.toLowerCase(),
+              );
+              detectedNeighborhood = matched ? matched.value : "Brandenburg";
+            } else {
+              detectedNeighborhood = "Brandenburg";
+            }
           }
 
           const finalName = detectedNeighborhood ? `${name} · ${detectedNeighborhood}` : name;

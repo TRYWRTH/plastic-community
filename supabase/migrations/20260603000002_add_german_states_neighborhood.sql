@@ -1,0 +1,14 @@
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Baden-Württemberg';
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Bayern';
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Bremen';
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Hamburg';
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Hessen';
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Mecklenburg-Vorpommern';
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Niedersachsen';
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Nordrhein-Westfalen';
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Rheinland-Pfalz';
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Saarland';
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Sachsen';
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Sachsen-Anhalt';
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Schleswig-Holstein';
+ALTER TYPE public.neighborhood ADD VALUE IF NOT EXISTS 'Thüringen';
