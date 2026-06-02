@@ -1,3 +1,4 @@
+import React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -282,7 +283,7 @@ function Home() {
     return [
       { value: "all" as const, label: "ALL DISTRICTS" },
       ...BERLIN_DISTRICTS.map((n) => ({ value: n.value, label: n.label })),
-      ...stateOptions.map((n) => ({ value: n.value, label: n.label })),
+      ...stateOptions.map((n) => ({ value: n.value, label: n.label, isState: true as const })),
     ];
   }, [events]);
 
@@ -700,7 +701,7 @@ function FilterSelect({
   onChange: (v: string) => void;
   shortLabel: string;
   defaultValue: string;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; isState?: boolean }[];
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
@@ -708,11 +709,23 @@ function FilterSelect({
         <SelectValue />
       </SelectTrigger>
       <SelectContent className="rounded-none border-2 border-foreground">
-        {options.map((o) => (
-          <SelectItem key={o.value} value={o.value} className="rounded-none font-mono text-xs uppercase">
-            {o.label}
-          </SelectItem>
-        ))}
+        {options.map((o, i) => {
+          const isFirstState = o.isState && !options[i - 1]?.isState;
+          return (
+            <React.Fragment key={o.value}>
+              {isFirstState && <div className="mx-2 my-1 border-t border-foreground/30" />}
+              <SelectItem
+                value={o.value}
+                className={[
+                  "rounded-none font-mono text-xs uppercase",
+                  o.isState ? "italic opacity-70" : "",
+                ].filter(Boolean).join(" ")}
+              >
+                {o.label}
+              </SelectItem>
+            </React.Fragment>
+          );
+        })}
       </SelectContent>
     </Select>
   );
