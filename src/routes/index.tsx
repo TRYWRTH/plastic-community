@@ -426,7 +426,7 @@ function Home() {
             )}
 
             {/* Desktop view toggle + calendar */}
-            <div className="hidden items-stretch border-2 border-foreground sm:flex">
+            <div className="hidden h-9 items-stretch border-2 border-foreground sm:flex">
               <Popover open={calOpenDesktop} onOpenChange={setCalOpenDesktop}>
                 <PopoverTrigger asChild>
                   <button
