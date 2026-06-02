@@ -432,13 +432,13 @@ function Home() {
                   <button
                     type="button"
                     aria-label="Filter by date"
-                    className={`flex h-[42px] items-center justify-center px-3 ${
+                    className={`flex h-[38px] items-center justify-center px-3 ${
                       pickedDate
                         ? "bg-primary text-primary-foreground"
                         : "bg-background text-foreground hover:bg-foreground/10"
                     }`}
                   >
-                    <Calendar className="h-[22px] w-[22px]" />
+                    <Calendar className="h-5 w-5" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto rounded-none border-2 border-foreground p-0" align="start">
@@ -494,7 +494,7 @@ function Home() {
                     : "bg-background text-foreground hover:bg-foreground/10"
                 }`}
               >
-                <List className="h-[22px] w-[22px]" />
+                <List className="h-5 w-5" />
               </button>
               <button
                 type="button"
@@ -507,7 +507,7 @@ function Home() {
                     : "bg-background text-foreground hover:bg-foreground/10"
                 }`}
               >
-                <MapIcon className="h-[22px] w-[22px]" />
+                <MapIcon className="h-5 w-5" />
               </button>
             </div>
           </div>
@@ -760,7 +760,7 @@ function FilterSelect({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-11 w-full rounded-none border-2 border-foreground bg-background px-1 font-mono text-[9px] uppercase tracking-normal sm:h-9 sm:w-auto sm:min-w-[8rem] sm:max-w-[14rem] sm:px-3 sm:text-xs sm:tracking-wider">
+      <SelectTrigger className="h-11 w-full rounded-none border-2 border-foreground bg-background px-1.5 font-mono text-[10px] uppercase tracking-tight sm:h-9 sm:w-auto sm:min-w-[8rem] sm:max-w-[14rem] sm:px-3 sm:text-xs sm:tracking-wider">
         <SelectValue />
       </SelectTrigger>
       <SelectContent className="rounded-none border-2 border-foreground">
