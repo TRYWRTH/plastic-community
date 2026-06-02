@@ -480,7 +480,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   />
                 )}
                 {event.description && (
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground sm:text-base">
+                  <div className="text-sm leading-relaxed text-foreground sm:text-base">
                     {renderDescription(event.description)}
                   </div>
                 )}
@@ -799,7 +799,7 @@ function renderDescription(text: string): React.ReactNode {
         a: ({ href, children }) => (
           <ExtLink href={href ?? "#"}>{children}</ExtLink>
         ),
-        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+        p: ({ children }) => <p className="mt-0 mb-2 last:mb-0">{children}</p>,
         img: ({ src, alt }) => (
           <img
             src={src ?? ""}

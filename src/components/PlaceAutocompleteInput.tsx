@@ -197,15 +197,8 @@ export function PlaceAutocompleteInput({
               }
             }
           } else {
-            // Outside Berlin — check if it's in Brandenburg state
-            const inBrandenburg = components.some((c) => {
-              const name = (c.long_name || "").toLowerCase();
-              return (name === "brandenburg" || name === "land brandenburg") &&
-                c.types?.includes("administrative_area_level_1");
-            }) || address.toLowerCase().includes("brandenburg");
-            if (inBrandenburg) {
-              detectedNeighborhood = "Brandenburg";
-            }
+            // Any address outside Berlin is labelled "Brandenburg" (catch-all for the wider region).
+            detectedNeighborhood = "Brandenburg";
           }
 
           const finalName = detectedNeighborhood ? `${name} · ${detectedNeighborhood}` : name;
