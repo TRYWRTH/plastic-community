@@ -70,7 +70,8 @@ function Home() {
 
   const [dateFilter, setDateFilter] = useState<DateFilter>("upcoming");
   const [pickedDate, setPickedDate] = useState<Date | undefined>(undefined);
-  const [calOpen, setCalOpen] = useState(false);
+  const [calOpenDesktop, setCalOpenDesktop] = useState(false);
+  const [calOpenMobile, setCalOpenMobile] = useState(false);
   const [neighborhood, setNeighborhood] = useState<Neighborhood | "all">("all");
   const [eventType, setEventType] = useState<EventType | "all">("all");
   const [searchText, setSearchText] = useState("");
@@ -426,7 +427,7 @@ function Home() {
 
             {/* Desktop view toggle + calendar */}
             <div className="hidden items-stretch border-2 border-foreground sm:flex">
-              <Popover open={calOpen} onOpenChange={setCalOpen}>
+              <Popover open={calOpenDesktop} onOpenChange={setCalOpenDesktop}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
@@ -450,7 +451,7 @@ function Home() {
                       } else {
                         setPickedDate(d);
                       }
-                      setCalOpen(false);
+                      setCalOpenDesktop(false);
                     }}
                     modifiers={{ hasEvents: (d) => eventDates.has(format(d, "yyyy-MM-dd")) }}
                     modifiersClassNames={{ hasEvents: "bg-primary text-primary-foreground rounded-md" }}
@@ -472,7 +473,7 @@ function Home() {
                     <div className="border-t-2 border-foreground px-3 py-2">
                       <button
                         type="button"
-                        onClick={() => { setPickedDate(undefined); setCalOpen(false); }}
+                        onClick={() => { setPickedDate(undefined); setCalOpenDesktop(false); }}
                         className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50 hover:text-foreground"
                       >
                         <X className="h-3 w-3" />
@@ -520,7 +521,7 @@ function Home() {
         </span>
         <div className="flex items-center gap-0.5 sm:hidden">
           {/* Mobile calendar picker */}
-          <Popover open={calOpen} onOpenChange={setCalOpen}>
+          <Popover open={calOpenMobile} onOpenChange={setCalOpenMobile}>
             <PopoverTrigger asChild>
               <button
                 type="button"
@@ -542,7 +543,7 @@ function Home() {
                   } else {
                     setPickedDate(d);
                   }
-                  setCalOpen(false);
+                  setCalOpenMobile(false);
                 }}
                 modifiers={{ hasEvents: (d) => eventDates.has(format(d, "yyyy-MM-dd")) }}
                 modifiersClassNames={{ hasEvents: "bg-primary text-primary-foreground rounded-md" }}
@@ -564,7 +565,7 @@ function Home() {
                 <div className="border-t-2 border-foreground px-3 py-2">
                   <button
                     type="button"
-                    onClick={() => { setPickedDate(undefined); setCalOpen(false); }}
+                    onClick={() => { setPickedDate(undefined); setCalOpenMobile(false); }}
                     className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50 hover:text-foreground"
                   >
                     <X className="h-3 w-3" />
