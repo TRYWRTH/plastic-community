@@ -169,20 +169,42 @@ export function PlaceAutocompleteInput({
           let detectedNeighborhood: string | null = null;
           const components: any[] = place.address_components || [];
 
-          for (const component of components) {
-            const longName = (component.long_name || "").toLowerCase();
-            if (NEIGHBORHOOD_MAP[longName]) {
-              detectedNeighborhood = NEIGHBORHOOD_MAP[longName];
-              break;
-            }
-          }
-          if (!detectedNeighborhood && address) {
-            const addressLower = address.toLowerCase();
-            for (const [key, val] of Object.entries(NEIGHBORHOOD_MAP)) {
-              if (addressLower.includes(key)) {
-                detectedNeighborhood = val;
+          // Check if the place is in Berlin by looking for "Berlin" in address components.
+          const isInBerlin = components.some((c) => {
+            const name = (c.long_name || "").toLowerCase();
+            return name === "berlin" && (
+              c.types?.includes("locality") ||
+              c.types?.includes("administrative_area_level_1") ||
+              c.types?.includes("political")
+            );
+          }) || (address.toLowerCase().includes(", berlin") || address.toLowerCase().startsWith("berlin"));
+
+          if (isInBerlin) {
+            for (const component of components) {
+              const longName = (component.long_name || "").toLowerCase();
+              if (NEIGHBORHOOD_MAP[longName]) {
+                detectedNeighborhood = NEIGHBORHOOD_MAP[longName];
                 break;
               }
+            }
+            if (!detectedNeighborhood) {
+              const addressLower = address.toLowerCase();
+              for (const [key, val] of Object.entries(NEIGHBORHOOD_MAP)) {
+                if (addressLower.includes(key)) {
+                  detectedNeighborhood = val;
+                  break;
+                }
+              }
+            }
+          } else {
+            // Outside Berlin — check if it's in Brandenburg state
+            const inBrandenburg = components.some((c) => {
+              const name = (c.long_name || "").toLowerCase();
+              return (name === "brandenburg" || name === "land brandenburg") &&
+                c.types?.includes("administrative_area_level_1");
+            }) || address.toLowerCase().includes("brandenburg");
+            if (inBrandenburg) {
+              detectedNeighborhood = "Brandenburg";
             }
           }
 

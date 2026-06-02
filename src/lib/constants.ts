@@ -31,6 +31,7 @@ export const EVENT_TYPES: { value: EventType; label: string; Icon: Icon }[] = [
 
 
 export const NEIGHBORHOODS: { value: Neighborhood; label: string }[] = [
+  { value: "Brandenburg", label: "Brandenburg" },
   { value: "Mitte", label: "Mitte" },
   { value: "Friedrichshain-Kreuzberg", label: "Friedrichshain-Kreuzberg" },
   { value: "Pankow", label: "Pankow" },
