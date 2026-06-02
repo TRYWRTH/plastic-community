@@ -3,9 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { format, isAfter, isBefore, startOfDay, endOfDay, addDays, isSameDay } from "date-fns";
 import { MapPin, Calendar, ExternalLink, Search, X, List, Map as MapIcon } from "lucide-react";
-import { Calendar as CalendarPicker, CalendarDayButton } from "@/components/ui/calendar";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { DayButton } from "react-day-picker";
 import { EventsMap } from "@/components/EventsMap";
 
 import { Header } from "@/components/Header";
@@ -92,8 +91,9 @@ function Home() {
     const s = new Set<string>();
     for (const row of rawEventDates ?? []) {
       if (!row.event_date) continue;
-      const d = new Date(row.event_date);
-      if (!isNaN(d.getTime())) s.add(format(d, "yyyy-MM-dd"));
+      // Slice the raw ISO string directly to avoid UTC→local timezone shift.
+      // e.g. "2026-06-03T19:00:00+00:00" → "2026-06-03"
+      s.add(row.event_date.slice(0, 10));
     }
     return s;
   }, [rawEventDates]);
@@ -416,19 +416,9 @@ function Home() {
                     }
                     setCalOpen(false);
                   }}
-                  components={{
-                    DayButton: ({ day, children, ...props }: React.ComponentProps<typeof DayButton>) => {
-                      const hasEvents = eventDates.has(format(day.date, "yyyy-MM-dd"));
-                      return (
-                        <CalendarDayButton day={day} {...props}>
-                          {children}
-                          {hasEvents && (
-                            <span className="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary" />
-                          )}
-                        </CalendarDayButton>
-                      );
-                    },
-                  }}
+                  modifiers={{ hasEvents: (d) => eventDates.has(format(d, "yyyy-MM-dd")) }}
+                  modifiersClassNames={{ hasEvents: "bg-primary text-primary-foreground rounded-md" }}
+                  classNames={{ today: "bg-accent text-accent-foreground rounded-md font-bold" }}
                   className="p-3"
                 />
                 {pickedDate && (
