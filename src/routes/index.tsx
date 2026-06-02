@@ -77,9 +77,13 @@ function Home() {
   const { data: rawEventDates } = useQuery({
     queryKey: ["event-dates-all"],
     queryFn: async () => {
+      // Only fetch upcoming dates (from now, not start of day) so highlighted
+      // calendar days match what the feed actually shows when clicked.
+      const nowIso = new Date().toISOString();
       const { data, error } = await supabase
         .from("events")
         .select("event_date")
+        .gte("event_date", nowIso)
         .order("event_date", { ascending: true });
       if (error) throw error;
       return data ?? [];
@@ -91,9 +95,10 @@ function Home() {
     const s = new Set<string>();
     for (const row of rawEventDates ?? []) {
       if (!row.event_date) continue;
-      // Slice the raw ISO string directly to avoid UTC→local timezone shift.
-      // e.g. "2026-06-03T19:00:00+00:00" → "2026-06-03"
-      s.add(row.event_date.slice(0, 10));
+      // Use local date string so it matches the calendar's own local date rendering
+      // and isSameDay() comparisons in the feed filter — both work in local time.
+      const d = new Date(row.event_date);
+      if (!isNaN(d.getTime())) s.add(format(d, "yyyy-MM-dd"));
     }
     return s;
   }, [rawEventDates]);
@@ -418,7 +423,7 @@ function Home() {
                   }}
                   modifiers={{ hasEvents: (d) => eventDates.has(format(d, "yyyy-MM-dd")) }}
                   modifiersClassNames={{ hasEvents: "bg-primary text-primary-foreground rounded-md" }}
-                  classNames={{ today: "bg-accent text-accent-foreground rounded-md font-bold" }}
+                  classNames={{ today: "font-bold" }}
                   className="p-3"
                 />
                 {pickedDate && (
