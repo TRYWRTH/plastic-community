@@ -1,15 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import {
-  Plus,
-  LogOut,
-  Bookmark,
-  UserRound,
-  Bell,
-  HelpCircle,
-  LogIn,
-  Search,
-  User,
-} from "lucide-react";
+import { Plus, LogOut, Bookmark, UserRound, Bell, HelpCircle, LogIn, User } from "lucide-react";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
@@ -61,17 +51,6 @@ export function Header() {
         </Link>
 
         <nav className="flex items-center gap-1 sm:gap-2">
-          {pathname === "/" && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-9 w-9 sm:hidden"
-              aria-label="Search events"
-              onClick={() => window.dispatchEvent(new CustomEvent("whisperring:open-search"))}
-            >
-              <Search className="h-4 w-4" />
-            </Button>
-          )}
           <Button
             size="icon"
             variant="ghost"
