@@ -5,11 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 2px;
-  --radius-2xl: 2px;
+  --radius-sm: 16px;
+  --radius-md: 22px;
+  --radius-lg: 24px;
+  --radius-xl: 26px;
+  --radius-2xl: 26px;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -32,48 +32,59 @@
   --color-glow: var(--primary);
   --color-link: var(--link);
   --color-neighborhood: var(--neighborhood);
+  --color-shell-deep: var(--shell-deep);
+  --color-hot: var(--hot);
+  --color-dim: var(--dim);
+  --color-body: var(--body);
+  --color-muted-2: var(--muted-2);
 
-  --font-display: "Archivo Black", "Helvetica Neue", Arial, sans-serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-brand: "Archivo Black", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Anton", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-brand: "Anton", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 :root {
-  --radius: 0px;
+  --radius: 22px;
 
-  /* Brutalist zine — concrete + washed red */
-  --background: oklch(0.95 0.005 80);   /* #F2F0EB-ish concrete */
-  --foreground: oklch(0.18 0 0);        /* near-black */
+  /* Whisper Ring — deep red + black */
+  --background: #5a0210; /* page shell */
+  --foreground: #f7e7e4; /* bone — primary text, active fills */
 
-  --card: oklch(0.97 0.004 80);
-  --card-foreground: oklch(0.18 0 0);
+  --card: #5a0210;
+  --card-foreground: #f7e7e4;
 
-  --popover: oklch(0.97 0.004 80);
-  --popover-foreground: oklch(0.18 0 0);
+  --popover: #3e0109;
+  --popover-foreground: #f7e7e4;
 
-  --primary: oklch(0.89 0.30 134);      /* fluorescent green #39FF14 */
-  --primary-foreground: oklch(0.18 0 0); /* black label on green */
+  --primary: #f7e7e4; /* bone fill on active/primary controls */
+  --primary-foreground: #5a0210; /* shell text on bone fill */
 
-  --secondary: oklch(0.90 0.005 80);
-  --secondary-foreground: oklch(0.18 0 0);
+  --secondary: #3e0109;
+  --secondary-foreground: #f7e7e4;
 
-  --muted: oklch(0.90 0.005 80);
-  --muted-foreground: oklch(0.40 0.005 80);
+  --muted: rgba(247, 231, 228, 0.07);
+  --muted-foreground: #e3a9a5; /* labels, meta */
 
-  --accent: oklch(0.89 0.30 134);
-  --accent-foreground: oklch(0.18 0 0);
+  --accent: rgba(247, 231, 228, 0.12);
+  --accent-foreground: #f7e7e4;
 
-  --destructive: oklch(0.35 0.15 27);
-  --destructive-foreground: oklch(0.98 0 0);
+  --destructive: #ff6a63;
+  --destructive-foreground: #3e0109;
 
-  --border: oklch(0.18 0 0);            /* hard black border */
-  --input: oklch(0.99 0 0);
-  --ring: oklch(0.18 0 0);
+  --border: rgba(247, 231, 228, 0.22); /* hairline */
+  --input: rgba(247, 231, 228, 0.06);
+  --ring: #f7e7e4;
 
-  --link: oklch(0.35 0.15 134);         /* dark green, readable on concrete */
-  --neighborhood: #00CC00;              /* darker neon green for neighborhood tags */
+  --link: #ff9e96; /* accent link — links, section headers, indices */
+  --neighborhood: #ff9e96;
 
+  /* Whisper Ring extras — no direct shadcn slot */
+  --shell-deep: #3e0109; /* tab bar, map field, inverted chips */
+  --hot: #ff6a63; /* tonight pins, active district chips, "my events" */
+  --dim: #c98f8b; /* hints, inactive tabs */
+  --body: #f0d6d3; /* paragraph text */
+  --muted-2: #f3cfcb; /* inactive chip text */
 }
 
 @layer base {
