@@ -15,9 +15,7 @@ export function useAllEventSaveCounts() {
     queryKey: ["event_save_counts", "all"],
     staleTime: 30_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("event_saves")
-        .select("event_id, status");
+      const { data, error } = await supabase.from("event_saves").select("event_id, status");
       if (error) throw error;
       const map = new Map<string, EventSaveCounts>();
       for (const row of data ?? []) {

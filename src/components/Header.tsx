@@ -1,5 +1,15 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Plus, LogOut, Bookmark, UserRound, Bell, HelpCircle, LogIn, Search, User } from "lucide-react";
+import {
+  Plus,
+  LogOut,
+  Bookmark,
+  UserRound,
+  Bell,
+  HelpCircle,
+  LogIn,
+  Search,
+  User,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -15,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MagicLinkDialog } from "@/components/MagicLinkDialog";
+import { NOTIFICATIONS_ENABLED } from "@/lib/constants";
 
 export function Header() {
   const { isAuthenticated, user, loading } = useAuth();
@@ -31,8 +42,6 @@ export function Header() {
     return () => window.removeEventListener("whisperring:session-expired", handler);
   }, []);
 
-
-
   const signOut = async () => {
     await supabase.auth.signOut();
     navigate({ to: "/" });
@@ -41,18 +50,17 @@ export function Header() {
   return (
     <header className="bg-background">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-3 sm:px-4">
-      <Link to="/" className="flex min-w-0 items-baseline gap-2">
-        <span className="sr-only">Whisper Ring</span>
-        {pathname !== "/" && (
-          <span
-            aria-hidden="true"
-            className="truncate font-brand text-xl uppercase leading-none text-foreground hover:text-primary sm:text-2xl"
-          >
-            Whisper Ring
-          </span>
-        )}
-      </Link>
-
+        <Link to="/" className="flex min-w-0 items-baseline gap-2">
+          <span className="sr-only">Whisper Ring</span>
+          {pathname !== "/" && (
+            <span
+              aria-hidden="true"
+              className="truncate font-brand text-xl uppercase leading-none text-foreground hover:text-primary sm:text-2xl"
+            >
+              Whisper Ring
+            </span>
+          )}
+        </Link>
 
         <nav className="flex items-center gap-1 sm:gap-2">
           {pathname === "/" && (
@@ -119,8 +127,7 @@ export function Header() {
                     <User className="mr-2 h-4 w-4" /> Profile
                   </Link>
                 </DropdownMenuItem>
-                {/* Notification settings hidden temporarily — feature kept for later testing */}
-                {false && (
+                {NOTIFICATIONS_ENABLED && (
                   <DropdownMenuItem asChild>
                     <Link to="/settings/notifications">
                       <Bell className="mr-2 h-4 w-4" /> Notification settings

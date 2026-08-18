@@ -30,10 +30,7 @@ export function SaveCountsLine({
       )}
       {interested > 0 && (
         <span className="inline-flex items-center gap-1.5">
-          <span
-            aria-hidden="true"
-            className="inline-block h-2 w-2 rounded-full bg-foreground/40"
-          />
+          <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-foreground/40" />
           {interested} interested
         </span>
       )}

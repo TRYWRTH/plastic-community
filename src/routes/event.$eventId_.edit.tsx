@@ -14,12 +14,7 @@ import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendEventUpdateNotification } from "@/lib/notifications";
-import {
-  EVENT_TYPES,
-  
-  type EventType,
-  type Neighborhood,
-} from "@/lib/constants";
+import { EVENT_TYPES, type EventType, type Neighborhood } from "@/lib/constants";
 import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +51,6 @@ function EditEvent() {
         .eq("id", eventId)
         .maybeSingle();
       if (error) throw error;
-      console.log("[edit-event] fetched event data before form render", data);
       return data;
     },
     refetchOnMount: "always",
@@ -88,7 +82,7 @@ function EditEvent() {
     );
   }
 
-if (!user || (user.id !== event.created_by && user.id !== import.meta.env.VITE_ADMIN_USER_ID)) {
+  if (!user || (user.id !== event.created_by && user.id !== import.meta.env.VITE_ADMIN_USER_ID)) {
     return (
       <div className="min-h-screen">
         <Header />
@@ -106,13 +100,6 @@ if (!user || (user.id !== event.created_by && user.id !== import.meta.env.VITE_A
       </div>
     );
   }
-
-  console.log("[edit-event] rendering form with fetched event data", {
-    id: event.id,
-    place: event.place,
-    neighborhood: event.neighborhood,
-    event_date: event.event_date,
-  });
 
   return <EditEventForm event={event} eventId={eventId} userId={user.id} />;
 }
@@ -132,7 +119,7 @@ function EditEventForm({
   const [saved, setSaved] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
   const [place, setPlace] = useState(event.place);
-  
+
   const [neighborhood, setNeighborhood] = useState<Neighborhood>(event.neighborhood);
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
     lat: event.lat,
@@ -149,9 +136,7 @@ function EditEventForm({
   const [endDay, setEndDay] = useState(initialEndDay);
   const [endTime, setEndTime] = useState(initialEndTime);
   const endDateError =
-    multiDay && endDay && endDay < eventDay
-      ? "End date must be on or after the start date."
-      : null;
+    multiDay && endDay && endDay < eventDay ? "End date must be on or after the start date." : null;
 
   // Dirty when any controlled field changed OR an uncontrolled form input fired.
   const [touched, setTouched] = useState(false);
@@ -218,30 +203,30 @@ function EditEventForm({
       if (geo) finalCoords = geo;
     }
     const { data: updated, error } = await supabase
-  .from("events")
-  .update({
-    title: nextTitle,
-    place: nextPlace,
-    neighborhood: nextNeighborhood,
-    event_type: nextEventType,
-    event_date: parsedDate.toISOString(),
-    end_date: multiDay && endDay ? (endTime ? `${endDay}T${endTime}` : endDay) : null,
-    link: nextLink || null,
-    description: nextDescription || null,
-    lat: finalCoords.lat,
-    lng: finalCoords.lng,
-    repeats,
-    is_secret: isSecret,
-  })
-  .eq("id", eventId)
-  .select("*")
-  .maybeSingle();
+      .from("events")
+      .update({
+        title: nextTitle,
+        place: nextPlace,
+        neighborhood: nextNeighborhood,
+        event_type: nextEventType,
+        event_date: parsedDate.toISOString(),
+        end_date: multiDay && endDay ? (endTime ? `${endDay}T${endTime}` : endDay) : null,
+        link: nextLink || null,
+        description: nextDescription || null,
+        lat: finalCoords.lat,
+        lng: finalCoords.lng,
+        repeats,
+        is_secret: isSecret,
+      })
+      .eq("id", eventId)
+      .select("*")
+      .maybeSingle();
     const initialRepeats = (event.repeats as RepeatOption) ?? "none";
 
     if (updated) {
       // Cascade shared fields to all future sibling instances (same creator + original title).
       // Each sibling keeps its own event_date; only metadata is synced.
-      const siblingFields: Record<string, unknown> = {
+      const siblingFields: Database["public"]["Tables"]["events"]["Update"] = {
         title: nextTitle,
         place: nextPlace,
         neighborhood: nextNeighborhood,
@@ -293,7 +278,9 @@ function EditEventForm({
     }
     try {
       sessionStorage.setItem("event-just-saved", eventId);
-    } catch {}
+    } catch {
+      // sessionStorage may be unavailable (e.g. private browsing) — not critical
+    }
 
     await queryClient.invalidateQueries({ queryKey: ["event-edit", eventId] });
     await queryClient.invalidateQueries({ queryKey: ["events", eventId] });
@@ -304,9 +291,7 @@ function EditEventForm({
       .select("user_id")
       .eq("event_id", eventId)
       .eq("notify", true);
-    const externalUserIds = (saves ?? [])
-      .map((s) => s.user_id)
-      .filter((id) => id !== userId);
+    const externalUserIds = (saves ?? []).map((s) => s.user_id).filter((id) => id !== userId);
     const eventUrl = `${window.location.origin}/event/${eventId}`;
     void sendEventUpdateNotification({
       title: "Event updated",
@@ -342,12 +327,7 @@ function EditEventForm({
           className="mt-3 space-y-2.5 sm:mt-6 sm:space-y-4 [&_input]:h-9 [&_input]:py-1 [&_input]:text-sm sm:[&_input]:h-10 sm:[&_input]:text-base [&_button[role=combobox]]:h-9 sm:[&_button[role=combobox]]:h-10"
         >
           <Field label="Title" required>
-            <Input
-              name="title"
-              defaultValue={event.title}
-              required
-              maxLength={120}
-            />
+            <Input name="title" defaultValue={event.title} required maxLength={120} />
           </Field>
 
           {/* Date section — all three rows grouped with even spacing */}
@@ -364,12 +344,7 @@ function EditEventForm({
                 />
               </Field>
               <Field label="Time" required>
-                <Input
-                  type="time"
-                  name="event_time"
-                  defaultValue={initialTimeOnly}
-                  required
-                />
+                <Input type="time" name="event_time" defaultValue={initialTimeOnly} required />
               </Field>
             </div>
 
@@ -380,8 +355,10 @@ function EditEventForm({
                 checked={multiDay}
                 onChange={(e) => {
                   setMultiDay(e.target.checked);
-                  if (!e.target.checked) { setEndDay(""); setEndTime(""); }
-                  else if (!endDay) setEndDay(eventDay);
+                  if (!e.target.checked) {
+                    setEndDay("");
+                    setEndTime("");
+                  } else if (!endDay) setEndDay(eventDay);
                 }}
                 className="h-4 w-4 accent-primary"
               />
@@ -404,9 +381,7 @@ function EditEventForm({
                       onChange={(ev) => setEndDay(ev.target.value)}
                     />
                     {endDateError && (
-                      <p className="mt-1 text-[11px] text-destructive sm:text-xs">
-                        {endDateError}
-                      </p>
+                      <p className="mt-1 text-[11px] text-destructive sm:text-xs">{endDateError}</p>
                     )}
                   </Field>
                   <Field label="End time (optional)">
@@ -520,7 +495,12 @@ function EditEventForm({
                 Cancel
               </Link>
             </Button>
-            <Button type="submit" disabled={saving} size="sm" className="w-full shadow-glow sm:w-auto">
+            <Button
+              type="submit"
+              disabled={saving}
+              size="sm"
+              className="w-full shadow-glow sm:w-auto"
+            >
               {saving ? "Saving…" : "Save changes"}
             </Button>
           </div>
@@ -557,12 +537,7 @@ function DescriptionField({ defaultValue }: { defaultValue: string }) {
   const [value, setValue] = useState(defaultValue);
   return (
     <>
-      <DescriptionEditor
-        name="description"
-        value={value}
-        onChange={setValue}
-        maxLength={1500}
-      />
+      <DescriptionEditor name="description" value={value} onChange={setValue} maxLength={1500} />
       <div className="flex items-center justify-end gap-2">
         <p className="font-mono text-[11px] text-muted-foreground sm:text-xs">
           {value.length}/1500
@@ -571,5 +546,3 @@ function DescriptionField({ defaultValue }: { defaultValue: string }) {
     </>
   );
 }
-
-

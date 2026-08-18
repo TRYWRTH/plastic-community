@@ -15,12 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendNewEventNotification } from "@/lib/notifications";
 import { cleanDescription } from "@/lib/clean-description";
-import {
-  EVENT_TYPES,
-  
-  type EventType,
-  type Neighborhood,
-} from "@/lib/constants";
+import { EVENT_TYPES, type EventType, type Neighborhood } from "@/lib/constants";
 import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,8 +43,11 @@ function AddEvent() {
 
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("");
-  
-  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
+
+  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
+    lat: null,
+    lng: null,
+  });
   const [neighborhood, setNeighborhood] = useState<Neighborhood>("Mitte");
   const [eventType, setEventType] = useState<EventType>("music");
   const [eventDay, setEventDay] = useState(format(new Date(Date.now() + 86400000), "yyyy-MM-dd"));
@@ -65,9 +63,7 @@ function AddEvent() {
   const [saved, setSaved] = useState(false);
 
   const endDateError =
-    multiDay && endDay && endDay < eventDay
-      ? "End date must be on or after the start date."
-      : null;
+    multiDay && endDay && endDay < eventDay ? "End date must be on or after the start date." : null;
 
   const dirty =
     title !== "" ||
@@ -118,7 +114,7 @@ function AddEvent() {
       event_type: eventType,
       link: link.trim() || null,
       description: cleanDescription(description) || null,
-      
+
       created_by: user.id,
       lat: finalCoords.lat,
       lng: finalCoords.lng,
@@ -143,11 +139,7 @@ function AddEvent() {
 
     const extraCount = await createRecurringInstances(basePayload, parsedDate, repeats);
     setSaving(false);
-    toast.success(
-      extraCount > 0
-        ? `Event added (+${extraCount} repeats)`
-        : "Event added",
-    );
+    toast.success(extraCount > 0 ? `Event added (+${extraCount} repeats)` : "Event added");
 
     // Fire-and-forget push broadcast to all subscribers (client-side OneSignal call)
     const eventUrl = `${window.location.origin}/event/${data.id}`;
@@ -253,8 +245,10 @@ function AddEvent() {
                 checked={multiDay}
                 onChange={(e) => {
                   setMultiDay(e.target.checked);
-                  if (!e.target.checked) { setEndDay(""); setEndTime(""); }
-                  else if (!endDay) setEndDay(eventDay);
+                  if (!e.target.checked) {
+                    setEndDay("");
+                    setEndTime("");
+                  } else if (!endDay) setEndDay(eventDay);
                 }}
                 className="h-4 w-4 accent-primary"
               />
@@ -277,9 +271,7 @@ function AddEvent() {
                       onChange={(ev) => setEndDay(ev.target.value)}
                     />
                     {endDateError && (
-                      <p className="mt-1 text-[11px] text-destructive sm:text-xs">
-                        {endDateError}
-                      </p>
+                      <p className="mt-1 text-[11px] text-destructive sm:text-xs">{endDateError}</p>
                     )}
                   </Field>
                   <Field label="End time (optional)">
@@ -400,7 +392,12 @@ function AddEvent() {
             <Button type="button" variant="ghost" asChild size="sm" className="w-full sm:w-auto">
               <Link to="/">Cancel</Link>
             </Button>
-            <Button type="submit" disabled={saving} size="sm" className="w-full shadow-glow sm:w-auto">
+            <Button
+              type="submit"
+              disabled={saving}
+              size="sm"
+              className="w-full shadow-glow sm:w-auto"
+            >
               {saving ? "Saving…" : "Save event"}
             </Button>
           </div>
@@ -409,7 +406,6 @@ function AddEvent() {
     </div>
   );
 }
-
 
 function Field({
   label,
@@ -433,4 +429,3 @@ function Field({
     </div>
   );
 }
-

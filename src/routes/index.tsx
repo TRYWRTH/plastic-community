@@ -22,6 +22,7 @@ import {
   GERMAN_STATES,
   eventTypeMeta,
   neighborhoodMeta,
+  NOTIFICATIONS_ENABLED,
   type EventType,
   type Neighborhood,
 } from "@/lib/constants";
@@ -123,9 +124,6 @@ function Home() {
     return () => window.removeEventListener("keydown", onKey);
   }, [mobileSearchOpen]);
 
-
-
-
   const filtered = useMemo(() => {
     const cutoffPast = addDays(startOfDay(now), -30);
 
@@ -166,7 +164,6 @@ function Home() {
       const endD = e.end_date ? parseEndDateEod(e.end_date) : null;
       // Effective range end for "is this event active on day X" checks
       const rangeEnd = endD && d && endD > d ? endD : d;
-
 
       if (dateFilter === "past") {
         if (!d) return false;
@@ -212,7 +209,6 @@ function Home() {
         }
         // upcoming: exclude only when the full event range (end or start) has passed
         if (dateFilter === "upcoming" && d && isBefore(rangeEnd ?? d, now)) return false;
-
       }
 
       // Date-picker filter: compare as local YYYY-MM-DD strings to avoid timezone mismatch
@@ -234,8 +230,7 @@ function Home() {
 
     if (dateFilter === "past") {
       return [...result].sort(
-        (a, b) =>
-          new Date(b.event_date).getTime() - new Date(a.event_date).getTime(),
+        (a, b) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime(),
       );
     }
     // Dated ascending, undated at the bottom
@@ -291,8 +286,7 @@ function Home() {
   return (
     <div className="min-h-screen overflow-x-hidden bg-paper">
       <Header />
-      {/* Notifications hidden temporarily — feature kept for later testing */}
-      {false && <EnablePushBanner />}
+      {NOTIFICATIONS_ENABLED && <EnablePushBanner />}
 
       {/* Hero */}
       <section>
@@ -321,9 +315,6 @@ function Home() {
           </p>
         </div>
       </section>
-
-
-
 
       {/* Mobile search overlay */}
       {mobileSearchOpen && (
@@ -414,8 +405,10 @@ function Home() {
               ]}
             />
 
-
-            {(dateFilter !== "upcoming" || neighborhood !== "all" || eventType !== "all" || pickedDate) && (
+            {(dateFilter !== "upcoming" ||
+              neighborhood !== "all" ||
+              eventType !== "all" ||
+              pickedDate) && (
               <button
                 type="button"
                 onClick={() => {
@@ -447,7 +440,10 @@ function Home() {
                     <Calendar className="h-5 w-5" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto rounded-none border-2 border-foreground p-0" align="start">
+                <PopoverContent
+                  className="w-auto rounded-none border-2 border-foreground p-0"
+                  align="start"
+                >
                   <CalendarPicker
                     mode="single"
                     selected={pickedDate}
@@ -460,14 +456,23 @@ function Home() {
                       setCalOpenDesktop(false);
                     }}
                     modifiers={{ hasEvents: (d) => eventDates.has(format(d, "yyyy-MM-dd")) }}
-                    modifiersClassNames={{ hasEvents: "bg-primary text-primary-foreground rounded-md" }}
+                    modifiersClassNames={{
+                      hasEvents: "bg-primary text-primary-foreground rounded-md",
+                    }}
                     components={{
-                      DayButton: ({ day, modifiers, children, ...props }: React.ComponentProps<typeof DayButton>) => (
+                      DayButton: ({
+                        day,
+                        modifiers,
+                        children,
+                        ...props
+                      }: React.ComponentProps<typeof DayButton>) => (
                         <CalendarDayButton
                           day={day}
                           modifiers={modifiers}
                           {...props}
-                          className={[props.className, modifiers.today ? "font-bold" : ""].filter(Boolean).join(" ")}
+                          className={[props.className, modifiers.today ? "font-bold" : ""]
+                            .filter(Boolean)
+                            .join(" ")}
                         >
                           {children}
                         </CalendarDayButton>
@@ -479,7 +484,10 @@ function Home() {
                     <div className="border-t-2 border-foreground px-3 py-2">
                       <button
                         type="button"
-                        onClick={() => { setPickedDate(undefined); setCalOpenDesktop(false); }}
+                        onClick={() => {
+                          setPickedDate(undefined);
+                          setCalOpenDesktop(false);
+                        }}
                         className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50 hover:text-foreground"
                       >
                         <X className="h-3 w-3" />
@@ -539,7 +547,10 @@ function Home() {
                 <Calendar className="h-[22px] w-[22px]" />
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto rounded-none border-2 border-foreground p-0" align="end">
+            <PopoverContent
+              className="w-auto rounded-none border-2 border-foreground p-0"
+              align="end"
+            >
               <CalendarPicker
                 mode="single"
                 selected={pickedDate}
@@ -554,12 +565,19 @@ function Home() {
                 modifiers={{ hasEvents: (d) => eventDates.has(format(d, "yyyy-MM-dd")) }}
                 modifiersClassNames={{ hasEvents: "bg-primary text-primary-foreground rounded-md" }}
                 components={{
-                  DayButton: ({ day, modifiers, children, ...props }: React.ComponentProps<typeof DayButton>) => (
+                  DayButton: ({
+                    day,
+                    modifiers,
+                    children,
+                    ...props
+                  }: React.ComponentProps<typeof DayButton>) => (
                     <CalendarDayButton
                       day={day}
                       modifiers={modifiers}
                       {...props}
-                      className={[props.className, modifiers.today ? "font-bold" : ""].filter(Boolean).join(" ")}
+                      className={[props.className, modifiers.today ? "font-bold" : ""]
+                        .filter(Boolean)
+                        .join(" ")}
                     >
                       {children}
                     </CalendarDayButton>
@@ -571,7 +589,10 @@ function Home() {
                 <div className="border-t-2 border-foreground px-3 py-2">
                   <button
                     type="button"
-                    onClick={() => { setPickedDate(undefined); setCalOpenMobile(false); }}
+                    onClick={() => {
+                      setPickedDate(undefined);
+                      setCalOpenMobile(false);
+                    }}
                     className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-foreground/50 hover:text-foreground"
                   >
                     <X className="h-3 w-3" />
@@ -608,113 +629,106 @@ function Home() {
 
       {viewMode === "map" ? (
         <main className="mx-auto w-full max-w-5xl px-4 py-4">
-          <EventsMap events={filtered as any} />
+          <EventsMap events={filtered} />
         </main>
       ) : (
-      /* List */
-      <main className="mx-auto max-w-5xl px-4 py-8">
-        {isLoading ? (
-          <div className="grid gap-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-28 animate-pulse border-2 border-foreground bg-card"
-              />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <ul className="grid w-full gap-4">
-            {filtered.map((e) => {
-              const t = eventTypeMeta(e.event_type);
-              const n = neighborhoodMeta(e.neighborhood);
-              const rawDate = e.event_date ? new Date(e.event_date) : null;
-              const d = rawDate && !isNaN(rawDate.getTime()) ? rawDate : null;
-              const cardEndD = e.end_date ? parseEndDateEod(e.end_date) : null;
-              const cardRangeEnd = cardEndD && d && cardEndD > d ? cardEndD : d;
-              const isOngoing = !!(d && cardEndD && cardRangeEnd && !isBefore(now, d) && !isBefore(cardRangeEnd, now));
-              return (
-                <li key={e.id} className="min-w-0 w-full max-w-full">
-                  <Link
-                    to="/event/$eventId"
-                    params={{ eventId: e.id }}
-                    className="group block w-full max-w-full overflow-hidden border-2 border-foreground bg-card p-4 transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="grid h-16 w-16 shrink-0 place-items-center border-2 border-foreground bg-background">
-                        <div className="text-center leading-tight">
-                          <div className="font-mono text-[10px] uppercase tracking-wider text-foreground">
-                            {d ? format(d, "MMM") : "—"}
-                          </div>
-                          <div className="font-brand text-2xl text-foreground">
-                            {d ? format(d, "d") : "?"}
+        /* List */
+        <main className="mx-auto max-w-5xl px-4 py-8">
+          {isLoading ? (
+            <div className="grid gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-28 animate-pulse border-2 border-foreground bg-card" />
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <ul className="grid w-full gap-4">
+              {filtered.map((e) => {
+                const t = eventTypeMeta(e.event_type);
+                const n = neighborhoodMeta(e.neighborhood);
+                const rawDate = e.event_date ? new Date(e.event_date) : null;
+                const d = rawDate && !isNaN(rawDate.getTime()) ? rawDate : null;
+                const cardEndD = e.end_date ? parseEndDateEod(e.end_date) : null;
+                const cardRangeEnd = cardEndD && d && cardEndD > d ? cardEndD : d;
+                const isOngoing = !!(
+                  d &&
+                  cardEndD &&
+                  cardRangeEnd &&
+                  !isBefore(now, d) &&
+                  !isBefore(cardRangeEnd, now)
+                );
+                return (
+                  <li key={e.id} className="min-w-0 w-full max-w-full">
+                    <Link
+                      to="/event/$eventId"
+                      params={{ eventId: e.id }}
+                      className="group block w-full max-w-full overflow-hidden border-2 border-foreground bg-card p-4 transition-transform hover:-translate-x-[2px] hover:-translate-y-[2px] hover:shadow-stamp"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="grid h-16 w-16 shrink-0 place-items-center border-2 border-foreground bg-background">
+                          <div className="text-center leading-tight">
+                            <div className="font-mono text-[10px] uppercase tracking-wider text-foreground">
+                              {d ? format(d, "MMM") : "—"}
+                            </div>
+                            <div className="font-brand text-2xl text-foreground">
+                              {d ? format(d, "d") : "?"}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-foreground">
-                          <t.Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                          <span>{t.label}</span>
-                        </div>
-                        <h3 className="mt-1 line-clamp-2 sm:truncate sm:line-clamp-none font-brand text-xl uppercase text-foreground group-hover:text-primary">
-                          {e.title}
-                        </h3>
-                        <div className="mt-2 flex flex-col gap-1 font-mono text-xs uppercase tracking-wide text-foreground">
-                          <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
-                            <span className="inline-flex items-center gap-1">
-                              <Calendar className="h-3.5 w-3.5 shrink-0" />
-                              {d
-                                ? e.end_date
-                                  ? formatEventDateRange(d, e.end_date)
-                                  : format(d, "EEE, HH:mm")
-                                : "Date TBA"}
-                            </span>
-                            {isOngoing && (
-                              <span className="inline-flex items-center border border-foreground/40 px-1.5 py-0.5 text-[10px] tracking-widest text-foreground">
-                                ONGOING
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-foreground">
+                            <t.Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                            <span>{t.label}</span>
+                          </div>
+                          <h3 className="mt-1 line-clamp-2 sm:truncate sm:line-clamp-none font-brand text-xl uppercase text-foreground group-hover:text-primary">
+                            {e.title}
+                          </h3>
+                          <div className="mt-2 flex flex-col gap-1 font-mono text-xs uppercase tracking-wide text-foreground">
+                            <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+                              <span className="inline-flex items-center gap-1">
+                                <Calendar className="h-3.5 w-3.5 shrink-0" />
+                                {d
+                                  ? e.end_date
+                                    ? formatEventDateRange(d, e.end_date)
+                                    : format(d, "EEE, HH:mm")
+                                  : "Date TBA"}
                               </span>
-                            )}
-                            {(() => {
-                              const rep = recurringByKey.get(`${e.created_by}::${e.title}`);
-                              return rep ? (
-                                <span className="inline-flex items-center gap-1 border border-foreground/40 px-1.5 py-0.5 text-[10px] tracking-widest text-foreground">
-                                  ↻ {rep.toUpperCase()}
+                              {isOngoing && (
+                                <span className="inline-flex items-center border border-foreground/40 px-1.5 py-0.5 text-[10px] tracking-widest text-foreground">
+                                  ONGOING
                                 </span>
-                              ) : null;
-                            })()}
-                          </span>
-                          {e.is_secret ? (
-                            <span className="inline-flex items-center gap-1">
-                              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                              <span className="border border-foreground/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-foreground/70">
-                                Secret
-                              </span>
+                              )}
+                              {(() => {
+                                const rep = recurringByKey.get(`${e.created_by}::${e.title}`);
+                                return rep ? (
+                                  <span className="inline-flex items-center gap-1 border border-foreground/40 px-1.5 py-0.5 text-[10px] tracking-widest text-foreground">
+                                    ↻ {rep.toUpperCase()}
+                                  </span>
+                                ) : null;
+                              })()}
                             </span>
-                          ) : isMobile ? (
-                            <span className="inline-flex min-w-0 max-w-full items-start gap-1 self-start text-left">
-                              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                              <span className="min-w-0 break-words">
-                                {stripNeighborhoodSuffix(e.place, n.label)}
-                                {" · "}
-                                <span className="text-neighborhood">{n.label}</span>
+                            {e.is_secret ? (
+                              <span className="inline-flex items-center gap-1">
+                                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                <span className="border border-foreground/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-widest text-foreground/70">
+                                  Secret
+                                </span>
                               </span>
-                            </span>
-                          ) : (
-                            <span
-                              role="link"
-                              tabIndex={0}
-                              onClick={(ev) => {
-                                ev.preventDefault();
-                                ev.stopPropagation();
-                                window.open(
-                                  `https://maps.google.com/?q=${encodeURIComponent(cleanPlace(e.place))}`,
-                                  "_blank",
-                                  "noopener,noreferrer",
-                                );
-                              }}
-                              onKeyDown={(ev) => {
-                                if (ev.key === "Enter" || ev.key === " ") {
+                            ) : isMobile ? (
+                              <span className="inline-flex min-w-0 max-w-full items-start gap-1 self-start text-left">
+                                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                <span className="min-w-0 break-words">
+                                  {stripNeighborhoodSuffix(e.place, n.label)}
+                                  {" · "}
+                                  <span className="text-neighborhood">{n.label}</span>
+                                </span>
+                              </span>
+                            ) : (
+                              <span
+                                role="link"
+                                tabIndex={0}
+                                onClick={(ev) => {
                                   ev.preventDefault();
                                   ev.stopPropagation();
                                   window.open(
@@ -722,32 +736,39 @@ function Home() {
                                     "_blank",
                                     "noopener,noreferrer",
                                   );
-                                }
-                              }}
-                              className="inline-flex min-w-0 max-w-full items-start gap-1 self-start text-left hover:text-link cursor-pointer"
-                            >
-                              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                              <span className="min-w-0 break-words underline-offset-2 hover:underline">
-                                {stripNeighborhoodSuffix(e.place, n.label)}
-                                {" · "}
-                                <span className="text-neighborhood">{n.label}</span>
+                                }}
+                                onKeyDown={(ev) => {
+                                  if (ev.key === "Enter" || ev.key === " ") {
+                                    ev.preventDefault();
+                                    ev.stopPropagation();
+                                    window.open(
+                                      `https://maps.google.com/?q=${encodeURIComponent(cleanPlace(e.place))}`,
+                                      "_blank",
+                                      "noopener,noreferrer",
+                                    );
+                                  }
+                                }}
+                                className="inline-flex min-w-0 max-w-full items-start gap-1 self-start text-left hover:text-link cursor-pointer"
+                              >
+                                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                <span className="min-w-0 break-words underline-offset-2 hover:underline">
+                                  {stripNeighborhoodSuffix(e.place, n.label)}
+                                  {" · "}
+                                  <span className="text-neighborhood">{n.label}</span>
+                                </span>
                               </span>
-                            </span>
-                          )}
-                          <SaveCountsLine counts={countsMap?.get(e.id)} className="mt-1" />
-
-
+                            )}
+                            <SaveCountsLine counts={countsMap?.get(e.id)} className="mt-1" />
+                          </div>
                         </div>
-
                       </div>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </main>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </main>
       )}
     </div>
   );
@@ -758,8 +779,6 @@ function stripNeighborhoodSuffix(place: string, neighborhood: string) {
   const suffix = ` · ${neighborhood}`;
   return cleaned.endsWith(suffix) ? cleaned.slice(0, -suffix.length) : cleaned;
 }
-
-
 
 function FilterSelect({
   value,
@@ -788,7 +807,9 @@ function FilterSelect({
                 className={[
                   "rounded-none font-mono text-xs uppercase",
                   o.isState ? "italic opacity-70" : "",
-                ].filter(Boolean).join(" ")}
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
               >
                 {o.label}
               </SelectItem>
@@ -806,9 +827,7 @@ function EmptyState() {
       <div className="mx-auto inline-block border-2 border-foreground bg-primary px-3 py-1 font-mono text-xs uppercase tracking-widest text-primary-foreground">
         Nothing here
       </div>
-      <h3 className="mt-4 font-brand text-2xl uppercase text-foreground">
-        Nothing matches yet
-      </h3>
+      <h3 className="mt-4 font-brand text-2xl uppercase text-foreground">Nothing matches yet</h3>
       <p className="mt-2 font-mono text-xs uppercase tracking-wide text-foreground">
         Widen your filters, or be the first to add something.
       </p>

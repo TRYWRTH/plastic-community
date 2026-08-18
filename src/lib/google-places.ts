@@ -1,12 +1,9 @@
 // Lazy-loads the Google Maps JS API and ensures the new Places library
 // (including PlaceAutocompleteElement) is imported and ready.
-const GOOGLE_PLACES_API_KEY =
-  import.meta.env.VITE_GOOGLE_PLACES_API_KEY ||
-  "AIzaSyA5tkm_gjsdsja-aFDatefyf33l20DT9vw";
+const GOOGLE_PLACES_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY as string | undefined;
 
 declare global {
   interface Window {
-    google?: any;
     __gmapsLoader?: Promise<void>;
     __gmapsInit?: () => void;
   }
@@ -14,31 +11,32 @@ declare global {
 
 export function loadGooglePlaces(): Promise<void> {
   if (typeof window === "undefined") return Promise.resolve();
+  if (!GOOGLE_PLACES_API_KEY) return Promise.reject(new Error("Google Places API key missing"));
   if (window.__gmapsLoader) return window.__gmapsLoader;
 
   window.__gmapsLoader = new Promise<void>((resolve, reject) => {
     const importPlaces = async () => {
       try {
         // The new PlaceAutocompleteElement lives in the "places" library
-        // and must be imported via importLibrary before use.
-        await window.google.maps.importLibrary("places");
+        // and must be imported via importLibrary before use. Guaranteed to
+        // be set here: called only once window.google?.maps
+        // is truthy, or from the script's own load callback.
+        await window.google!.maps.importLibrary("places");
         resolve();
       } catch (err) {
         reject(err as Error);
       }
     };
 
-    if (window.google?.maps?.importLibrary) {
+    if (window.google?.maps) {
       importPlaces();
       return;
     }
 
-    const existing = document.querySelector<HTMLScriptElement>(
-      "script[data-google-maps]",
-    );
+    const existing = document.querySelector<HTMLScriptElement>("script[data-google-maps]");
     if (existing) {
       const wait = () => {
-        if (window.google?.maps?.importLibrary) return importPlaces();
+        if (window.google?.maps) return importPlaces();
         setTimeout(wait, 50);
       };
       wait();

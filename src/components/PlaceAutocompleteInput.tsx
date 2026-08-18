@@ -5,7 +5,6 @@ import { loadGooglePlaces } from "@/lib/google-places";
 import { cleanPlace } from "@/lib/clean-place";
 import { GERMAN_STATES } from "@/lib/constants";
 
-
 export type PlaceResult = {
   name: string;
   lat: number | null;
@@ -24,50 +23,50 @@ type Props = {
 
 // Berlin's 12 official districts — match Google Places address components.
 const NEIGHBORHOOD_MAP: Record<string, string> = {
-  "mitte": "Mitte",
+  mitte: "Mitte",
   "bezirk mitte": "Mitte",
   "friedrichshain-kreuzberg": "Friedrichshain-Kreuzberg",
   "bezirk friedrichshain-kreuzberg": "Friedrichshain-Kreuzberg",
-  "friedrichshain": "Friedrichshain-Kreuzberg",
-  "kreuzberg": "Friedrichshain-Kreuzberg",
-  "pankow": "Pankow",
+  friedrichshain: "Friedrichshain-Kreuzberg",
+  kreuzberg: "Friedrichshain-Kreuzberg",
+  pankow: "Pankow",
   "bezirk pankow": "Pankow",
   "prenzlauer berg": "Pankow",
   "charlottenburg-wilmersdorf": "Charlottenburg-Wilmersdorf",
   "bezirk charlottenburg-wilmersdorf": "Charlottenburg-Wilmersdorf",
-  "charlottenburg": "Charlottenburg-Wilmersdorf",
-  "wilmersdorf": "Charlottenburg-Wilmersdorf",
-  "spandau": "Spandau",
+  charlottenburg: "Charlottenburg-Wilmersdorf",
+  wilmersdorf: "Charlottenburg-Wilmersdorf",
+  spandau: "Spandau",
   "bezirk spandau": "Spandau",
   "steglitz-zehlendorf": "Steglitz-Zehlendorf",
   "bezirk steglitz-zehlendorf": "Steglitz-Zehlendorf",
-  "steglitz": "Steglitz-Zehlendorf",
-  "zehlendorf": "Steglitz-Zehlendorf",
+  steglitz: "Steglitz-Zehlendorf",
+  zehlendorf: "Steglitz-Zehlendorf",
   "tempelhof-schöneberg": "Tempelhof-Schöneberg",
   "tempelhof-schoneberg": "Tempelhof-Schöneberg",
   "bezirk tempelhof-schöneberg": "Tempelhof-Schöneberg",
   "bezirk tempelhof-schoneberg": "Tempelhof-Schöneberg",
-  "tempelhof": "Tempelhof-Schöneberg",
-  "schöneberg": "Tempelhof-Schöneberg",
-  "schoneberg": "Tempelhof-Schöneberg",
-  "neukölln": "Neukölln",
-  "neukolln": "Neukölln",
+  tempelhof: "Tempelhof-Schöneberg",
+  schöneberg: "Tempelhof-Schöneberg",
+  schoneberg: "Tempelhof-Schöneberg",
+  neukölln: "Neukölln",
+  neukolln: "Neukölln",
   "bezirk neukölln": "Neukölln",
   "bezirk neukolln": "Neukölln",
   "treptow-köpenick": "Treptow-Köpenick",
   "treptow-kopenick": "Treptow-Köpenick",
   "bezirk treptow-köpenick": "Treptow-Köpenick",
   "bezirk treptow-kopenick": "Treptow-Köpenick",
-  "treptow": "Treptow-Köpenick",
-  "köpenick": "Treptow-Köpenick",
-  "kopenick": "Treptow-Köpenick",
+  treptow: "Treptow-Köpenick",
+  köpenick: "Treptow-Köpenick",
+  kopenick: "Treptow-Köpenick",
   "marzahn-hellersdorf": "Marzahn-Hellersdorf",
   "bezirk marzahn-hellersdorf": "Marzahn-Hellersdorf",
-  "marzahn": "Marzahn-Hellersdorf",
-  "hellersdorf": "Marzahn-Hellersdorf",
-  "lichtenberg": "Lichtenberg",
+  marzahn: "Marzahn-Hellersdorf",
+  hellersdorf: "Marzahn-Hellersdorf",
+  lichtenberg: "Lichtenberg",
   "bezirk lichtenberg": "Lichtenberg",
-  "reinickendorf": "Reinickendorf",
+  reinickendorf: "Reinickendorf",
   "bezirk reinickendorf": "Reinickendorf",
 };
 
@@ -112,7 +111,7 @@ export function PlaceAutocompleteInput({
   maxLength,
 }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const autocompleteRef = useRef<any>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   const onPlaceSelectedRef = useRef(onPlaceSelected);
@@ -124,7 +123,7 @@ export function PlaceAutocompleteInput({
   useEffect(() => {
     if (selected) return;
     let cancelled = false;
-    let listener: any = null;
+    let listener: google.maps.MapsEventListener | null = null;
 
     loadGooglePlaces()
       .then(() => {
@@ -138,8 +137,8 @@ export function PlaceAutocompleteInput({
         // Bias towards Berlin + Brandenburg region (soft bias, not a hard restriction).
         // strictBounds is omitted so results outside the box are still returned.
         const brandenburgBounds = new window.google.maps.LatLngBounds(
-          { lat: 51.36, lng: 11.27 },  // SW corner of Brandenburg
-          { lat: 53.56, lng: 14.77 },  // NE corner of Brandenburg
+          { lat: 51.36, lng: 11.27 }, // SW corner of Brandenburg
+          { lat: 53.56, lng: 14.77 }, // NE corner of Brandenburg
         );
         const ac = new places.Autocomplete(inputRef.current, {
           fields: ["name", "formatted_address", "geometry", "address_components", "types"],
@@ -162,23 +161,26 @@ export function PlaceAutocompleteInput({
             : displayName;
           const name = cleanPlace(rawName);
 
-
           const loc = place.geometry?.location;
           const lat = loc ? loc.lat() : null;
           const lng = loc ? loc.lng() : null;
 
           let detectedNeighborhood: string | null = null;
-          const components: any[] = place.address_components || [];
+          const components: google.maps.GeocoderAddressComponent[] = place.address_components || [];
 
           // Check if the place is in Berlin by looking for "Berlin" in address components.
-          const isInBerlin = components.some((c) => {
-            const name = (c.long_name || "").toLowerCase();
-            return name === "berlin" && (
-              c.types?.includes("locality") ||
-              c.types?.includes("administrative_area_level_1") ||
-              c.types?.includes("political")
-            );
-          }) || (address.toLowerCase().includes(", berlin") || address.toLowerCase().startsWith("berlin"));
+          const isInBerlin =
+            components.some((c) => {
+              const name = (c.long_name || "").toLowerCase();
+              return (
+                name === "berlin" &&
+                (c.types?.includes("locality") ||
+                  c.types?.includes("administrative_area_level_1") ||
+                  c.types?.includes("political"))
+              );
+            }) ||
+            address.toLowerCase().includes(", berlin") ||
+            address.toLowerCase().startsWith("berlin");
 
           if (isInBerlin) {
             for (const component of components) {
