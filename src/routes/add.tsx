@@ -2,12 +2,9 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { ArrowLeft } from "lucide-react";
 
-import { Header } from "@/components/Header";
 import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
 import { DescriptionEditor } from "@/components/DescriptionEditor";
-
 import { QrScanButton } from "@/components/QrScanButton";
 import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,24 +13,14 @@ import { sendNewEventNotification } from "@/lib/notifications";
 import { cleanDescription } from "@/lib/clean-description";
 import { EVENT_TYPES, type EventType, type Neighborhood } from "@/lib/constants";
 import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
 import { cleanPlace } from "@/lib/clean-place";
 import { geocodeAddress } from "@/lib/geocode";
-
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export const Route = createFileRoute("/add")({
   component: AddEvent,
 });
+
+type Step = 1 | 2 | 3;
 
 function AddEvent() {
   const { isAuthenticated, user, loading } = useAuth();
@@ -45,9 +32,9 @@ function AddEvent() {
     }
   }, [loading, isAuthenticated, navigate]);
 
+  const [step, setStep] = useState<Step>(1);
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("");
-
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
     lat: null,
     lng: null,
@@ -80,9 +67,8 @@ function AddEvent() {
     multiDay ||
     repeats !== "none";
 
-  const submit = async (e: React.FormEvent) => {
+  const publish = async () => {
     setSaved(true);
-    e.preventDefault();
     if (!user) {
       setSaved(false);
       return;
@@ -118,7 +104,6 @@ function AddEvent() {
       event_type: eventType,
       link: link.trim() || null,
       description: cleanDescription(description) || null,
-
       created_by: user.id,
       lat: finalCoords.lat,
       lng: finalCoords.lng,
@@ -143,7 +128,7 @@ function AddEvent() {
 
     const extraCount = await createRecurringInstances(basePayload, parsedDate, repeats);
     setSaving(false);
-    toast.success(extraCount > 0 ? `Event added (+${extraCount} repeats)` : "Event added");
+    toast.success(extraCount > 0 ? `EVENT PUBLISHED (+${extraCount} repeats)` : "EVENT PUBLISHED");
 
     // Fire-and-forget push broadcast to all subscribers (client-side OneSignal call)
     const eventUrl = `${window.location.origin}/event/${data.id}`;
@@ -156,258 +141,318 @@ function AddEvent() {
     navigate({ to: "/event/$eventId", params: { eventId: data.id } });
   };
 
+  const nextStep = () => {
+    if (step === 1) {
+      if (!title.trim()) {
+        toast.error("GIVE IT A TITLE FIRST");
+        return;
+      }
+      setStep(2);
+      return;
+    }
+    if (step === 2) {
+      const parsedDate = new Date(`${eventDay}T${eventTime}`);
+      if (Number.isNaN(parsedDate.getTime())) {
+        toast.error("Please choose a valid date and time.");
+        return;
+      }
+      if (multiDay && (!endDay || endDateError)) {
+        toast.error(endDateError ?? "Please pick an end date.");
+        return;
+      }
+      setStep(3);
+      return;
+    }
+    if (!place.trim()) {
+      toast.error("Please add a place, or turn on NO PUBLIC ADDRESS.");
+      return;
+    }
+    void publish();
+  };
+
+  const prevStep = () => {
+    if (step === 1) {
+      navigate({ to: "/" });
+      return;
+    }
+    setStep((step - 1) as Step);
+  };
+
   if (loading || !isAuthenticated) {
-    return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-xl px-4 py-12 text-center text-muted-foreground">
-          Loading…
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen bg-background" />;
   }
 
+  const stepTitle = step === 1 ? "What is it?" : step === 2 ? "When" : "Where";
+  const nextLabel = step === 3 ? "PUBLISH EVENT" : "CONTINUE";
+  const prevLabel = step === 1 ? "CANCEL" : "BACK";
+
   return (
-    <div className="min-h-screen">
-      <Header />
-      <main className="mx-auto max-w-xl px-3 py-2 sm:px-4 sm:py-6">
-        <UnsavedChangesGuard when={dirty && !saving && !saved} />
-        <Link
-          to="/"
-          className="inline-flex h-11 items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-widest text-foreground hover:text-primary"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back
-        </Link>
+    <div className="min-h-screen bg-background">
+      <UnsavedChangesGuard when={dirty && !saving && !saved} />
+      <div className="mx-auto flex max-w-[430px] flex-col gap-4 px-5 pb-28 pt-2">
+        <div className="flex flex-col gap-2.5">
+          <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground">
+            STEP {step} OF 3
+          </span>
+          <h1 className="font-brand text-4xl uppercase leading-none tracking-[0.02em] text-foreground">
+            {stepTitle}
+          </h1>
+          <div className="flex gap-1">
+            {[1, 2, 3].map((n) => (
+              <span
+                key={n}
+                className={`h-1 flex-1 rounded-full ${n <= step ? "bg-primary" : "bg-foreground/20"}`}
+              />
+            ))}
+          </div>
+        </div>
 
-        <h1 className="mt-1 font-display text-xl font-bold sm:text-3xl">Add an event</h1>
-        <p className="mt-0.5 text-xs text-muted-foreground sm:text-base">
-          Saw a poster or heard a whisper? Add it here.
-        </p>
+        {step === 1 && (
+          <div className="flex flex-col gap-4">
+            <FieldLabel label="TITLE">
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Basement noise set"
+                maxLength={120}
+                autoFocus
+                className="h-12 rounded-full border border-border bg-input px-4 text-[15px] text-foreground outline-none placeholder:text-dim"
+              />
+            </FieldLabel>
+            <div className="flex flex-col gap-1.5">
+              <span className="font-mono text-[9px] tracking-[0.16em] text-muted-foreground">
+                CATEGORY
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {EVENT_TYPES.map((t) => {
+                  const active = eventType === t.value;
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setEventType(t.value)}
+                      className={`rounded-full border px-3.5 py-2.5 font-mono text-[10px] tracking-[0.1em] ${
+                        active
+                          ? "border-transparent bg-primary text-primary-foreground"
+                          : "border-border/[0.22] text-muted-2"
+                      }`}
+                    >
+                      {t.label.toUpperCase()}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
-        <form
-          onSubmit={submit}
-          className="mt-3 space-y-2.5 sm:mt-6 sm:space-y-4 [&_input]:h-9 [&_input]:py-1 [&_input]:text-sm sm:[&_input]:h-10 sm:[&_input]:text-base [&_button[role=combobox]]:h-9 sm:[&_button[role=combobox]]:h-10"
-        >
-          <Field label="Title" required>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Open-air jazz night"
-              required
-              maxLength={120}
-            />
-          </Field>
-
-          {/* Date section — all three rows grouped with even spacing */}
-          <div className="space-y-2">
-            {/* Row 1: Date + Time */}
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr] sm:gap-4">
-              <Field label="Date" required>
-                <Input
+        {step === 2 && (
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-2.5">
+              <FieldLabel label="DATE">
+                <input
                   type="date"
                   value={eventDay}
                   onChange={(e) => setEventDay(e.target.value)}
-                  required
+                  className="h-12 rounded-full border border-border bg-input px-3.5 font-mono text-xs text-foreground outline-none"
+                  style={{ colorScheme: "dark" }}
                 />
-              </Field>
-              <Field label="Time" required>
-                <Input
+              </FieldLabel>
+              <FieldLabel label="START">
+                <input
                   type="time"
                   value={eventTime}
                   onChange={(e) => setEventTime(e.target.value)}
-                  required
+                  className="h-12 rounded-full border border-border bg-input px-3.5 font-mono text-xs text-foreground outline-none"
+                  style={{ colorScheme: "dark" }}
                 />
-              </Field>
+              </FieldLabel>
             </div>
 
-            {/* Row 2: Add end date checkbox */}
-            <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
-              <input
-                type="checkbox"
-                checked={multiDay}
-                onChange={(e) => {
-                  setMultiDay(e.target.checked);
-                  if (!e.target.checked) {
-                    setEndDay("");
-                    setEndTime("");
-                  } else if (!endDay) setEndDay(eventDay);
-                }}
-                className="h-4 w-4 accent-primary"
-              />
-              Add end date
-            </label>
+            <ToggleRow
+              label="ADD END DATE"
+              sublabel="FOR MULTI-DAY EVENTS"
+              checked={multiDay}
+              onChange={(v) => {
+                setMultiDay(v);
+                if (!v) {
+                  setEndDay("");
+                  setEndTime("");
+                } else if (!endDay) setEndDay(eventDay);
+              }}
+            />
 
-            {/* End date/time fields — animated expand */}
-            <div
-              className={`grid overflow-hidden transition-all duration-300 ease-out ${
-                multiDay ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-              }`}
-            >
-              <div className="min-h-0">
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr] sm:gap-4">
-                  <Field label="End date" required={multiDay}>
-                    <Input
-                      type="date"
-                      value={endDay}
-                      min={eventDay}
-                      onChange={(ev) => setEndDay(ev.target.value)}
-                    />
-                    {endDateError && (
-                      <p className="mt-1 text-[11px] text-destructive sm:text-xs">{endDateError}</p>
-                    )}
-                  </Field>
-                  <Field label="End time (optional)">
-                    <Input
-                      type="time"
-                      value={endTime}
-                      onChange={(ev) => setEndTime(ev.target.value)}
-                    />
-                  </Field>
-                </div>
+            {multiDay && (
+              <div className="grid grid-cols-2 gap-2.5">
+                <FieldLabel label="END DATE">
+                  <input
+                    type="date"
+                    value={endDay}
+                    min={eventDay}
+                    onChange={(e) => setEndDay(e.target.value)}
+                    className="h-12 rounded-full border border-border bg-input px-3.5 font-mono text-xs text-foreground outline-none"
+                    style={{ colorScheme: "dark" }}
+                  />
+                  {endDateError && <p className="text-[11px] text-destructive">{endDateError}</p>}
+                </FieldLabel>
+                <FieldLabel label="END TIME (OPTIONAL)">
+                  <input
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="h-12 rounded-full border border-border bg-input px-3.5 font-mono text-xs text-foreground outline-none"
+                    style={{ colorScheme: "dark" }}
+                  />
+                </FieldLabel>
               </div>
-            </div>
+            )}
 
-            {/* Row 3: Repeats */}
-            <div className="space-y-1">
-              <label className="text-xs font-medium sm:text-sm">Repeats</label>
-              <Select value={repeats} onValueChange={(v) => setRepeats(v as RepeatOption)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {REPEAT_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col gap-1.5">
+              <span className="font-mono text-[9px] tracking-[0.16em] text-muted-foreground">
+                REPEATS
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {REPEAT_OPTIONS.map((o) => {
+                  const active = repeats === o.value;
+                  return (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => setRepeats(o.value)}
+                      className={`rounded-full border px-3.5 py-2.5 font-mono text-[10px] tracking-[0.1em] ${
+                        active
+                          ? "border-transparent bg-primary text-primary-foreground"
+                          : "border-border/[0.22] text-muted-2"
+                      }`}
+                    >
+                      {o.label.toUpperCase()}
+                    </button>
+                  );
+                })}
+              </div>
               {repeats !== "none" && (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="font-mono text-[9px] text-muted-foreground">
                   Future instances auto-created up to 3 months ahead.
                 </p>
               )}
             </div>
-          </div>
 
-          <Field label="Place" required>
-            <PlaceAutocompleteInput
-              value={place}
-              onChange={(v) => {
-                setPlace(v);
-                setCoords({ lat: null, lng: null });
-              }}
-              onPlaceSelected={(p) => {
-                setCoords({ lat: p.lat, lng: p.lng });
-                setNeighborhood((p.neighborhood as Neighborhood) ?? "Mitte");
-              }}
-              placeholder="Venue or address"
-              required
-              maxLength={200}
-            />
-          </Field>
-
-          <Field label="Category">
-            <Select value={eventType} onValueChange={(v) => setEventType(v as EventType)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {EVENT_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    <span className="inline-flex items-center gap-2">
-                      <t.Icon className="h-4 w-4" aria-hidden="true" />
-                      {t.label}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
-            <input
-              type="checkbox"
-              checked={isSecret}
-              onChange={(e) => setIsSecret(e.target.checked)}
-              className="h-4 w-4 accent-primary"
-            />
-            Secret event
-            <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40">
-              — hides location from public
-            </span>
-          </label>
-
-          <Field label="Link">
-            <div className="flex gap-2">
-              <Input
-                value={link}
-                onChange={(e) => setLink(e.target.value)}
-                placeholder="https://…"
-                type="url"
-                inputMode="url"
+            <FieldLabel label="DESCRIPTION — LINKS BECOME CLICKABLE">
+              <DescriptionEditor
+                value={description}
+                onChange={setDescription}
+                maxLength={1500}
+                placeholder="Doors 20:00. Cash only. instagram.com/…"
               />
-              <QrScanButton
-                onResult={(text) => {
-                  setLink(text);
-                  toast.success("QR captured");
+            </FieldLabel>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="flex flex-col gap-4">
+            <FieldLabel label="PLACE">
+              <PlaceAutocompleteInput
+                value={place}
+                onChange={(v) => {
+                  setPlace(v);
+                  setCoords({ lat: null, lng: null });
                 }}
+                onPlaceSelected={(p) => {
+                  setCoords({ lat: p.lat, lng: p.lng });
+                  setNeighborhood((p.neighborhood as Neighborhood) ?? "Mitte");
+                }}
+                placeholder="Sameheads, Richardstr. 20"
+                maxLength={200}
               />
-            </div>
-          </Field>
-
-          <Field label="Description">
-            <DescriptionEditor
-              value={description}
-              onChange={setDescription}
-              maxLength={1500}
-              placeholder="What makes it worth showing up?"
+            </FieldLabel>
+            <FieldLabel label="LINK — INSTAGRAM, TICKETS, SIGN-UP">
+              <div className="flex gap-2">
+                <input
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                  placeholder="instagram.com/plastic_productions_"
+                  type="text"
+                  inputMode="url"
+                  className="h-12 min-w-0 flex-1 rounded-full border border-border bg-input px-4 text-[15px] text-foreground outline-none placeholder:text-dim"
+                />
+                <QrScanButton
+                  onResult={(text) => {
+                    setLink(text);
+                    toast.success("QR captured");
+                  }}
+                />
+              </div>
+            </FieldLabel>
+            <ToggleRow
+              label="NO PUBLIC ADDRESS"
+              sublabel="GUESTS REGISTER OR ASK VIA THE LINK"
+              checked={isSecret}
+              onChange={setIsSecret}
             />
-            <div className="flex items-center justify-end gap-2">
-              <p className="font-mono text-[11px] text-muted-foreground sm:text-xs">
-                {description.length}/1500
-              </p>
-            </div>
-          </Field>
-
-          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:items-center">
-            <Button type="button" variant="ghost" asChild size="sm" className="w-full sm:w-auto">
-              <Link to="/">Cancel</Link>
-            </Button>
-            <Button
-              type="submit"
-              disabled={saving}
-              size="sm"
-              className="w-full shadow-glow sm:w-auto"
-            >
-              {saving ? "Saving…" : "Save event"}
-            </Button>
           </div>
-        </form>
-      </main>
+        )}
+
+        <div className="flex gap-2 pt-1">
+          <button
+            type="button"
+            onClick={prevStep}
+            className="shrink-0 rounded-full border border-border px-[18px] py-4 font-mono text-[10px] tracking-[0.14em] text-foreground"
+          >
+            {prevLabel}
+          </button>
+          <button
+            type="button"
+            onClick={nextStep}
+            disabled={saving}
+            className="flex-1 rounded-full bg-primary py-4 font-mono text-[10px] font-bold tracking-[0.16em] text-primary-foreground disabled:opacity-60"
+          >
+            {saving ? "…" : nextLabel}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
-function Field({
+function FieldLabel({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="font-mono text-[9px] tracking-[0.16em] text-muted-foreground">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function ToggleRow({
   label,
-  required,
-  hint,
-  children,
+  sublabel,
+  checked,
+  onChange,
 }: {
   label: string;
-  required?: boolean;
-  hint?: string;
-  children: React.ReactNode;
+  sublabel: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
 }) {
   return (
-    <div className="space-y-1">
-      <Label className="text-xs font-medium sm:text-sm">
-        {label}
-        {required && <span className="text-primary"> *</span>}
-      </Label>
-      {children}
-      {hint && <p className="text-[11px] text-muted-foreground sm:text-xs">{hint}</p>}
-    </div>
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className="flex items-center justify-between gap-2.5 rounded-2xl bg-foreground/[0.07] px-4 py-3.5 text-left text-foreground"
+    >
+      <span className="flex flex-col gap-1">
+        <span className="font-mono text-[10px] tracking-[0.14em]">{label}</span>
+        <span className="font-mono text-[9px] text-muted-foreground">{sublabel}</span>
+      </span>
+      <span
+        className={`flex h-[26px] w-[46px] shrink-0 items-center rounded-full p-[3px] ${
+          checked ? "justify-end bg-primary" : "justify-start bg-foreground/[0.18]"
+        }`}
+      >
+        <span
+          className={`h-5 w-5 rounded-full ${checked ? "bg-primary-foreground" : "bg-foreground"}`}
+        />
+      </span>
+    </button>
   );
 }
