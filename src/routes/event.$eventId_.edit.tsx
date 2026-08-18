@@ -11,6 +11,7 @@ import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
 import { DescriptionEditor } from "@/components/DescriptionEditor";
 import { QrScanButton } from "@/components/QrScanButton";
 import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
+import { EventImageUpload } from "@/components/EventImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendEventUpdateNotification } from "@/lib/notifications";
@@ -120,6 +121,7 @@ function EditEventForm({
   const [saved, setSaved] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
   const [place, setPlace] = useState(event.place);
+  const [imageUrl, setImageUrl] = useState<string | null>(event.image_url);
 
   const [neighborhood, setNeighborhood] = useState<Neighborhood>(event.neighborhood);
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
@@ -153,7 +155,8 @@ function EditEventForm({
     multiDay !== !!event.end_date ||
     endDay !== initialEndDay ||
     endTime !== initialEndTime ||
-    isSecret !== (event.is_secret ?? false);
+    isSecret !== (event.is_secret ?? false) ||
+    imageUrl !== event.image_url;
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     setSaved(true);
@@ -224,6 +227,7 @@ function EditEventForm({
         lng: finalCoords.lng,
         repeats,
         is_secret: isSecret,
+        image_url: imageUrl,
       })
       .eq("id", eventId)
       .select("*")
@@ -243,6 +247,7 @@ function EditEventForm({
         lat: finalCoords.lat,
         lng: finalCoords.lng,
         is_secret: isSecret,
+        image_url: imageUrl,
       };
       await supabase
         .from("events")
@@ -265,6 +270,7 @@ function EditEventForm({
             created_by: userId,
             lat: finalCoords.lat,
             lng: finalCoords.lng,
+            image_url: imageUrl,
           },
           parsedDate,
           repeats,
@@ -336,6 +342,15 @@ function EditEventForm({
           <Field label="Title" required>
             <Input name="title" defaultValue={event.title} required maxLength={120} />
           </Field>
+
+          <EventImageUpload
+            value={imageUrl}
+            onChange={(url) => {
+              setImageUrl(url);
+              setTouched(true);
+            }}
+            userId={userId}
+          />
 
           {/* Date section — all three rows grouped with even spacing */}
           <div className="space-y-2">

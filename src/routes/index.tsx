@@ -5,7 +5,7 @@ import { format, isBefore, isSameDay, startOfDay } from "date-fns";
 
 import { useAuth } from "@/lib/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { BERLIN_DISTRICTS, GERMAN_STATES, type Neighborhood } from "@/lib/constants";
+import { BERLIN_DISTRICTS, GERMAN_STATES, eventTypeMeta, type Neighborhood } from "@/lib/constants";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -183,9 +183,12 @@ function Home() {
         {/* Day-grouped list */}
         <div className="flex flex-col gap-4 px-5 pb-4 lg:px-8">
           {isLoading ? (
-            <div className="flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:gap-3 xl:grid-cols-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-[74px] animate-pulse rounded-[22px] bg-muted" />
+            <div className="flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-[74px] animate-pulse rounded-[22px] bg-muted lg:h-[260px] lg:rounded-[26px]"
+                />
               ))}
             </div>
           ) : isEmpty ? (
@@ -214,34 +217,54 @@ function Home() {
                   <span className="h-px flex-1 bg-border/[0.18]" />
                   <span className="font-mono text-[10px] text-muted-foreground">{g.count}</span>
                 </div>
-                <div className="flex flex-col gap-2 lg:grid lg:grid-cols-2 lg:gap-3 xl:grid-cols-3">
+                <div className="flex flex-col gap-2 lg:grid lg:grid-cols-2 lg:gap-4">
                   {g.items.map((e) => {
                     const d = new Date(e.event_date);
                     const districtLabel = (e.neighborhood as string).split("-")[0].toUpperCase();
+                    const category = eventTypeMeta(e.event_type);
                     return (
                       <Link
                         key={e.id}
                         to="/event/$eventId"
                         params={{ eventId: e.id }}
-                        className="flex items-center gap-3.5 rounded-[22px] bg-foreground/[0.07] px-4 py-3.5 hover:bg-foreground/[0.12]"
+                        className="flex flex-col overflow-hidden rounded-[22px] bg-foreground/[0.07] hover:bg-foreground/[0.12] lg:rounded-[26px]"
                       >
-                        <span className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center rounded-2xl bg-primary leading-[1.05] text-primary-foreground">
-                          <span className="font-brand text-base">{format(d, "dd")}</span>
-                          <span className="font-mono text-[8px] tracking-[0.1em] uppercase">
-                            {format(d, "MMM")}
+                        <div className="hidden lg:block lg:aspect-[16/9] lg:w-full lg:overflow-hidden lg:bg-shell-deep">
+                          {e.image_url ? (
+                            <img src={e.image_url} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center">
+                              <category.Icon className="h-9 w-9 text-foreground/[0.18]" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3.5 px-4 py-3.5 lg:items-start lg:gap-3 lg:p-4">
+                          <span className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center rounded-2xl bg-primary leading-[1.05] text-primary-foreground">
+                            <span className="font-brand text-base">{format(d, "dd")}</span>
+                            <span className="font-mono text-[8px] tracking-[0.1em] uppercase">
+                              {format(d, "MMM")}
+                            </span>
                           </span>
-                        </span>
-                        <span className="flex min-w-0 flex-1 flex-col gap-1">
-                          <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground">
-                            {e.title}
+                          <span className="flex min-w-0 flex-1 flex-col gap-1 lg:gap-1.5">
+                            <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground lg:text-[17px]">
+                              {e.title}
+                            </span>
+                            <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
+                              {format(d, "HH:mm")} · {districtLabel}
+                            </span>
+                            {e.description && (
+                              <span className="mt-0.5 hidden text-[12px] leading-[1.45] text-muted-2 lg:line-clamp-2">
+                                {e.description}
+                              </span>
+                            )}
+                            <span className="mt-1 hidden w-fit rounded-full bg-primary/[0.16] px-2.5 py-[3px] font-mono text-[9px] tracking-[0.1em] text-link lg:block">
+                              {category.label.toUpperCase()}
+                            </span>
                           </span>
-                          <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
-                            {format(d, "HH:mm")} · {districtLabel}
+                          <span className="shrink-0 font-mono text-[9px] tracking-[0.1em] text-link lg:hidden">
+                            {districtLabel}
                           </span>
-                        </span>
-                        <span className="shrink-0 font-mono text-[9px] tracking-[0.1em] text-link">
-                          {districtLabel}
-                        </span>
+                        </div>
                       </Link>
                     );
                   })}

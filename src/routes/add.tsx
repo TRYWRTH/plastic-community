@@ -7,6 +7,7 @@ import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
 import { DescriptionEditor } from "@/components/DescriptionEditor";
 import { QrScanButton } from "@/components/QrScanButton";
 import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
+import { EventImageUpload } from "@/components/EventImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendNewEventNotification } from "@/lib/notifications";
@@ -42,6 +43,7 @@ function AddEvent() {
   });
   const [neighborhood, setNeighborhood] = useState<Neighborhood>("Mitte");
   const [eventType, setEventType] = useState<EventType>("music");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [eventDay, setEventDay] = useState(format(new Date(Date.now() + 86400000), "yyyy-MM-dd"));
   const [eventTime, setEventTime] = useState("20:00");
   const [multiDay, setMultiDay] = useState(false);
@@ -114,6 +116,7 @@ function AddEvent() {
       created_by: user.id,
       lat: finalCoords.lat,
       lng: finalCoords.lng,
+      image_url: imageUrl,
     };
     const { data, error } = await supabase
       .from("events")
@@ -226,6 +229,7 @@ function AddEvent() {
                 className="h-12 rounded-full border border-border bg-input px-4 text-[15px] text-foreground outline-none placeholder:text-dim"
               />
             </FieldLabel>
+            {user && <EventImageUpload value={imageUrl} onChange={setImageUrl} userId={user.id} />}
             <div className="flex flex-col gap-1.5">
               <span className="font-mono text-[9px] tracking-[0.16em] text-muted-foreground">
                 CATEGORY
