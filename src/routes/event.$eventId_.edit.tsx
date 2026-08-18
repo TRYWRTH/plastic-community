@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { cleanPlace } from "@/lib/clean-place";
 import { geocodeAddress } from "@/lib/geocode";
 import { nearestBerlinDistrict } from "@/lib/district-from-coords";
+import { triggerLinkPreviewUnfurl } from "@/lib/link-preview";
 
 import { Label } from "@/components/ui/label";
 import {
@@ -293,6 +294,10 @@ function EditEventForm({
       sessionStorage.setItem("event-just-saved", eventId);
     } catch {
       // sessionStorage may be unavailable (e.g. private browsing) — not critical
+    }
+
+    if (nextLink && !imageUrl && (nextLink !== (event.link ?? "") || !event.link_preview_status)) {
+      triggerLinkPreviewUnfurl(eventId);
     }
 
     await queryClient.invalidateQueries({ queryKey: ["event-edit", eventId] });

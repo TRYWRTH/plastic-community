@@ -17,6 +17,7 @@ import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/l
 import { cleanPlace } from "@/lib/clean-place";
 import { geocodeAddress } from "@/lib/geocode";
 import { nearestBerlinDistrict } from "@/lib/district-from-coords";
+import { triggerLinkPreviewUnfurl } from "@/lib/link-preview";
 
 export const Route = createFileRoute("/add")({
   component: AddEvent,
@@ -139,6 +140,10 @@ function AddEvent() {
     const extraCount = await createRecurringInstances(basePayload, parsedDate, repeats);
     setSaving(false);
     toast.success(extraCount > 0 ? `EVENT PUBLISHED (+${extraCount} repeats)` : "EVENT PUBLISHED");
+
+    if (link.trim() && !imageUrl) {
+      triggerLinkPreviewUnfurl(data.id);
+    }
 
     // Fire-and-forget push broadcast to all subscribers (client-side OneSignal call)
     const eventUrl = `${window.location.origin}/event/${data.id}`;

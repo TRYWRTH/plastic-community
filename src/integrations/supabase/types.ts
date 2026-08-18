@@ -62,6 +62,12 @@ export type Database = {
           is_secret: boolean;
           lat: number | null;
           link: string | null;
+          link_preview_description: string | null;
+          link_preview_fetched_at: string | null;
+          link_preview_image_url: string | null;
+          link_preview_site_name: string | null;
+          link_preview_status: string | null;
+          link_preview_title: string | null;
           lng: number | null;
           neighborhood: Database["public"]["Enums"]["neighborhood"];
           place: string;
@@ -81,6 +87,12 @@ export type Database = {
           is_secret?: boolean;
           lat?: number | null;
           link?: string | null;
+          link_preview_description?: string | null;
+          link_preview_fetched_at?: string | null;
+          link_preview_image_url?: string | null;
+          link_preview_site_name?: string | null;
+          link_preview_status?: string | null;
+          link_preview_title?: string | null;
           lng?: number | null;
           neighborhood: Database["public"]["Enums"]["neighborhood"];
           place: string;
@@ -100,6 +112,12 @@ export type Database = {
           is_secret?: boolean;
           lat?: number | null;
           link?: string | null;
+          link_preview_description?: string | null;
+          link_preview_fetched_at?: string | null;
+          link_preview_image_url?: string | null;
+          link_preview_site_name?: string | null;
+          link_preview_status?: string | null;
+          link_preview_title?: string | null;
           lng?: number | null;
           neighborhood?: Database["public"]["Enums"]["neighborhood"];
           place?: string;

@@ -6,6 +6,8 @@ import { format, isBefore, isSameDay, startOfDay } from "date-fns";
 import { useAuth } from "@/lib/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { BERLIN_DISTRICTS, GERMAN_STATES, eventTypeMeta, type Neighborhood } from "@/lib/constants";
+import { resolveCardImage } from "@/lib/event-card-image";
+import { EventPoster } from "@/components/EventPoster";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -222,6 +224,7 @@ function Home() {
                     const d = new Date(e.event_date);
                     const districtLabel = (e.neighborhood as string).split("-")[0].toUpperCase();
                     const category = eventTypeMeta(e.event_type);
+                    const cardImage = resolveCardImage(e);
                     return (
                       <Link
                         key={e.id}
@@ -229,13 +232,26 @@ function Home() {
                         params={{ eventId: e.id }}
                         className="flex flex-col overflow-hidden rounded-[22px] bg-foreground/[0.07] hover:bg-foreground/[0.12] lg:rounded-[26px]"
                       >
-                        <div className="hidden lg:block lg:aspect-[16/9] lg:w-full lg:overflow-hidden lg:bg-shell-deep">
-                          {e.image_url ? (
-                            <img src={e.image_url} alt="" className="h-full w-full object-cover" />
+                        <div className="relative hidden lg:block lg:aspect-[16/9] lg:w-full lg:overflow-hidden">
+                          {cardImage ? (
+                            <img
+                              src={cardImage.url}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <category.Icon className="h-9 w-9 text-foreground/[0.18]" />
-                            </div>
+                            <EventPoster
+                              eventType={e.event_type}
+                              districtLabel={districtLabel}
+                              title={e.title}
+                              date={d}
+                              className="h-full"
+                            />
+                          )}
+                          {cardImage?.kind === "preview" && (
+                            <span className="absolute bottom-2 left-2 rounded-full bg-shell-deep/[0.72] px-2.5 py-1 font-mono text-[9px] tracking-[0.14em] text-muted-2">
+                              VIA {(cardImage.siteName ?? "LINK").toUpperCase()}
+                            </span>
                           )}
                         </div>
                         <div className="flex items-center gap-3.5 px-4 py-3.5 lg:items-start lg:gap-3 lg:p-4">

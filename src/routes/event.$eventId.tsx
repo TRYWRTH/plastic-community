@@ -15,6 +15,7 @@ import { useEventSaverNames } from "@/lib/use-event-going-initials";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
+import { resolveCardImage } from "@/lib/event-card-image";
 import { cleanPlace } from "@/lib/clean-place";
 import {
   DropdownMenu,
@@ -295,13 +296,24 @@ function EventDetail() {
           </p>
         ) : (
           <div className="mt-3.5 flex flex-col gap-4">
-            {event.image_url && (
-              <img
-                src={event.image_url}
-                alt=""
-                className="h-[220px] w-full rounded-[22px] object-cover"
-              />
-            )}
+            {(() => {
+              const cardImage = resolveCardImage(event);
+              if (!cardImage) return null;
+              return (
+                <div className="relative">
+                  <img
+                    src={cardImage.url}
+                    alt=""
+                    className="h-[220px] w-full rounded-[22px] object-cover"
+                  />
+                  {cardImage.kind === "preview" && (
+                    <span className="absolute bottom-2.5 left-2.5 rounded-full bg-shell-deep/[0.72] px-2.5 py-1 font-mono text-[9px] tracking-[0.14em] text-muted-2">
+                      VIA {(cardImage.siteName ?? "LINK").toUpperCase()}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
             <div className="flex items-center gap-3.5">
               <span className="flex h-[70px] w-[70px] shrink-0 flex-col items-center justify-center rounded-[24px] bg-primary leading-[1.05] text-primary-foreground">
                 <span className="font-brand text-[26px]">{format(validDate, "dd")}</span>
