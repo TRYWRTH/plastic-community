@@ -15,6 +15,7 @@ import { EVENT_TYPES, type EventType, type Neighborhood } from "@/lib/constants"
 import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
 import { cleanPlace } from "@/lib/clean-place";
 import { geocodeAddress } from "@/lib/geocode";
+import { nearestBerlinDistrict } from "@/lib/district-from-coords";
 
 export const Route = createFileRoute("/add")({
   component: AddEvent,
@@ -97,10 +98,16 @@ function AddEvent() {
       const geo = await geocodeAddress(`${place.trim()}, ${neighborhood}, Berlin`);
       if (geo) finalCoords = geo;
     }
+    // Coordinates are ground truth — prefer the nearest Bezirk to the final
+    // geocoded point over the (possibly stale or defaulted) form state.
+    const resolvedNeighborhood =
+      (finalCoords.lat != null && finalCoords.lng != null
+        ? nearestBerlinDistrict(finalCoords.lat, finalCoords.lng)
+        : null) ?? neighborhood;
     const basePayload = {
       title: title.trim(),
       place: cleanPlace(place.trim()),
-      neighborhood,
+      neighborhood: resolvedNeighborhood,
       event_type: eventType,
       link: link.trim() || null,
       description: cleanDescription(description) || null,
@@ -189,7 +196,7 @@ function AddEvent() {
   return (
     <div className="min-h-screen bg-background">
       <UnsavedChangesGuard when={dirty && !saving && !saved} />
-      <div className="mx-auto flex max-w-[430px] flex-col gap-4 px-5 pb-28 pt-2">
+      <div className="mx-auto flex max-w-[430px] flex-col gap-4 px-5 pb-28 pt-2 lg:max-w-[560px]">
         <div className="flex flex-col gap-2.5">
           <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground">
             STEP {step} OF 3
@@ -359,7 +366,9 @@ function AddEvent() {
                 }}
                 onPlaceSelected={(p) => {
                   setCoords({ lat: p.lat, lng: p.lng });
-                  setNeighborhood((p.neighborhood as Neighborhood) ?? "Mitte");
+                  const fallback =
+                    p.lat != null && p.lng != null ? nearestBerlinDistrict(p.lat, p.lng) : null;
+                  setNeighborhood((p.neighborhood as Neighborhood) ?? fallback ?? "Mitte");
                 }}
                 placeholder="Sameheads, Richardstr. 20"
                 maxLength={200}

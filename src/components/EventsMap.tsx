@@ -150,7 +150,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
   return (
     <div className="flex flex-col">
       <div
-        className="relative h-[400px] overflow-hidden rounded-[26px] bg-shell-deep"
+        className="relative mx-auto h-[400px] w-full max-w-[560px] overflow-hidden rounded-[26px] bg-shell-deep"
         style={{
           backgroundImage:
             "linear-gradient(rgba(247,231,228,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(247,231,228,0.06) 1px, transparent 1px)",
@@ -268,7 +268,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
         )}
       </div>
 
-      <div className="flex gap-1.5 py-3.5">
+      <div className="mx-auto flex w-full max-w-[560px] gap-1.5 py-3.5">
         {WHEN_STEPS.map((w) => {
           const active = when === w.value;
           return (
@@ -286,7 +286,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
         })}
       </div>
 
-      <div className="flex flex-col">
+      <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-x-8">
         {near.length === 0 ? (
           <div className="flex flex-col items-start gap-3 py-6">
             <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground">

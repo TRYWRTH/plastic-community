@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 
 import { cleanPlace } from "@/lib/clean-place";
 import { geocodeAddress } from "@/lib/geocode";
+import { nearestBerlinDistrict } from "@/lib/district-from-coords";
 
 import { Label } from "@/components/ui/label";
 import {
@@ -202,12 +203,18 @@ function EditEventForm({
       const geo = await geocodeAddress(`${nextPlace}, ${nextNeighborhood}, Berlin`);
       if (geo) finalCoords = geo;
     }
+    // Coordinates are ground truth — prefer the nearest Bezirk to the final
+    // geocoded point over the (possibly stale or defaulted) form state.
+    const resolvedNeighborhood =
+      (finalCoords.lat != null && finalCoords.lng != null
+        ? nearestBerlinDistrict(finalCoords.lat, finalCoords.lng)
+        : null) ?? nextNeighborhood;
     const { data: updated, error } = await supabase
       .from("events")
       .update({
         title: nextTitle,
         place: nextPlace,
-        neighborhood: nextNeighborhood,
+        neighborhood: resolvedNeighborhood,
         event_type: nextEventType,
         event_date: parsedDate.toISOString(),
         end_date: multiDay && endDay ? (endTime ? `${endDay}T${endTime}` : endDay) : null,
@@ -229,7 +236,7 @@ function EditEventForm({
       const siblingFields: Database["public"]["Tables"]["events"]["Update"] = {
         title: nextTitle,
         place: nextPlace,
-        neighborhood: nextNeighborhood,
+        neighborhood: resolvedNeighborhood,
         event_type: nextEventType,
         link: nextLink || null,
         description: nextDescription || null,
@@ -251,7 +258,7 @@ function EditEventForm({
           {
             title: nextTitle,
             place: nextPlace,
-            neighborhood: nextNeighborhood,
+            neighborhood: resolvedNeighborhood,
             event_type: nextEventType,
             link: nextLink || null,
             description: nextDescription || null,
@@ -427,7 +434,9 @@ function EditEventForm({
               }}
               onPlaceSelected={(p) => {
                 setCoords({ lat: p.lat, lng: p.lng });
-                setNeighborhood((p.neighborhood as Neighborhood) ?? "Mitte");
+                const fallback =
+                  p.lat != null && p.lng != null ? nearestBerlinDistrict(p.lat, p.lng) : null;
+                setNeighborhood((p.neighborhood as Neighborhood) ?? fallback ?? "Mitte");
               }}
               placeholder="Venue or address"
               required

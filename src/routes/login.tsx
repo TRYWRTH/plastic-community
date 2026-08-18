@@ -195,7 +195,7 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto flex max-w-[430px] flex-col gap-5 px-5 pb-4 pt-2">
+      <div className="mx-auto flex max-w-[430px] flex-col gap-5 px-5 pb-4 pt-2 lg:max-w-[520px]">
         <Link
           to="/"
           className="inline-flex h-11 w-fit items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-widest text-foreground hover:text-link"

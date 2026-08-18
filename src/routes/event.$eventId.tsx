@@ -11,6 +11,7 @@ import { SaveButtons } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import { ShareButton } from "@/components/ShareButton";
 import { useEventSaveCounts } from "@/lib/use-event-save-counts";
+import { useEventSaverNames } from "@/lib/use-event-going-initials";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
@@ -80,6 +81,7 @@ function EventDetail() {
   const { eventId } = Route.useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isAdmin = !!user && user.id === import.meta.env.VITE_ADMIN_USER_ID;
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [savedBannerVisible, setSavedBannerVisible] = useState(false);
@@ -112,10 +114,11 @@ function EventDetail() {
   });
 
   const { data: counts } = useEventSaveCounts(eventId);
+  const { data: saverNames } = useEventSaverNames(eventId);
 
   const { data: creator } = useQuery({
     queryKey: ["profile", event?.created_by],
-    enabled: !!event?.created_by,
+    enabled: !!event?.created_by && isAdmin,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
@@ -219,8 +222,7 @@ function EventDetail() {
 
   const isRecurring =
     !!event && ((event.repeats && event.repeats !== "none") || (seriesSiblingCount ?? 0) > 0);
-  const isCreator =
-    !!event && (user?.id === event.created_by || user?.id === import.meta.env.VITE_ADMIN_USER_ID);
+  const isCreator = !!event && (user?.id === event.created_by || isAdmin);
 
   const d = event ? new Date(event.event_date) : null;
   const validDate = d && !isNaN(d.getTime()) ? d : null;
@@ -228,6 +230,14 @@ function EventDetail() {
   const districtShort = event ? districtLabel.split("-")[0].toUpperCase() : "";
   const totalSaved = (counts?.going_count ?? 0) + (counts?.interested_count ?? 0);
   const addedByLabel = creator?.username ? `@${creator.username}` : "a member";
+  const savedByLabel = (() => {
+    if (totalSaved === 0) return "0 people";
+    const names = saverNames?.names ?? [];
+    const shown = names.slice(0, 6);
+    const remaining = totalSaved - shown.length;
+    if (shown.length === 0) return `${totalSaved} people`;
+    return remaining > 0 ? `${shown.join(", ")} +${remaining} more` : shown.join(", ");
+  })();
 
   return (
     <div className="min-h-screen bg-background">
@@ -239,7 +249,7 @@ function EventDetail() {
         </div>
       )}
 
-      <div className="mx-auto max-w-[430px] px-5 pb-28 pt-2">
+      <div className="mx-auto max-w-[430px] px-5 pb-28 pt-2 lg:max-w-[560px]">
         <div className="flex items-center justify-between gap-2">
           <Link
             to="/"
@@ -356,14 +366,18 @@ function EventDetail() {
                   ? "Secret location — contact the organiser"
                   : stripNeighborhoodSuffix(event.place, districtLabel)}
               </span>
-              <span className="pt-0.5 text-[9px] tracking-[0.16em] text-muted-foreground">
-                ADDED BY
-              </span>
-              <span>{addedByLabel}</span>
+              {isAdmin && (
+                <>
+                  <span className="pt-0.5 text-[9px] tracking-[0.16em] text-muted-foreground">
+                    ADDED BY
+                  </span>
+                  <span>{addedByLabel}</span>
+                </>
+              )}
               <span className="pt-0.5 text-[9px] tracking-[0.16em] text-muted-foreground">
                 SAVED BY
               </span>
-              <span>{totalSaved} people</span>
+              <span>{savedByLabel}</span>
             </div>
 
             {event.link && !isImageUrl(event.link) && (
@@ -462,7 +476,7 @@ function EventDetail() {
           className="fixed inset-x-0 bottom-[84px] z-20 grid grid-cols-[1fr_1fr_auto_auto] gap-2 px-4 pb-2 pt-6"
           style={{ background: "linear-gradient(180deg, rgba(90,2,16,0), var(--background) 32%)" }}
         >
-          <div className="col-span-4 mx-auto grid w-full max-w-[430px] grid-cols-[1fr_1fr_auto_auto] gap-2">
+          <div className="col-span-4 mx-auto grid w-full max-w-[430px] grid-cols-[1fr_1fr_auto_auto] gap-2 lg:max-w-[560px]">
             <SaveButtons eventId={event.id} />
             <AddToCalendarButton
               title={event.title}

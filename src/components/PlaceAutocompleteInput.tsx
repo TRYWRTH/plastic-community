@@ -3,7 +3,8 @@ import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { loadGooglePlaces } from "@/lib/google-places";
 import { cleanPlace } from "@/lib/clean-place";
-import { GERMAN_STATES } from "@/lib/constants";
+import { GERMAN_STATES, BERLIN_DISTRICTS } from "@/lib/constants";
+import { nearestBerlinDistrict } from "@/lib/district-from-coords";
 
 export type PlaceResult = {
   name: string;
@@ -183,19 +184,41 @@ export function PlaceAutocompleteInput({
             address.toLowerCase().startsWith("berlin");
 
           if (isInBerlin) {
-            for (const component of components) {
-              const longName = (component.long_name || "").toLowerCase();
-              if (NEIGHBORHOOD_MAP[longName]) {
-                detectedNeighborhood = NEIGHBORHOOD_MAP[longName];
-                break;
-              }
+            // Most reliable: Google's own borough/sublocality component.
+            const subComponent = components.find(
+              (c) =>
+                c.types?.includes("sublocality_level_1") ||
+                c.types?.includes("administrative_area_level_3"),
+            );
+            if (subComponent) {
+              const match = BERLIN_DISTRICTS.find(
+                (d) => d.label.toLowerCase() === subComponent.long_name.toLowerCase(),
+              );
+              if (match) detectedNeighborhood = match.value;
             }
+
+            // Next: real coordinates, matched to the nearest Bezirk centroid —
+            // far more reliable than guessing from street-name keywords.
+            if (!detectedNeighborhood && lat != null && lng != null) {
+              detectedNeighborhood = nearestBerlinDistrict(lat, lng);
+            }
+
+            // Last resort: street-name keyword matching.
             if (!detectedNeighborhood) {
-              const addressLower = address.toLowerCase();
-              for (const [key, val] of Object.entries(NEIGHBORHOOD_MAP)) {
-                if (addressLower.includes(key)) {
-                  detectedNeighborhood = val;
+              for (const component of components) {
+                const longName = (component.long_name || "").toLowerCase();
+                if (NEIGHBORHOOD_MAP[longName]) {
+                  detectedNeighborhood = NEIGHBORHOOD_MAP[longName];
                   break;
+                }
+              }
+              if (!detectedNeighborhood) {
+                const addressLower = address.toLowerCase();
+                for (const [key, val] of Object.entries(NEIGHBORHOOD_MAP)) {
+                  if (addressLower.includes(key)) {
+                    detectedNeighborhood = val;
+                    break;
+                  }
                 }
               }
             }

@@ -25,7 +25,7 @@ function RadarPage() {
 
   return (
     <div className="min-h-screen bg-background pb-28 pt-4">
-      <div className="mx-auto max-w-5xl px-4">
+      <div className="mx-auto max-w-[430px] px-4 lg:max-w-3xl lg:px-8">
         <EventsMap events={events} />
       </div>
     </div>

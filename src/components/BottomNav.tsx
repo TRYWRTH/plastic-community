@@ -41,7 +41,11 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pb-3.5"
+      className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-3 pt-6"
+      style={{
+        paddingBottom: "max(0.875rem, env(safe-area-inset-bottom))",
+        background: "linear-gradient(180deg, transparent, var(--background) 40%)",
+      }}
       aria-label="Primary"
     >
       <div className="grid w-full max-w-[406px] grid-cols-4 gap-1 rounded-full bg-shell-deep p-1.5">

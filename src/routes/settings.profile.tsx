@@ -98,7 +98,7 @@ function MePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto flex max-w-[430px] flex-col gap-5 px-5 pb-28 pt-5">
+      <div className="mx-auto flex max-w-[430px] flex-col gap-5 px-5 pb-28 pt-5 lg:max-w-[640px]">
         <div className="flex items-center gap-3.5">
           <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[24px] bg-primary font-brand text-[22px] text-primary-foreground">
             {initials}
