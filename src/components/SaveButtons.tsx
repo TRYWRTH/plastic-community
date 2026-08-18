@@ -1,12 +1,11 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Check, Star } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { Link, useRouterState } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { Button } from "@/components/ui/button";
-import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { getNotificationPermission, savePlayerIdForCurrentUser } from "@/lib/onesignal";
 import { NOTIFICATIONS_ENABLED } from "@/lib/constants";
 
@@ -15,7 +14,7 @@ type SaveRow = { id: string; status: SaveStatus; notify: boolean } | null;
 
 export function SaveButtons({ eventId }: { eventId: string }) {
   const { user, isAuthenticated, loading } = useAuth();
-  const [signInOpen, setSignInOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const qc = useQueryClient();
   const saveKey = ["event_save", eventId, user?.id];
 
@@ -172,19 +171,18 @@ export function SaveButtons({ eventId }: { eventId: string }) {
   if (!isAuthenticated) {
     return (
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" onClick={() => setSignInOpen(true)}>
-          <Check className="h-4 w-4" />
-          Going
+        <Button variant="outline" asChild>
+          <Link to="/login" search={{ redirect: pathname }}>
+            <Check className="h-4 w-4" />
+            Going
+          </Link>
         </Button>
-        <Button variant="outline" onClick={() => setSignInOpen(true)}>
-          <Star className="h-4 w-4" />
-          Interested
+        <Button variant="outline" asChild>
+          <Link to="/login" search={{ redirect: pathname }}>
+            <Star className="h-4 w-4" />
+            Interested
+          </Link>
         </Button>
-        <MagicLinkDialog
-          open={signInOpen}
-          onOpenChange={setSignInOpen}
-          title="Enter your email to save this event"
-        />
       </div>
     );
   }

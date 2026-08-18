@@ -10,7 +10,7 @@ import {
   Search,
   User,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -24,23 +24,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { NOTIFICATIONS_ENABLED } from "@/lib/constants";
 
 export function Header() {
   const { isAuthenticated, user, loading } = useAuth();
   const navigate = useNavigate();
-  const [signInOpen, setSignInOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
     const handler = () => {
       toast.error("Your session expired. Please sign in again.");
-      setSignInOpen(true);
+      navigate({ to: "/login", search: { redirect: pathname } });
     };
     window.addEventListener("whisperring:session-expired", handler);
     return () => window.removeEventListener("whisperring:session-expired", handler);
-  }, []);
+  }, [navigate, pathname]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -99,10 +97,12 @@ export function Header() {
               </Link>
             </Button>
           ) : (
-            <Button size="sm" variant="default" onClick={() => setSignInOpen(true)}>
-              <LogIn className="h-4 w-4" />
-              <span className="hidden sm:inline">Sign in to add event</span>
-              <span className="sm:hidden">Sign in</span>
+            <Button asChild size="sm" variant="default">
+              <Link to="/login" search={{ redirect: pathname }}>
+                <LogIn className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign in to add event</span>
+                <span className="sm:hidden">Sign in</span>
+              </Link>
             </Button>
           )}
           {!loading && isAuthenticated && (
@@ -142,7 +142,6 @@ export function Header() {
           )}
         </nav>
       </div>
-      <MagicLinkDialog open={signInOpen} onOpenChange={setSignInOpen} />
     </header>
   );
 }

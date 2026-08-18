@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 
 export const Route = createFileRoute("/settings/profile")({
   component: ProfileSettingsPage,
@@ -18,9 +17,15 @@ const USERNAME_RE = /^[A-Za-z0-9_.-]+$/;
 
 function ProfileSettingsPage() {
   const { user, isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
   const qc = useQueryClient();
-  const [signInOpen, setSignInOpen] = useState(false);
   const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate({ to: "/login", search: { redirect: "/settings/profile" } });
+    }
+  }, [loading, isAuthenticated, navigate]);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -72,22 +77,6 @@ function ProfileSettingsPage() {
         <p className="mt-2 font-mono text-xs uppercase tracking-widest text-foreground">
           Choose how your name appears to other people.
         </p>
-
-        {!loading && !isAuthenticated && (
-          <div className="mt-6 border-2 border-dashed border-foreground bg-background p-8 text-center">
-            <p className="font-mono text-xs uppercase tracking-wide text-foreground">
-              Sign in to edit your profile.
-            </p>
-            <Button className="mt-4" onClick={() => setSignInOpen(true)}>
-              Enter your email
-            </Button>
-            <MagicLinkDialog
-              open={signInOpen}
-              onOpenChange={setSignInOpen}
-              title="Enter your email to edit your profile"
-            />
-          </div>
-        )}
 
         {isAuthenticated && (
           <section className="mt-6 border-2 border-foreground bg-card p-4 sm:p-5">

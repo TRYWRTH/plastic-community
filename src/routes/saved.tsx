@@ -1,11 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect } from "react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { MapPin, Calendar, Check, Star, X } from "lucide-react";
 
 import { Header } from "@/components/Header";
-import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -19,9 +18,15 @@ export const Route = createFileRoute("/saved")({
 
 function SavedPage() {
   const { user, isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
-  const [signInOpen, setSignInOpen] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate({ to: "/login", search: { redirect: "/saved" } });
+    }
+  }, [loading, isAuthenticated, navigate]);
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["my_saved_events", user?.id],
@@ -68,22 +73,6 @@ function SavedPage() {
         <p className="mt-2 font-mono text-xs uppercase tracking-widest text-foreground">
           Upcoming events you marked Going or Interested.
         </p>
-
-        {!loading && !isAuthenticated && (
-          <div className="mt-6 border-2 border-dashed border-foreground bg-background p-8 text-center">
-            <p className="font-mono text-xs uppercase tracking-wide text-foreground">
-              Sign in to save events.
-            </p>
-            <Button className="mt-4" onClick={() => setSignInOpen(true)}>
-              Enter your email
-            </Button>
-            <MagicLinkDialog
-              open={signInOpen}
-              onOpenChange={setSignInOpen}
-              title="Enter your email to view your list"
-            />
-          </div>
-        )}
 
         {isAuthenticated && (
           <section className="mt-6">

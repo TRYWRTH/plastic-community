@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ArrowLeft } from "lucide-react";
@@ -10,7 +10,6 @@ import { DescriptionEditor } from "@/components/DescriptionEditor";
 
 import { QrScanButton } from "@/components/QrScanButton";
 import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
-import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendNewEventNotification } from "@/lib/notifications";
@@ -39,7 +38,12 @@ export const Route = createFileRoute("/add")({
 function AddEvent() {
   const { isAuthenticated, user, loading } = useAuth();
   const navigate = useNavigate();
-  const [signInOpen, setSignInOpen] = useState(!loading && !isAuthenticated);
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate({ to: "/login", search: { redirect: "/add" } });
+    }
+  }, [loading, isAuthenticated, navigate]);
 
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("");
@@ -152,35 +156,13 @@ function AddEvent() {
     navigate({ to: "/event/$eventId", params: { eventId: data.id } });
   };
 
-  if (loading) {
+  if (loading || !isAuthenticated) {
     return (
       <div className="min-h-screen">
         <Header />
         <div className="mx-auto max-w-xl px-4 py-12 text-center text-muted-foreground">
           Loading…
         </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen">
-        <Header />
-        <main className="mx-auto max-w-xl px-4 py-12 text-center">
-          <h1 className="font-brand text-3xl uppercase">Sign in to add events</h1>
-          <p className="mt-2 font-mono text-xs uppercase tracking-wide text-muted-foreground">
-            We'll email you a magic link — no password needed.
-          </p>
-          <Button className="mt-6" onClick={() => setSignInOpen(true)}>
-            Enter your email
-          </Button>
-        </main>
-        <MagicLinkDialog
-          open={signInOpen}
-          onOpenChange={setSignInOpen}
-          title="Enter your email to add an event"
-        />
       </div>
     );
   }
