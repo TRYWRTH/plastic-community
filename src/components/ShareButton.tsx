@@ -2,7 +2,17 @@ import { useState } from "react";
 import { Share2, Check, Copy } from "lucide-react";
 import { toast } from "sonner";
 
-export function ShareButton({ title, url }: { title: string; url: string }) {
+export function ShareButton({
+  title,
+  url,
+  className,
+  children,
+}: {
+  title: string;
+  url: string;
+  className?: string;
+  children?: React.ReactNode;
+}) {
   const [copied, setCopied] = useState(false);
 
   const canNativeShare =
@@ -31,11 +41,22 @@ export function ShareButton({ title, url }: { title: string; url: string }) {
     }
   };
 
+  if (children) {
+    return (
+      <button type="button" onClick={handleClick} className={className}>
+        {children}
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
       onClick={handleClick}
-      className="inline-flex items-center gap-2 border-2 border-foreground bg-background px-4 py-2 font-mono text-xs uppercase tracking-widest text-foreground hover:bg-primary hover:text-primary-foreground sm:text-sm"
+      className={
+        className ??
+        "inline-flex items-center gap-2 border-2 border-foreground bg-background px-4 py-2 font-mono text-xs uppercase tracking-widest text-foreground hover:bg-primary hover:text-primary-foreground sm:text-sm"
+      }
     >
       {canNativeShare ? (
         <>

@@ -8,6 +8,8 @@ type Props = {
   location?: string;
   description?: string;
   uid?: string;
+  className?: string;
+  children?: React.ReactNode;
 };
 
 function pad(n: number) {
@@ -38,6 +40,8 @@ export function AddToCalendarButton({
   location,
   description,
   uid,
+  className,
+  children,
 }: Props) {
   const onClick = () => {
     const startDate = new Date(start);
@@ -87,8 +91,16 @@ export function AddToCalendarButton({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
+  if (children) {
+    return (
+      <button type="button" onClick={onClick} className={className}>
+        {children}
+      </button>
+    );
+  }
+
   return (
-    <Button variant="outline" onClick={onClick}>
+    <Button variant="outline" onClick={onClick} className={className}>
       <CalendarPlus className="h-4 w-4" />
       Add to calendar
     </Button>
