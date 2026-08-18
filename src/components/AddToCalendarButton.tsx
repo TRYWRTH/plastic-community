@@ -28,11 +28,7 @@ function toIcsUtc(d: Date) {
 }
 
 function escapeIcs(s: string) {
-  return s
-    .replace(/\\/g, "\\\\")
-    .replace(/\n/g, "\\n")
-    .replace(/,/g, "\\,")
-    .replace(/;/g, "\\;");
+  return s.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
 }
 
 export function AddToCalendarButton({
@@ -78,11 +74,12 @@ export function AddToCalendarButton({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    const slug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "")
-      .slice(0, 50) || "event";
+    const slug =
+      title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 50) || "event";
     a.download = `${slug}.ics`;
     document.body.appendChild(a);
     a.click();

@@ -42,12 +42,7 @@ export function EventInterestPanel({
   }
 
   return (
-    <div
-      className={cn(
-        "space-y-3 border-2 border-foreground bg-background p-4",
-        className,
-      )}
-    >
+    <div className={cn("space-y-3 border-2 border-foreground bg-background p-4", className)}>
       {going > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-foreground">
@@ -62,10 +57,7 @@ export function EventInterestPanel({
       )}
       {interested > 0 && (
         <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-foreground">
-          <span
-            aria-hidden="true"
-            className="inline-block h-2 w-2 rounded-full bg-foreground/40"
-          />
+          <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-foreground/40" />
           {interested} {interested === 1 ? "person" : "people"} interested
         </div>
       )}

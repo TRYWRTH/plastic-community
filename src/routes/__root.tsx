@@ -118,7 +118,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap",
       },
-
     ],
   }),
   shellComponent: RootShell,
@@ -184,15 +183,11 @@ function RootComponent() {
     let handling = false;
     const isRefreshTokenError = (err: unknown): boolean => {
       if (!err) return false;
-      const msg =
-        (typeof err === "string" && err) ||
-        (err as { message?: string })?.message ||
-        "";
+      const msg = (typeof err === "string" && err) || (err as { message?: string })?.message || "";
       const code = (err as { code?: string })?.code || "";
       return (
-        /invalid refresh token|refresh token not found|refresh_token_not_found/i.test(
-          msg,
-        ) || code === "refresh_token_not_found"
+        /invalid refresh token|refresh token not found|refresh_token_not_found/i.test(msg) ||
+        code === "refresh_token_not_found"
       );
     };
 
@@ -220,7 +215,6 @@ function RootComponent() {
       window.removeEventListener("error", onError);
     };
   }, [router, queryClient]);
-
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;

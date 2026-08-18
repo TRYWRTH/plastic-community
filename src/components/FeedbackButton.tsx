@@ -70,11 +70,7 @@ export function FeedbackButton() {
               className="rounded-none border-2 border-foreground"
               required
             />
-            <Button
-              type="submit"
-              disabled={submitting || !message.trim()}
-              className="w-full"
-            >
+            <Button type="submit" disabled={submitting || !message.trim()} className="w-full">
               {submitting ? "Sending…" : "Send feedback"}
             </Button>
           </form>

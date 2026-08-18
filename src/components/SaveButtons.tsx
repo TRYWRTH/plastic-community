@@ -8,16 +8,12 @@ import { useAuth } from "@/lib/use-auth";
 import { Button } from "@/components/ui/button";
 import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { getNotificationPermission, savePlayerIdForCurrentUser } from "@/lib/onesignal";
+import { NOTIFICATIONS_ENABLED } from "@/lib/constants";
 
 type SaveStatus = "going" | "interested";
 type SaveRow = { id: string; status: SaveStatus; notify: boolean } | null;
 
-export function SaveButtons({
-  eventId,
-}: {
-  eventId: string;
-}) {
-
+export function SaveButtons({ eventId }: { eventId: string }) {
   const { user, isAuthenticated, loading } = useAuth();
   const [signInOpen, setSignInOpen] = useState(false);
   const qc = useQueryClient();
@@ -134,9 +130,7 @@ export function SaveButtons({
 
     const perm = getNotificationPermission();
     if (perm === "denied") {
-      toast.error(
-        "Notifications are blocked. Enable them in your browser or phone settings.",
-      );
+      toast.error("Notifications are blocked. Enable them in your browser or phone settings.");
       return;
     }
     if (perm === "granted") {
@@ -145,7 +139,7 @@ export function SaveButtons({
     }
 
     // perm === "default" → ask SYNCHRONOUSLY inside this gesture.
-    const OneSignal = (window as unknown as { OneSignal?: any }).OneSignal;
+    const OneSignal = window.OneSignal;
     let req: Promise<unknown>;
     try {
       req = OneSignal?.Notifications?.requestPermission
@@ -160,15 +154,15 @@ export function SaveButtons({
       if (Notification.permission === "granted") {
         try {
           OneSignal?.User?.PushSubscription?.optIn?.();
-        } catch {}
+        } catch {
+          // best-effort; permission is already granted regardless
+        }
         // Persist the OneSignal player id for this user so server-side
         // reminders can target this device.
         void savePlayerIdForCurrentUser();
         toggleNotify.mutate(true);
       } else {
-        toast.message(
-          "Notifications not enabled. You can turn them on later in settings.",
-        );
+        toast.message("Notifications not enabled. You can turn them on later in settings.");
       }
     });
   };
@@ -195,7 +189,6 @@ export function SaveButtons({
     );
   }
 
-
   const current = save?.status as SaveStatus | undefined;
   const notify = save?.notify ?? true;
 
@@ -212,18 +205,14 @@ export function SaveButtons({
         </Button>
         <Button
           variant={current === "interested" ? "default" : "outline"}
-          onClick={() =>
-            mutate.mutate(current === "interested" ? null : "interested")
-          }
+          onClick={() => mutate.mutate(current === "interested" ? null : "interested")}
           disabled={mutate.isPending}
         >
           <Star className="h-4 w-4" />
           Interested
         </Button>
-
       </div>
-      {/* Per-event notify toggle hidden temporarily — feature kept for later testing */}
-      {false && current && (
+      {NOTIFICATIONS_ENABLED && current && (
         <Button
           variant={notify ? "default" : "outline"}
           onClick={onNotifyClick}

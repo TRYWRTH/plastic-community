@@ -1,16 +1,13 @@
-// Minimal typing — we use the API dynamically via `any` to avoid a @types dep.
-type GoogleNS = any;
-
-let loaderPromise: Promise<GoogleNS> | null = null;
+let loaderPromise: Promise<typeof google> | null = null;
 
 declare global {
   interface Window {
-    google?: GoogleNS;
+    google?: typeof google;
     __initGoogleMapsCallback?: () => void;
   }
 }
 
-export function loadGoogleMaps(): Promise<GoogleNS> {
+export function loadGoogleMaps(): Promise<typeof google> {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("Google Maps can only load in the browser"));
   }
@@ -19,8 +16,10 @@ export function loadGoogleMaps(): Promise<GoogleNS> {
   loaderPromise = new Promise<void>((resolve, reject) => {
     const bootstrap = async () => {
       try {
-        await window.google.maps.importLibrary("maps");
-        await window.google.maps.importLibrary("marker");
+        // Guaranteed to be set here: called only once window.google?.maps
+        // is truthy, or from the script's own load callback.
+        await window.google!.maps.importLibrary("maps");
+        await window.google!.maps.importLibrary("marker");
         resolve();
       } catch (err) {
         reject(err);
@@ -29,14 +28,16 @@ export function loadGoogleMaps(): Promise<GoogleNS> {
 
     // If another loader (e.g. Places) already put the API on the page, just
     // import the libraries we need and resolve.
-    if (window.google?.maps?.importLibrary) {
+    if (window.google?.maps) {
       bootstrap();
       return;
     }
 
-    const key =
-      (import.meta.env.VITE_GOOGLE_PLACES_API_KEY as string | undefined) ||
-      "AIzaSyA5tkm_gjsdsja-aFDatefyf33l20DT9vw";
+    const key = import.meta.env.VITE_GOOGLE_PLACES_API_KEY as string | undefined;
+    if (!key) {
+      reject(new Error("Google Maps API key missing"));
+      return;
+    }
 
     window.__initGoogleMapsCallback = () => bootstrap();
 
@@ -44,7 +45,7 @@ export function loadGoogleMaps(): Promise<GoogleNS> {
     const existing = document.querySelector<HTMLScriptElement>("script[data-google-maps]");
     if (existing) {
       const wait = () => {
-        if (window.google?.maps?.importLibrary) return bootstrap();
+        if (window.google?.maps) return bootstrap();
         setTimeout(wait, 50);
       };
       wait();
@@ -61,7 +62,7 @@ export function loadGoogleMaps(): Promise<GoogleNS> {
       reject(new Error("Failed to load Google Maps"));
     };
     document.head.appendChild(script);
-  }).then(() => window.google);
+  }).then(() => window.google!);
 
   return loaderPromise;
 }

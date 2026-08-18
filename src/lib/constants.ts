@@ -16,6 +16,10 @@ import {
 export type EventType = Database["public"]["Enums"]["event_type"];
 export type Neighborhood = Database["public"]["Enums"]["neighborhood"];
 
+// Push notification UI (banner, settings menu item, per-event toggle) is
+// hidden temporarily — feature kept in place for later testing.
+export const NOTIFICATIONS_ENABLED = false;
+
 export const EVENT_TYPES: { value: EventType; label: string; Icon: Icon }[] = [
   { value: "music", label: "Music", Icon: IconVinyl },
   { value: "theater", label: "Theater", Icon: IconMasksTheater },
@@ -28,7 +32,6 @@ export const EVENT_TYPES: { value: EventType; label: string; Icon: Icon }[] = [
   { value: "nightlife", label: "Nightlife", Icon: IconGlassFull },
   { value: "other", label: "Other", Icon: IconDots },
 ];
-
 
 export const BERLIN_DISTRICTS: { value: Neighborhood; label: string }[] = [
   { value: "Mitte", label: "Mitte" },

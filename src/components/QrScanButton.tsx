@@ -8,8 +8,6 @@ export function QrScanButton({ onResult }: { onResult: (text: string) => void })
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-
-
   return (
     <>
       <Button
@@ -34,7 +32,6 @@ export function QrScanButton({ onResult }: { onResult: (text: string) => void })
             {open && (
               <Scanner
                 paused={!open}
-
                 onScan={(codes) => {
                   const text = codes[0]?.rawValue;
                   if (text) {

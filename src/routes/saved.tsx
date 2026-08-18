@@ -37,8 +37,7 @@ function SavedPage() {
         .filter((r) => r.event && !isBefore(new Date(r.event.event_date), today))
         .sort(
           (a, b) =>
-            new Date(a.event!.event_date).getTime() -
-            new Date(b.event!.event_date).getTime(),
+            new Date(a.event!.event_date).getTime() - new Date(b.event!.event_date).getTime(),
         );
     },
   });
@@ -50,23 +49,22 @@ function SavedPage() {
       (old: { status: string; event: { id: string } }[] | undefined) =>
         old?.filter((item) => item.event.id !== eventId) ?? [],
     );
-    await supabase
-      .from("event_saves")
-      .delete()
-      .eq("user_id", user.id)
-      .eq("event_id", eventId);
+    await supabase.from("event_saves").delete().eq("user_id", user.id).eq("event_id", eventId);
   };
 
   return (
     <div className="min-h-screen bg-paper">
       <Header />
-     <main className="mx-auto max-w-3xl px-4 py-8">
-  <Link to="/" className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wide text-foreground hover:text-primary">
-    ← Back
-  </Link>
-  <h1 className="mt-4 font-brand text-4xl uppercase text-foreground sm:text-5xl">
-    Your list
-  </h1>
+      <main className="mx-auto max-w-3xl px-4 py-8">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wide text-foreground hover:text-primary"
+        >
+          ← Back
+        </Link>
+        <h1 className="mt-4 font-brand text-4xl uppercase text-foreground sm:text-5xl">
+          Your list
+        </h1>
         <p className="mt-2 font-mono text-xs uppercase tracking-widest text-foreground">
           Upcoming events you marked Going or Interested.
         </p>
@@ -92,10 +90,7 @@ function SavedPage() {
             {isLoading ? (
               <div className="grid gap-3">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-24 animate-pulse border-2 border-foreground bg-card"
-                  />
+                  <div key={i} className="h-24 animate-pulse border-2 border-foreground bg-card" />
                 ))}
               </div>
             ) : data.length === 0 ? (
@@ -160,7 +155,9 @@ function SavedPage() {
                                     <TooltipProvider delayDuration={100}>
                                       <Tooltip>
                                         <TooltipTrigger asChild>{badge}</TooltipTrigger>
-                                        <TooltipContent>Click to remove from your list</TooltipContent>
+                                        <TooltipContent>
+                                          Click to remove from your list
+                                        </TooltipContent>
                                       </Tooltip>
                                     </TooltipProvider>
                                   );

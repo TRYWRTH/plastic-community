@@ -4,7 +4,7 @@ import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
-import { Markdown } from "tiptap-markdown";
+import { Markdown, type MarkdownStorage } from "tiptap-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -35,13 +35,7 @@ function selectionContainsLink(editor: Editor): { hasLink: boolean; href: string
   return { hasLink: !!href, href };
 }
 
-export function DescriptionEditor({
-  value,
-  onChange,
-  name,
-  maxLength = 1500,
-  placeholder,
-}: Props) {
+export function DescriptionEditor({ value, onChange, name, maxLength = 1500, placeholder }: Props) {
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkText, setLinkText] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
@@ -83,7 +77,9 @@ export function DescriptionEditor({
       },
     },
     onUpdate: ({ editor }) => {
-      const md = (editor.storage as any).markdown.getMarkdown() as string;
+      const md = (
+        editor.storage as unknown as { markdown: MarkdownStorage }
+      ).markdown.getMarkdown();
       const truncated = md.length > maxLength ? md.slice(0, maxLength) : md;
       onChange(truncated);
     },
@@ -92,17 +88,16 @@ export function DescriptionEditor({
   // Sync external value changes (e.g. reset, async load) without breaking caret on every keystroke.
   useEffect(() => {
     if (!editor) return;
-    const current = (editor.storage as any).markdown.getMarkdown() as string;
+    const current = (
+      editor.storage as unknown as { markdown: MarkdownStorage }
+    ).markdown.getMarkdown();
     if (value !== current) {
       editor.commands.setContent(value || "", { emitUpdate: false });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, editor]);
 
   if (!editor) {
-    return (
-      <div className="min-h-[7.5rem] w-full rounded-md border border-input bg-background" />
-    );
+    return <div className="min-h-[7.5rem] w-full rounded-md border border-input bg-background" />;
   }
 
   const openLink = () => {
@@ -128,10 +123,7 @@ export function DescriptionEditor({
     const normalized = /^https?:\/\//i.test(u) ? u : `https://${u}`;
     const chain = editor.chain().focus();
     if (hadSelectionRef.current) {
-      chain
-        .extendMarkRange("link")
-        .setLink({ href: normalized })
-        .run();
+      chain.extendMarkRange("link").setLink({ href: normalized }).run();
     } else {
       const display = linkText.trim() || u;
       chain
@@ -163,11 +155,7 @@ export function DescriptionEditor({
           <Italic className="h-3.5 w-3.5" />
         </ToolbarBtn>
         <span className="mx-1 h-4 w-px bg-border/70" aria-hidden />
-        <ToolbarBtn
-          label="Link"
-          active={selectionContainsLink(editor).hasLink}
-          onClick={openLink}
-        >
+        <ToolbarBtn label="Link" active={selectionContainsLink(editor).hasLink} onClick={openLink}>
           <Link2 className="h-3.5 w-3.5" />
         </ToolbarBtn>
       </div>

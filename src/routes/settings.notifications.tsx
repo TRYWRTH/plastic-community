@@ -39,7 +39,9 @@ function NotificationSettingsPage() {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    getPushOptedIn().then(setPushOn).catch(() => setPushOn(false));
+    getPushOptedIn()
+      .then(setPushOn)
+      .catch(() => setPushOn(false));
   }, [isAuthenticated]);
 
   const { data: prefs } = useQuery({
@@ -60,10 +62,7 @@ function NotificationSettingsPage() {
     mutationFn: async (hours: number) => {
       const { error } = await supabase
         .from("user_preferences")
-        .upsert(
-          { user_id: user!.id, reminder_hours: hours },
-          { onConflict: "user_id" },
-        );
+        .upsert({ user_id: user!.id, reminder_hours: hours }, { onConflict: "user_id" });
       if (error) throw error;
       return hours;
     },
@@ -87,8 +86,7 @@ function NotificationSettingsPage() {
         .filter((r) => r.event)
         .sort(
           (a, b) =>
-            new Date(a.event!.event_date).getTime() -
-            new Date(b.event!.event_date).getTime(),
+            new Date(a.event!.event_date).getTime() - new Date(b.event!.event_date).getTime(),
         );
     },
   });
@@ -115,9 +113,7 @@ function NotificationSettingsPage() {
       const result = await setPushOptIn(next);
       setPushOn(result);
       if (next && !result) {
-        toast.error(
-          "Notifications are blocked. Enable them in your browser or phone settings.",
-        );
+        toast.error("Notifications are blocked. Enable them in your browser or phone settings.");
       } else {
         toast.success(result ? "Notifications enabled" : "Notifications disabled");
       }
@@ -203,7 +199,6 @@ function NotificationSettingsPage() {
               </div>
             </section>
 
-
             <section className="mt-6">
               <h2 className="font-brand text-xl uppercase text-foreground">
                 Per-event notifications
@@ -251,9 +246,7 @@ function NotificationSettingsPage() {
                         <Switch
                           checked={s.notify}
                           disabled={toggleNotify.isPending}
-                          onCheckedChange={(next) =>
-                            toggleNotify.mutate({ saveId: s.id, next })
-                          }
+                          onCheckedChange={(next) => toggleNotify.mutate({ saveId: s.id, next })}
                           aria-label={`Notifications for ${ev.title}`}
                           className="mt-1 shrink-0"
                         />

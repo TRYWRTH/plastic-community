@@ -1,22 +1,23 @@
 import { useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { loadGoogleMaps } from "@/lib/google-maps-loader";
-import { neighborhoodMeta } from "@/lib/constants";
+import { neighborhoodMeta, type Neighborhood } from "@/lib/constants";
 
 type EventLike = {
   id: string;
   title: string;
   event_date: string;
-  neighborhood: string;
+  neighborhood: Neighborhood;
   lat: number | null;
   lng: number | null;
+  is_secret: boolean;
 };
 
 export function EventsMap({ events }: { events: EventLike[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
-  const infoRef = useRef<any>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<google.maps.Marker[]>([]);
+  const infoRef = useRef<google.maps.InfoWindow | null>(null);
 
   // Init map once
   useEffect(() => {
@@ -57,6 +58,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
     markersRef.current = [];
 
     for (const e of events) {
+      if (e.is_secret) continue;
       if (typeof e.lat !== "number" || typeof e.lng !== "number") continue;
       const marker = new google.maps.Marker({
         position: { lat: e.lat, lng: e.lng },
@@ -66,7 +68,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
       marker.addListener("click", () => {
         const d = e.event_date ? new Date(e.event_date) : null;
         const when = d && !isNaN(d.getTime()) ? format(d, "EEE d MMM, HH:mm") : "Date TBA";
-        const n = neighborhoodMeta(e.neighborhood as any);
+        const n = neighborhoodMeta(e.neighborhood);
         const html = `
           <div style="font-family: ui-monospace, monospace; max-width: 220px;">
             <div style="font-weight: 700; text-transform: uppercase; font-size: 14px; margin-bottom: 4px;">
@@ -84,6 +86,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
             </a>
           </div>
         `;
+        if (!infoRef.current) return;
         infoRef.current.setContent(html);
         infoRef.current.open({ anchor: marker, map });
       });
@@ -101,7 +104,8 @@ export function EventsMap({ events }: { events: EventLike[] }) {
 }
 
 function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
+  return s.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
   );
 }

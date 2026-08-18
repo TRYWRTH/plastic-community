@@ -20,7 +20,6 @@ import { Header } from "@/components/Header";
 import { SaveButtons } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 
-
 import { ShareButton } from "@/components/ShareButton";
 import { useEventSaveCounts } from "@/lib/use-event-save-counts";
 import { useEventGoingNames } from "@/lib/use-event-going-initials";
@@ -62,9 +61,7 @@ export const Route = createFileRoute("/event/$eventId")({
     if (!ev) {
       return { meta: [{ title: "Event — Whisperer Ring by Plastic Productions" }] };
     }
-    const when = ev.event_date
-      ? format(new Date(ev.event_date), "EEE, MMM d · HH:mm")
-      : "";
+    const when = ev.event_date ? format(new Date(ev.event_date), "EEE, MMM d · HH:mm") : "";
     const title = `${ev.title} — Whisperer Ring by Plastic Productions`;
 
     const desc = [
@@ -115,7 +112,9 @@ function EventDetail() {
           clearTimeout(hide);
         };
       }
-    } catch {}
+    } catch {
+      // sessionStorage may be unavailable (e.g. private browsing) — not critical
+    }
   }, [eventId]);
 
   const { data: event, isLoading } = useQuery({
@@ -133,7 +132,6 @@ function EventDetail() {
 
   const { data: counts } = useEventSaveCounts(eventId);
   const { data: goingInitials } = useEventGoingNames(eventId);
-
 
   const { data: nearby } = useQuery({
     queryKey: ["events", "nearby", event?.neighborhood, eventId],
@@ -199,9 +197,6 @@ function EventDetail() {
     },
   });
 
-
-
-
   const remove = async () => {
     setDeleting(true);
     const { error } = await supabase.from("events").delete().eq("id", eventId);
@@ -231,13 +226,10 @@ function EventDetail() {
   };
 
   const isRecurring =
-    !!event &&
-    ((event.repeats && event.repeats !== "none") || (seriesSiblingCount ?? 0) > 0);
+    !!event && ((event.repeats && event.repeats !== "none") || (seriesSiblingCount ?? 0) > 0);
 
-const isCreator = !!event && (
-  user?.id === event.created_by || 
-user?.id === import.meta.env.VITE_ADMIN_USER_ID
-);
+  const isCreator =
+    !!event && (user?.id === event.created_by || user?.id === import.meta.env.VITE_ADMIN_USER_ID);
   const neighborhoodLabel = event ? neighborhoodMeta(event.neighborhood).label : "";
 
   return (
@@ -367,8 +359,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                   const now = new Date();
                   const eventDate = new Date(event.event_date);
                   const isPastOrToday =
-                    eventDate.toDateString() === now.toDateString() ||
-                    eventDate < now;
+                    eventDate.toDateString() === now.toDateString() || eventDate < now;
 
                   const next = upcomingOccurrences?.[0];
                   if (isPastOrToday && next) {
@@ -404,8 +395,6 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                     ))}
                   </div>
                 )}
-
-
               </div>
               <div className="space-y-4 pt-4 sm:space-y-5 sm:p-8">
                 <div className="flex flex-wrap items-center gap-2">
@@ -442,9 +431,7 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                     <AddToCalendarButton
                       title={event.title}
                       start={event.event_date}
-                      location={[event.place, neighborhoodLabel]
-                        .filter(Boolean)
-                        .join(", ")}
+                      location={[event.place, neighborhoodLabel].filter(Boolean).join(", ")}
                       description={event.description ?? undefined}
                       uid={`${event.id}@whisperer-ring`}
                     />
@@ -538,7 +525,6 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                           </div>
                         </Link>
                       </li>
-
                     );
                   })}
                 </ul>
@@ -560,7 +546,9 @@ user?.id === import.meta.env.VITE_ADMIN_USER_ID
                 : "Are you sure you want to delete this event? This cannot be undone."}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className={isRecurring ? "flex-col gap-2 sm:flex-col sm:space-x-0" : undefined}>
+          <AlertDialogFooter
+            className={isRecurring ? "flex-col gap-2 sm:flex-col sm:space-x-0" : undefined}
+          >
             {isRecurring ? (
               <>
                 <AlertDialogAction
@@ -638,9 +626,7 @@ function LinkPreviewCard({ url }: { url: string }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["link-preview", url],
     queryFn: async () => {
-      const res = await fetch(
-        `https://api.microlink.io/?url=${encodeURIComponent(url)}`,
-      );
+      const res = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}`);
       if (!res.ok) throw new Error("preview failed");
       const json = (await res.json()) as {
         status?: string;
@@ -673,7 +659,13 @@ function LinkPreviewCard({ url }: { url: string }) {
     );
   }
 
-  const domain = (() => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return url; } })();
+  const domain = (() => {
+    try {
+      return new URL(url).hostname.replace(/^www\./, "");
+    } catch {
+      return url;
+    }
+  })();
 
   if (isError || !data) return <LinkFallback url={url} domain={domain} />;
   const title = data.title || data.publisher;
@@ -699,9 +691,7 @@ function LinkPreviewCard({ url }: { url: string }) {
           </div>
         )}
         {data.description && (
-          <p className="line-clamp-2 text-xs text-foreground/80">
-            {data.description}
-          </p>
+          <p className="line-clamp-2 text-xs text-foreground/80">{data.description}</p>
         )}
       </div>
     </a>
@@ -729,16 +719,12 @@ function LinkPreviewImage({ src }: { src: string }) {
         }}
         onError={() => setHidden(true)}
         className={
-          isPortrait
-            ? "max-h-[300px] w-auto object-contain"
-            : "h-full w-full object-cover"
+          isPortrait ? "max-h-[300px] w-auto object-contain" : "h-full w-full object-cover"
         }
       />
     </div>
   );
 }
-
-
 
 const LINK_CLASS = "text-neighborhood underline underline-offset-2 hover:opacity-80";
 
@@ -761,7 +747,11 @@ function renderTextSegment(text: string, keyPrefix: string): React.ReactNode[] {
     if (m.index > last) out.push(text.slice(last, m.index));
     const key = `${keyPrefix}-${i++}`;
     if (m[1]) {
-      out.push(<ExtLink key={key} href={m[1]}>{m[1]}</ExtLink>);
+      out.push(
+        <ExtLink key={key} href={m[1]}>
+          {m[1]}
+        </ExtLink>,
+      );
     } else if (m[2]) {
       const handle = m[2].slice(1);
       out.push(
@@ -796,9 +786,7 @@ function renderDescription(text: string): React.ReactNode {
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkBreaks]}
       components={{
-        a: ({ href, children }) => (
-          <ExtLink href={href ?? "#"}>{children}</ExtLink>
-        ),
+        a: ({ href, children }) => <ExtLink href={href ?? "#"}>{children}</ExtLink>,
         p: ({ children }) => <p className="mt-0 mb-2 last:mb-0">{children}</p>,
         img: ({ src, alt }) => (
           <img
@@ -814,6 +802,3 @@ function renderDescription(text: string): React.ReactNode {
     </ReactMarkdown>
   );
 }
-
-
-

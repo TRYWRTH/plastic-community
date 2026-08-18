@@ -68,9 +68,7 @@ function ProfileSettingsPage() {
     <div className="min-h-screen bg-paper">
       <Header />
       <main className="mx-auto max-w-3xl px-4 py-8">
-        <h1 className="font-brand text-3xl uppercase text-foreground sm:text-5xl">
-          Profile
-        </h1>
+        <h1 className="font-brand text-3xl uppercase text-foreground sm:text-5xl">Profile</h1>
         <p className="mt-2 font-mono text-xs uppercase tracking-widest text-foreground">
           Choose how your name appears to other people.
         </p>
@@ -93,14 +91,12 @@ function ProfileSettingsPage() {
 
         {isAuthenticated && (
           <section className="mt-6 border-2 border-foreground bg-card p-4 sm:p-5">
-            <label
-              htmlFor="username"
-              className="font-brand text-xl uppercase text-foreground"
-            >
+            <label htmlFor="username" className="font-brand text-xl uppercase text-foreground">
               Username
             </label>
             <p className="mt-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
-              Shown on your avatar instead of your email. Max 30 characters, letters/numbers/_-. allowed.
+              Shown on your avatar instead of your email. Max 30 characters, letters/numbers/_-.
+              allowed.
             </p>
             <form
               className="mt-4 flex flex-col gap-3 sm:flex-row"
