@@ -4,6 +4,7 @@ const GOOGLE_PLACES_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY as stri
 
 declare global {
   interface Window {
+    google?: typeof google;
     __gmapsLoader?: Promise<void>;
     __gmapsInit?: () => void;
   }

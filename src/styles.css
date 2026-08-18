@@ -4,6 +4,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@keyframes rdSweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @theme inline {
   --radius-sm: 16px;
   --radius-md: 22px;
