@@ -244,7 +244,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  await admin
+  const { error: updateError } = await admin
     .from("events")
     .update({
       link_preview_image_url: previewImageUrl,
@@ -256,5 +256,10 @@ Deno.serve(async (req) => {
     })
     .eq("id", eventId);
 
-  return jsonResponse({ status: result.status });
+  if (updateError) {
+    console.error("[unfurl-link-preview] failed to write result", updateError);
+    return jsonResponse({ status: result.status, writeError: updateError.message }, 500);
+  }
+
+  return jsonResponse({ status: result.status, previewImageUrl });
 });
