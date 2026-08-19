@@ -1,22 +1,24 @@
-// Fetches the og:image/title/description for an event's link (typically an
-// Instagram post) and re-hosts the image in our own storage, so event cards
-// without an uploaded photo can still show something real instead of a
-// blank box. Runs out-of-band (invoked fire-and-forget after publish/edit),
-// never on the request that creates or updates the event.
+// Fetches a preview image/title/description for an event's link (typically
+// an Instagram post) via Microlink's unfurl API, then re-hosts the image in
+// our own storage so event cards without an uploaded photo can still show
+// something real instead of a blank box. Runs out-of-band (invoked
+// fire-and-forget after publish/edit), never on the request that creates or
+// updates the event.
 //
-// Why this can't run in the browser: Instagram doesn't send CORS headers on
-// its post pages, and its CDN image URLs are signed + expire, so hotlinking
-// them breaks within hours/days — we have to download the image once and
-// keep our own copy.
+// Why Microlink instead of fetching the page ourselves: Instagram detects
+// and blocks plain server-side fetches (even with browser-like headers) —
+// it renders a login wall instead of the real post. Microlink already
+// solves that on their end (this app's existing detail-page link preview
+// card proves it works). Why re-host rather than link Microlink's own image
+// URL directly: it's still a third-party URL outside our control:
+// unpredictable caching/availability long-term, so we keep our own copy.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
 import { decode as decodeImage, Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/124.0 Safari/537.36";
-const HTML_FETCH_TIMEOUT_MS = 8000;
-const HTML_SIZE_CAP = 512_000; // 512 KB — the tags we need are in <head>
+const MICROLINK_TIMEOUT_MS = 12_000;
 const IMAGE_FETCH_TIMEOUT_MS = 10_000;
 const IMAGE_SIZE_CAP = 5_000_000; // 5 MB
 const MAX_IMAGE_DIMENSION = 1600;
@@ -47,7 +49,7 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-/** Strips tracking params and rejects anything that isn't a plain http(s) URL to a public host. */
+/** Rejects anything that isn't a plain http(s) URL to a public host, and strips tracking params. */
 function normaliseUrl(raw: string): URL | null {
   let candidate = raw.trim();
   if (!/^https?:\/\//i.test(candidate)) candidate = `https://${candidate}`;
@@ -86,20 +88,14 @@ async function fetchCapped(
   cap: number,
   headers: HeadersInit,
   timeoutMs: number,
-): Promise<{
-  ok: boolean;
-  status: number;
-  contentType: string | null;
-  bytes: Uint8Array | null;
-  finalUrl: string;
-}> {
+): Promise<{ ok: boolean; status: number; contentType: string | null; bytes: Uint8Array | null }> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(url, { headers, redirect: "follow", signal: controller.signal });
     const contentType = res.headers.get("content-type");
     if (!res.ok || !res.body) {
-      return { ok: res.ok, status: res.status, contentType, bytes: null, finalUrl: res.url };
+      return { ok: res.ok, status: res.status, contentType, bytes: null };
     }
     const reader = res.body.getReader();
     const chunks: Uint8Array[] = [];
@@ -110,7 +106,7 @@ async function fetchCapped(
       size += value.length;
       if (size > cap) {
         await reader.cancel();
-        return { ok: true, status: res.status, contentType, bytes: null, finalUrl: res.url };
+        return { ok: true, status: res.status, contentType, bytes: null };
       }
       chunks.push(value);
     }
@@ -120,79 +116,66 @@ async function fetchCapped(
       merged.set(chunk, offset);
       offset += chunk.length;
     }
-    return { ok: true, status: res.status, contentType, bytes: merged, finalUrl: res.url };
+    return { ok: true, status: res.status, contentType, bytes: merged };
   } catch {
-    return { ok: false, status: 0, contentType: null, bytes: null, finalUrl: url };
+    return { ok: false, status: 0, contentType: null, bytes: null };
   } finally {
     clearTimeout(timer);
   }
 }
 
-const isLoginWall = (title?: string | null) =>
-  !!title && /^(instagram|login\s*[•·]\s*instagram|log in to instagram)$/i.test(title.trim());
+type MicrolinkResponse = {
+  status?: string;
+  data?: {
+    title?: string | null;
+    description?: string | null;
+    image?: { url?: string } | null;
+    publisher?: string | null;
+  };
+};
 
 async function unfurl(rawUrl: string): Promise<PreviewResult> {
   const url = normaliseUrl(rawUrl);
   if (!url) return { status: "error" };
 
+  const apiUrl = `https://api.microlink.io/?url=${encodeURIComponent(url.toString())}`;
   const page = await fetchCapped(
-    url.toString(),
-    HTML_SIZE_CAP,
-    {
-      "user-agent": UA,
-      "accept-language": "en",
-      accept: "text/html,application/xhtml+xml",
-      "sec-fetch-mode": "navigate",
-      "sec-fetch-dest": "document",
-      "upgrade-insecure-requests": "1",
-      referer: "https://www.google.com/",
-    },
-    HTML_FETCH_TIMEOUT_MS,
+    apiUrl,
+    2_000_000,
+    { accept: "application/json" },
+    MICROLINK_TIMEOUT_MS,
   );
   if (!page.ok || !page.bytes) {
-    console.error("[unfurl-link-preview] html fetch failed", {
-      url: url.toString(),
+    console.error("[unfurl-link-preview] microlink request failed", {
       status: page.status,
       ok: page.ok,
-      hasBytes: !!page.bytes,
     });
-    return {
-      status:
-        page.status === 429 || page.status === 401 || page.status === 403 ? "blocked" : "error",
-    };
+    return { status: page.status === 429 ? "blocked" : "error" };
   }
 
-  const doc = new DOMParser().parseFromString(new TextDecoder().decode(page.bytes), "text/html");
-  if (!doc) return { status: "error" };
-
-  const meta = (selector: string) =>
-    doc.querySelector(selector)?.getAttribute("content")?.trim() || null;
-
-  const image =
-    meta('meta[property="og:image:secure_url"]') ??
-    meta('meta[property="og:image"]') ??
-    meta('meta[name="twitter:image"]');
-  const title =
-    meta('meta[property="og:title"]') ?? doc.querySelector("title")?.textContent?.trim() ?? null;
-  const description = meta('meta[property="og:description"]') ?? meta('meta[name="description"]');
-  const siteName =
-    meta('meta[property="og:site_name"]') ?? new URL(page.finalUrl).hostname.replace(/^www\./, "");
-
-  if (!image || isLoginWall(title)) {
-    return { status: image ? "blocked" : "no_image", title, description, siteName };
-  }
-
-  let absoluteImageUrl: string;
+  let json: MicrolinkResponse;
   try {
-    absoluteImageUrl = new URL(image, page.finalUrl).toString();
+    json = JSON.parse(new TextDecoder().decode(page.bytes));
   } catch {
+    return { status: "error" };
+  }
+
+  if (json.status !== "success" || !json.data) {
+    console.error("[unfurl-link-preview] microlink returned no data", json.status);
+    return { status: "no_image" };
+  }
+
+  const { title, description, publisher, image } = json.data;
+  const siteName = publisher ?? url.hostname.replace(/^www\./, "");
+
+  if (!image?.url) {
     return { status: "no_image", title, description, siteName };
   }
 
   const img = await fetchCapped(
-    absoluteImageUrl,
+    image.url,
     IMAGE_SIZE_CAP,
-    { "user-agent": UA, referer: page.finalUrl },
+    { "user-agent": UA },
     IMAGE_FETCH_TIMEOUT_MS,
   );
   if (!img.bytes || !img.contentType?.startsWith("image/")) {
