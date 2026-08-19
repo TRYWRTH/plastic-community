@@ -1,16 +1,14 @@
 import { format } from "date-fns";
 import { eventTypeMeta, type EventType } from "@/lib/constants";
 
-// Category tints for the generated no-image fallback poster. "sports" isn't
-// part of the original palette spec (which only covered 9 of our 10 event
-// types) — picked to sit tonally between food and workshop.
+// Category tints for the generated no-image fallback poster, per the design spec.
 const CATEGORY_TINTS: Record<EventType, string> = {
   music: "#8C0A1E",
   theater: "#6E0412",
   food: "#B01426",
   art: "#A80D18",
   film: "#320309",
-  sports: "#9C1B12",
+  sports: "#A80D18",
   workshop: "#7A0316",
   community: "#5A0210",
   nightlife: "#2A0206",
@@ -67,6 +65,34 @@ export function EventPoster({
           {format(date, "d")}
         </span>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Tiny fallback thumbnail (agenda-row scale) — just the category-tinted
+ * texture and a short label, no title/date since there's no room for them.
+ */
+export function EventThumbPoster({
+  eventType,
+  className = "",
+}: {
+  eventType: EventType;
+  className?: string;
+}) {
+  const tint = CATEGORY_TINTS[eventType] ?? CATEGORY_TINTS.other;
+  const category = eventTypeMeta(eventType).label.toUpperCase();
+
+  return (
+    <div
+      className={`flex items-end p-2 ${className}`}
+      style={{
+        backgroundImage:
+          "repeating-linear-gradient(118deg, rgba(247,231,228,0.06) 0 2px, transparent 2px 10px), " +
+          `linear-gradient(152deg, ${tint}, #3E0109)`,
+      }}
+    >
+      <span className="font-mono text-[8px] tracking-[0.14em] text-foreground/60">{category}</span>
     </div>
   );
 }
