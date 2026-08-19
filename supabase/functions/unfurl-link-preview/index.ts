@@ -138,10 +138,24 @@ async function unfurl(rawUrl: string): Promise<PreviewResult> {
   const page = await fetchCapped(
     url.toString(),
     HTML_SIZE_CAP,
-    { "user-agent": UA, "accept-language": "en", accept: "text/html,application/xhtml+xml" },
+    {
+      "user-agent": UA,
+      "accept-language": "en",
+      accept: "text/html,application/xhtml+xml",
+      "sec-fetch-mode": "navigate",
+      "sec-fetch-dest": "document",
+      "upgrade-insecure-requests": "1",
+      referer: "https://www.google.com/",
+    },
     HTML_FETCH_TIMEOUT_MS,
   );
   if (!page.ok || !page.bytes) {
+    console.error("[unfurl-link-preview] html fetch failed", {
+      url: url.toString(),
+      status: page.status,
+      ok: page.ok,
+      hasBytes: !!page.bytes,
+    });
     return {
       status:
         page.status === 429 || page.status === 401 || page.status === 403 ? "blocked" : "error",
