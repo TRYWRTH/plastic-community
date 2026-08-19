@@ -31,10 +31,19 @@ type PreviewResult = {
   imageBytes?: Uint8Array;
 };
 
+// supabase.functions.invoke() sends a CORS preflight OPTIONS request before
+// the real POST — without these headers the browser blocks the POST from
+// ever being sent and the function never sees real invocations.
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...CORS_HEADERS },
   });
 }
 
@@ -190,6 +199,7 @@ async function reencodeForCard(bytes: Uint8Array): Promise<Uint8Array> {
 }
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
 
   let eventId: string | undefined;
