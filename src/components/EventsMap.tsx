@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, isBefore, isSameDay, startOfDay } from "date-fns";
+import { Minus, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import type { Neighborhood } from "@/lib/constants";
@@ -51,11 +52,96 @@ const WHEN_STEPS: { value: WhenFilter; label: string }[] = [
   { value: "all", label: "EVERYTHING" },
 ];
 
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 3.5;
+
+function clamp(v: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, v));
+}
+
+function touchDistance(a: React.Touch, b: React.Touch): number {
+  return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+}
+
 export function EventsMap({ events }: { events: EventLike[] }) {
   const { user, isAuthenticated } = useAuth();
   const qc = useQueryClient();
   const [when, setWhen] = useState<WhenFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const dragState = useRef<{
+    x: number;
+    y: number;
+    panX: number;
+    panY: number;
+    dragging: boolean;
+  } | null>(null);
+  const pinchState = useRef<{ dist: number; zoom: number } | null>(null);
+
+  const maxPan = (400 * (zoom - 1)) / 2;
+  const clampPan = (p: { x: number; y: number }) => ({
+    x: clamp(p.x, -maxPan, maxPan),
+    y: clamp(p.y, -maxPan, maxPan),
+  });
+
+  const zoomBy = (factor: number) => {
+    setZoom((z) => {
+      const next = clamp(z * factor, MIN_ZOOM, MAX_ZOOM);
+      if (next === MIN_ZOOM) setPan({ x: 0, y: 0 });
+      return next;
+    });
+  };
+
+  const onWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    zoomBy(1 - e.deltaY * 0.001);
+  };
+
+  const DRAG_THRESHOLD = 4;
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (zoom <= MIN_ZOOM) return;
+    dragState.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y, dragging: false };
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const drag = dragState.current;
+    if (!drag) return;
+    const dx = e.clientX - drag.x;
+    const dy = e.clientY - drag.y;
+    if (!drag.dragging) {
+      if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+      drag.dragging = true;
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
+    e.preventDefault();
+    setPan(clampPan({ x: drag.panX + dx, y: drag.panY + dy }));
+  };
+  const endDrag = () => {
+    dragState.current = null;
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      pinchState.current = { dist: touchDistance(e.touches[0], e.touches[1]), zoom };
+    }
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && pinchState.current) {
+      e.preventDefault();
+      const dist = touchDistance(e.touches[0], e.touches[1]);
+      const next = clamp(
+        pinchState.current.zoom * (dist / pinchState.current.dist),
+        MIN_ZOOM,
+        MAX_ZOOM,
+      );
+      setZoom(next);
+      if (next === MIN_ZOOM) setPan({ x: 0, y: 0 });
+    }
+  };
+  const onTouchEnd = () => {
+    pinchState.current = null;
+  };
 
   const { data: savedIds = new Set<string>() } = useQuery({
     queryKey: ["event_save", "mine", user?.id],
@@ -126,7 +212,6 @@ export function EventsMap({ events }: { events: EventLike[] }) {
     const nearWithIndex = filtered.map((e, i) => ({ ...e, pinNo: i + 1 }));
     const pinsSource = nearWithIndex
       .filter((e) => !e.is_secret && typeof e.lat === "number" && typeof e.lng === "number")
-      .slice(0, 10)
       .map((e) => {
         const isTonight = isSameDay(new Date(e.event_date), now);
         const selected = e.id === selectedId;
@@ -150,90 +235,130 @@ export function EventsMap({ events }: { events: EventLike[] }) {
   return (
     <div className="flex flex-col">
       <div
-        className="relative mx-auto h-[400px] w-full max-w-[560px] overflow-hidden rounded-[26px] bg-shell-deep"
+        className="relative mx-auto h-[400px] w-full max-w-[560px] touch-none select-none overflow-hidden rounded-[26px] bg-shell-deep"
         style={{
           backgroundImage:
             "linear-gradient(rgba(247,231,228,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(247,231,228,0.06) 1px, transparent 1px)",
           backgroundSize: "38px 38px",
+          cursor: zoom > MIN_ZOOM ? "grab" : "default",
         }}
+        onWheel={onWheel}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerLeave={endDrag}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
       >
-        <span
-          className="absolute inset-x-0 top-[38%] h-[26px] bg-foreground/[0.05]"
-          style={{ transform: "rotate(-4deg)" }}
-        />
-        <span
-          className="absolute inset-y-0 left-[14%] w-5 bg-foreground/[0.04]"
-          style={{ transform: "rotate(7deg)" }}
-        />
-        {[520, 340, 170].map((size, i) => (
-          <span
-            key={size}
-            className="absolute rounded-full border"
-            style={{
-              width: size,
-              height: size,
-              left: "50%",
-              top: "50%",
-              margin: -size / 2,
-              borderColor: `rgba(247,231,228,${0.08 + i * 0.03})`,
-            }}
-          />
-        ))}
-        <span
-          className="absolute animate-[rdSweep_11s_linear_infinite] rounded-full"
+        <div
+          className="absolute inset-0"
           style={{
-            width: 520,
-            height: 520,
-            left: "50%",
-            top: "50%",
-            margin: -260,
-            background:
-              "conic-gradient(from 0deg, rgba(255,106,99,0.16), rgba(255,106,99,0.04) 16%, transparent 30%)",
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transformOrigin: "center center",
           }}
-        />
-        {DISTRICT_LABELS.map((d) => {
-          const { x, y } = project(d.lat, d.lng);
-          return (
+        >
+          <span
+            className="absolute inset-x-0 top-[38%] h-[26px] bg-foreground/[0.05]"
+            style={{ transform: "rotate(-4deg)" }}
+          />
+          <span
+            className="absolute inset-y-0 left-[14%] w-5 bg-foreground/[0.04]"
+            style={{ transform: "rotate(7deg)" }}
+          />
+          {[520, 340, 170].map((size, i) => (
             <span
-              key={d.label}
-              className="absolute whitespace-nowrap font-mono text-[9px] tracking-[0.16em] text-foreground/[0.28]"
-              style={{ left: `${x + 5}%`, top: `${y + 7}%`, transform: "translate(-50%,-50%)" }}
-            >
-              {d.label}
-            </span>
-          );
-        })}
-        {pins.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => setSelectedId(selectedId === p.id ? null : p.id)}
-            className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center gap-[7px] p-1.5"
-            style={{ left: `${p.x}%`, top: `${p.y}%` }}
-          >
-            <span
-              className="block rounded-full"
+              key={size}
+              className="absolute rounded-full border"
               style={{
-                width: p.size,
-                height: p.size,
-                background: p.selected
-                  ? "#F7E7E4"
-                  : p.isTonight
-                    ? "#FF6A63"
-                    : "rgba(247,231,228,0.75)",
-                boxShadow: `0 0 0 ${p.halo}px rgba(255,106,99,0.18)`,
+                width: size,
+                height: size,
+                left: "50%",
+                top: "50%",
+                margin: -size / 2,
+                borderColor: `rgba(247,231,228,${0.08 + i * 0.03})`,
               }}
             />
-            {p.selected && (
-              <span className="whitespace-nowrap font-mono text-[9px] tracking-[0.08em] text-foreground">
-                {format(new Date(p.event_date), "HH:mm")}
+          ))}
+          <span
+            className="absolute animate-[rdSweep_11s_linear_infinite] rounded-full"
+            style={{
+              width: 520,
+              height: 520,
+              left: "50%",
+              top: "50%",
+              margin: -260,
+              background:
+                "conic-gradient(from 0deg, rgba(255,106,99,0.16), rgba(255,106,99,0.04) 16%, transparent 30%)",
+            }}
+          />
+          {DISTRICT_LABELS.map((d) => {
+            const { x, y } = project(d.lat, d.lng);
+            return (
+              <span
+                key={d.label}
+                className="absolute whitespace-nowrap font-mono text-[9px] tracking-[0.16em] text-foreground/[0.28]"
+                style={{ left: `${x + 5}%`, top: `${y + 7}%`, transform: "translate(-50%,-50%)" }}
+              >
+                {d.label}
               </span>
-            )}
-          </button>
-        ))}
-        <span className="absolute left-4 top-3 font-mono text-[9px] tracking-[0.14em] text-dim">
+            );
+          })}
+          {pins.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setSelectedId(selectedId === p.id ? null : p.id)}
+              className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center gap-[7px] p-1.5"
+              style={{ left: `${p.x}%`, top: `${p.y}%` }}
+            >
+              <span
+                className="block rounded-full"
+                style={{
+                  width: p.size,
+                  height: p.size,
+                  background: p.selected
+                    ? "#F7E7E4"
+                    : p.isTonight
+                      ? "#FF6A63"
+                      : "rgba(247,231,228,0.75)",
+                  boxShadow: `0 0 0 ${p.halo}px rgba(255,106,99,0.18)`,
+                }}
+              />
+              {p.selected && (
+                <span className="whitespace-nowrap font-mono text-[9px] tracking-[0.08em] text-foreground">
+                  {format(new Date(p.event_date), "HH:mm")}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <span className="pointer-events-none absolute left-4 top-3 font-mono text-[9px] tracking-[0.14em] text-dim">
           {peek ? "TAP THE PIN AGAIN TO CLOSE" : "TAP A PIN"}
         </span>
+
+        <div className="absolute right-3 top-3 flex flex-col overflow-hidden rounded-full border border-foreground/[0.16] bg-shell-deep/80">
+          <button
+            type="button"
+            onClick={() => zoomBy(1.4)}
+            disabled={zoom >= MAX_ZOOM}
+            aria-label="Zoom in"
+            className="grid h-8 w-8 place-items-center text-foreground disabled:opacity-30"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+          <span className="h-px w-full bg-foreground/[0.16]" />
+          <button
+            type="button"
+            onClick={() => zoomBy(1 / 1.4)}
+            disabled={zoom <= MIN_ZOOM}
+            aria-label="Zoom out"
+            className="grid h-8 w-8 place-items-center text-foreground disabled:opacity-30"
+          >
+            <Minus className="h-3.5 w-3.5" />
+          </button>
+        </div>
         {peek && (
           <div className="absolute inset-x-3 bottom-3">
             <Link

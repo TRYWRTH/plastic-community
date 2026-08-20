@@ -65,7 +65,7 @@ export function AgendaView({
                       key={`${day.key}-${e.id}-${e.edgeKind}`}
                       to="/event/$eventId"
                       params={{ eventId: e.id }}
-                      className="grid grid-cols-[74px_108px_1fr_170px_132px_44px] items-center gap-5 border-b border-foreground/[0.07] bg-hot/[0.07] py-4 pl-6 pr-9 outline-none last:border-b-0 hover:bg-hot/[0.13] focus-visible:ring-2 focus-visible:ring-hot"
+                      className="grid grid-cols-[74px_108px_1fr_116px_108px_40px] items-center gap-4 border-b border-foreground/[0.07] bg-hot/[0.07] py-4 pl-6 pr-9 outline-none last:border-b-0 hover:bg-hot/[0.13] focus-visible:ring-2 focus-visible:ring-hot"
                     >
                       <span
                         className={`col-span-2 w-fit rounded font-mono text-[9px] font-bold tracking-[0.14em] ${
@@ -104,7 +104,7 @@ export function AgendaView({
                     onKeyDown={(ev) => {
                       if (ev.key === "Enter") open();
                     }}
-                    className="grid cursor-pointer grid-cols-[74px_108px_1fr_170px_132px_44px] items-center gap-5 border-b border-foreground/[0.07] py-4 pl-6 pr-9 outline-none last:border-b-0 hover:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-hot"
+                    className="grid cursor-pointer grid-cols-[74px_108px_1fr_116px_108px_40px] items-center gap-4 border-b border-foreground/[0.07] py-4 pl-6 pr-9 outline-none last:border-b-0 hover:bg-foreground/[0.05] focus-visible:ring-2 focus-visible:ring-hot"
                   >
                     <span
                       className={`font-brand text-[22px] tracking-[0.02em] ${
@@ -146,8 +146,8 @@ export function AgendaView({
                       {districtLabel}
                     </span>
 
-                    <span className="flex flex-wrap gap-1.5">
-                      <span className="rounded-full border border-border px-[9px] py-1 font-mono text-[9px] tracking-[0.12em] text-muted-2">
+                    <span className="min-w-0">
+                      <span className="block w-fit max-w-full truncate rounded-full border border-border px-[8px] py-1 font-mono text-[9px] tracking-[0.1em] text-muted-2">
                         {category.label.toUpperCase()}
                       </span>
                     </span>
@@ -160,7 +160,7 @@ export function AgendaView({
                       }}
                       aria-pressed={saved}
                       aria-label={saved ? "Unsave event" : "Save event"}
-                      className={`grid h-[34px] w-[34px] place-items-center rounded-full border border-border text-[13px] ${
+                      className={`grid h-8 w-8 place-items-center rounded-full border border-border text-[13px] ${
                         saved ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-2"
                       }`}
                     >

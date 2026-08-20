@@ -97,7 +97,7 @@ function Home() {
 
   const districtTriggerLabel =
     district === "all"
-      ? "ALL DISTRICTS"
+      ? "DISTRICTS"
       : (BERLIN_DISTRICTS.find((d) => d.value === district)?.label ?? district)
           .split("-")[0]
           .toUpperCase();
@@ -121,7 +121,7 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-[430px] lg:max-w-[1280px]">
+      <div className="mx-auto max-w-[430px] lg:max-w-[1440px]">
         {/* Brand lockup */}
         <div className="flex flex-col gap-3 px-5 pb-3 pt-5 lg:flex-row lg:items-end lg:justify-between lg:gap-6 lg:px-9 lg:pb-[22px] lg:pt-[30px]">
           <div className="flex min-w-0 flex-col gap-1.5">
@@ -219,7 +219,7 @@ function Home() {
                 className="mb-3 flex w-full items-baseline justify-between gap-2 text-left"
               >
                 <span className="font-mono text-[10px] font-bold tracking-[0.18em] text-link">
-                  ALL DISTRICTS · {districtTotal}
+                  ALL EVENTS · {districtTotal}
                 </span>
                 <span className="font-mono text-[9px] tracking-[0.12em] text-dim">
                   EVENTS THIS WEEK

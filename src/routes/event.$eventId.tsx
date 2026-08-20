@@ -11,7 +11,6 @@ import { SaveButtons } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import { ShareButton } from "@/components/ShareButton";
 import { useEventSaveCounts } from "@/lib/use-event-save-counts";
-import { useEventSaverNames } from "@/lib/use-event-going-initials";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta, priceTypeMeta } from "@/lib/constants";
@@ -115,7 +114,6 @@ function EventDetail() {
   });
 
   const { data: counts } = useEventSaveCounts(eventId);
-  const { data: saverNames } = useEventSaverNames(eventId);
 
   const { data: creator } = useQuery({
     queryKey: ["profile", event?.created_by],
@@ -231,19 +229,12 @@ function EventDetail() {
   const districtShort = event ? districtLabel.split("-")[0].toUpperCase() : "";
   const totalSaved = (counts?.going_count ?? 0) + (counts?.interested_count ?? 0);
   const addedByLabel = creator?.username ? `@${creator.username}` : "a member";
-  const savedByLabel = (() => {
-    if (totalSaved === 0) return "0 people";
-    const names = saverNames?.names ?? [];
-    const shown = names.slice(0, 6);
-    const remaining = totalSaved - shown.length;
-    if (shown.length === 0) return `${totalSaved} people`;
-    return remaining > 0 ? `${shown.join(", ")} +${remaining} more` : shown.join(", ");
-  })();
+  const savedByLabel = `${totalSaved} ${totalSaved === 1 ? "person" : "people"}`;
 
   return (
     <div className="min-h-screen bg-background">
       {savedBannerVisible && (
-        <div className="fixed inset-x-0 top-0 z-50 flex justify-center pt-3">
+        <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center pt-3">
           <span className="rounded-full bg-primary px-4 py-2.5 font-mono text-[10px] tracking-[0.14em] text-primary-foreground">
             CHANGES SAVED
           </span>
@@ -348,7 +339,7 @@ function EventDetail() {
                     {districtShort}
                   </span>
                   {isRecurring && (
-                    <span className="rounded-full border border-border px-2 py-0.5 font-mono text-[9px] tracking-[0.1em] text-muted-foreground">
+                    <span className="font-mono text-[9px] tracking-[0.1em] text-muted-foreground">
                       ↻ {String(event.repeats).toUpperCase()}
                     </span>
                   )}
