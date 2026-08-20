@@ -6,6 +6,7 @@ import { Minus, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import type { Neighborhood } from "@/lib/constants";
+import { BERLIN_DISTRICT_CENTROIDS } from "@/lib/district-from-coords";
 
 type EventLike = {
   id: string;
@@ -34,18 +35,16 @@ function project(lat: number, lng: number): { x: number; y: number } {
   return { x: Math.min(96, Math.max(4, x)), y: Math.min(96, Math.max(4, y)) };
 }
 
-// A representative subset of districts, labeled directly on the field —
-// showing all 12 would clutter a 400px field. Positions are real
-// projected coordinates, not the fixed layout points a purely abstract
-// radar would use.
-const DISTRICT_LABELS: { label: string; lat: number; lng: number }[] = [
-  { label: "MITTE", lat: 52.52, lng: 13.405 },
-  { label: "KREUZBERG", lat: 52.505, lng: 13.454 },
-  { label: "NEUKÖLLN", lat: 52.481, lng: 13.435 },
-  { label: "PANKOW", lat: 52.569, lng: 13.401 },
-  { label: "LICHTENBERG", lat: 52.535, lng: 13.5 },
-  { label: "TREPTOW", lat: 52.457, lng: 13.573 },
-];
+// All 12 Berlin districts, labeled directly on the field at their real
+// projected coordinates (same centroids used to resolve a district from
+// coordinates elsewhere). Labels counter-scale with zoom so they stay
+// legible instead of overlapping at the default zoom level.
+const DISTRICT_LABELS: { label: string; lat: number; lng: number }[] =
+  BERLIN_DISTRICT_CENTROIDS.map((c) => ({
+    label: c.value.split("-")[0].toUpperCase(),
+    lat: c.lat,
+    lng: c.lng,
+  }));
 
 const WHEN_STEPS: { value: WhenFilter; label: string }[] = [
   { value: "tonight", label: "TONIGHT" },
@@ -302,7 +301,11 @@ export function EventsMap({ events }: { events: EventLike[] }) {
               <span
                 key={d.label}
                 className="absolute whitespace-nowrap font-mono text-[9px] tracking-[0.16em] text-foreground/[0.28]"
-                style={{ left: `${x + 5}%`, top: `${y + 7}%`, transform: "translate(-50%,-50%)" }}
+                style={{
+                  left: `${x + 5}%`,
+                  top: `${y + 7}%`,
+                  transform: `translate(-50%,-50%) scale(${1 / zoom})`,
+                }}
               >
                 {d.label}
               </span>
@@ -313,8 +316,12 @@ export function EventsMap({ events }: { events: EventLike[] }) {
               key={p.id}
               type="button"
               onClick={() => setSelectedId(selectedId === p.id ? null : p.id)}
-              className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center gap-[7px] p-1.5"
-              style={{ left: `${p.x}%`, top: `${p.y}%` }}
+              className="absolute flex items-center gap-[7px] p-1.5"
+              style={{
+                left: `${p.x}%`,
+                top: `${p.y}%`,
+                transform: `translate(-50%,-50%) scale(${1 / zoom})`,
+              }}
             >
               <span
                 className="block rounded-full"

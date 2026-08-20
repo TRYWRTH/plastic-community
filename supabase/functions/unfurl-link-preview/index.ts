@@ -31,6 +31,7 @@ type PreviewResult = {
   description?: string | null;
   siteName?: string | null;
   imageBytes?: Uint8Array;
+  imageContentType?: string;
 };
 
 // supabase.functions.invoke() sends a CORS preflight OPTIONS request before
@@ -182,17 +183,39 @@ async function unfurl(rawUrl: string): Promise<PreviewResult> {
     return { status: "no_image", title, description, siteName };
   }
 
-  return { status: "ok", title, description, siteName, imageBytes: img.bytes };
+  return {
+    status: "ok",
+    title,
+    description,
+    siteName,
+    imageBytes: img.bytes,
+    imageContentType: img.contentType ?? "image/jpeg",
+  };
 }
 
-async function reencodeForCard(bytes: Uint8Array): Promise<Uint8Array> {
-  const decoded = await decodeImage(bytes);
-  const image = decoded instanceof Image ? decoded : decoded.frames[0];
-  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(image.width, image.height));
-  if (scale < 1) {
-    image.resize(Math.round(image.width * scale), Math.round(image.height * scale));
+/**
+ * Resizes + re-encodes as JPEG when possible. imagescript's decode() only
+ * understands PNG/JPEG/TIFF — a growing share of sites default to WebP or
+ * AVIF for their og:image, which would otherwise throw here and silently
+ * drop the whole preview. Falls back to storing the original bytes/format
+ * untouched (still a real, working image) rather than showing nothing.
+ */
+async function reencodeForCard(
+  bytes: Uint8Array,
+  contentType: string,
+): Promise<{ bytes: Uint8Array; contentType: string }> {
+  try {
+    const decoded = await decodeImage(bytes);
+    const image = decoded instanceof Image ? decoded : decoded.frames[0];
+    const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(image.width, image.height));
+    if (scale < 1) {
+      image.resize(Math.round(image.width * scale), Math.round(image.height * scale));
+    }
+    return { bytes: await image.encodeJPEG(JPEG_QUALITY), contentType: "image/jpeg" };
+  } catch (err) {
+    console.warn("[unfurl-link-preview] decode/resize failed, storing original image as-is", err);
+    return { bytes, contentType };
   }
-  return await image.encodeJPEG(JPEG_QUALITY);
 }
 
 Deno.serve(async (req) => {
@@ -228,11 +251,15 @@ Deno.serve(async (req) => {
   let previewImageUrl: string | null = null;
   if (result.status === "ok" && result.imageBytes) {
     try {
-      const jpeg = await reencodeForCard(result.imageBytes);
-      const path = `previews/${eventId}.jpg`;
+      const { bytes, contentType } = await reencodeForCard(
+        result.imageBytes,
+        result.imageContentType ?? "image/jpeg",
+      );
+      const ext = contentType.split("/")[1]?.split("+")[0] || "jpg";
+      const path = `previews/${eventId}.${ext}`;
       const { error: uploadError } = await admin.storage
         .from(BUCKET)
-        .upload(path, jpeg, { contentType: "image/jpeg", cacheControl: "3600", upsert: true });
+        .upload(path, bytes, { contentType, cacheControl: "3600", upsert: true });
       if (uploadError) throw uploadError;
       previewImageUrl = admin.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
     } catch (err) {

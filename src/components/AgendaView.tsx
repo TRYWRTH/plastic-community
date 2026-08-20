@@ -57,6 +57,8 @@ export function AgendaView({
             <div className="flex flex-col">
               {day.items.map((e) => {
                 const districtLabel = (e.neighborhood as string).split("-")[0].toUpperCase();
+                const category = eventTypeMeta(e.event_type);
+                const saved = savedIds.has(e.id);
 
                 if (e.edgeKind) {
                   const isOpen = e.edgeKind === "open";
@@ -68,10 +70,9 @@ export function AgendaView({
                       className="grid grid-cols-[74px_108px_1fr_116px_108px_40px] items-center gap-4 border-b border-foreground/[0.07] bg-hot/[0.07] py-4 pl-6 pr-9 outline-none last:border-b-0 hover:bg-hot/[0.13] focus-visible:ring-2 focus-visible:ring-hot"
                     >
                       <span
-                        className={`col-span-2 w-fit rounded font-mono text-[9px] font-bold tracking-[0.14em] ${
+                        className={`col-span-2 flex h-16 items-center justify-center rounded-xl text-center font-mono text-[10px] font-bold tracking-[0.14em] ${
                           isOpen ? "bg-foreground text-shell-deep" : "bg-hot text-shell-deep"
                         }`}
-                        style={{ padding: "5px 10px" }}
                       >
                         {isOpen ? (isToday ? "OPENS TODAY" : "OPENS") : "LAST DAY"}
                       </span>
@@ -86,14 +87,34 @@ export function AgendaView({
                       <span className="truncate font-mono text-[10px] tracking-[0.14em] text-link">
                         {e.is_secret ? "SECRET" : e.location_tba ? "TBA" : districtLabel}
                       </span>
+                      <span className="min-w-0">
+                        <span className="block w-fit max-w-full truncate rounded-full border border-border px-[8px] py-1 font-mono text-[9px] tracking-[0.1em] text-muted-2">
+                          {category.label.toUpperCase()}
+                        </span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(ev) => {
+                          ev.preventDefault();
+                          ev.stopPropagation();
+                          onToggleSave(e.id);
+                        }}
+                        aria-pressed={saved}
+                        aria-label={saved ? "Unsave event" : "Save event"}
+                        className={`grid h-8 w-8 place-items-center rounded-full border border-border text-[13px] ${
+                          saved
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-transparent text-muted-2"
+                        }`}
+                      >
+                        {saved ? "★" : "☆"}
+                      </button>
                     </Link>
                   );
                 }
 
                 const d = new Date(e.event_date);
-                const category = eventTypeMeta(e.event_type);
                 const cardImage = resolveCardImage(e);
-                const saved = savedIds.has(e.id);
                 const open = () => navigate({ to: "/event/$eventId", params: { eventId: e.id } });
                 return (
                   <div
