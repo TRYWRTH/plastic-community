@@ -226,20 +226,9 @@ function Home() {
                 </span>
               </button>
               <div className="grid grid-cols-2 gap-x-3">
-                {BERLIN_DISTRICTS.map((d) => {
+                {BERLIN_DISTRICTS.filter((d) => (districtCounts[d.value] ?? 0) > 0).map((d) => {
                   const count = districtCounts[d.value] ?? 0;
                   const active = district === d.value;
-                  if (count === 0) {
-                    return (
-                      <span
-                        key={d.value}
-                        className="flex items-center justify-between gap-2 px-2 py-2 font-mono text-[10px] tracking-[0.08em] text-muted-foreground/50"
-                      >
-                        <span className="truncate">{d.label.toUpperCase()}</span>
-                        <span className="shrink-0">—</span>
-                      </span>
-                    );
-                  }
                   return (
                     <DropdownMenuItem
                       key={d.value}

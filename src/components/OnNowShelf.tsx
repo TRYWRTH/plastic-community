@@ -20,8 +20,8 @@ export function OnNowShelf({ runs, now }: { runs: ActiveRun[]; now: Date }) {
   const overflow = runs.length - shown.length;
 
   return (
-    <div className="flex flex-col gap-3.5 border-b border-foreground/[0.14] bg-shell-deep/60 pt-[22px] pb-6">
-      <div className="flex items-baseline gap-2.5 px-5 lg:px-9">
+    <div className="mx-5 mb-4 flex flex-col gap-3.5 rounded-[26px] border border-foreground/[0.14] bg-shell-deep/60 px-5 pt-[22px] pb-6 lg:mx-9 lg:mb-6 lg:px-6">
+      <div className="flex items-baseline gap-2.5">
         <span className="font-mono text-[10px] font-bold tracking-[0.2em] text-link">
           ON NOW · {runs.length} ONGOING
         </span>
@@ -31,7 +31,7 @@ export function OnNowShelf({ runs, now }: { runs: ActiveRun[]; now: Date }) {
       </div>
 
       <div className="scrollbar-hide overflow-x-auto lg:overflow-visible">
-        <div className="flex snap-x snap-mandatory gap-2.5 px-5 lg:grid lg:snap-none lg:grid-cols-3 lg:gap-3.5 lg:px-9">
+        <div className="flex snap-x snap-mandatory gap-2.5 lg:grid lg:snap-none lg:grid-cols-3 lg:gap-3.5">
           {shown.map(({ event, start, end, totalDays }) => {
             const pct = runProgressPct(now, start, end);
             const cardImage = resolveCardImage(event);
