@@ -65,10 +65,10 @@ export function AgendaView({
                       key={`${day.key}-${e.id}-${e.edgeKind}`}
                       to="/event/$eventId"
                       params={{ eventId: e.id }}
-                      className="grid grid-cols-[150px_1fr_170px] items-center gap-5 border-b border-foreground/[0.07] bg-hot/[0.07] py-4 pl-6 pr-9 outline-none last:border-b-0 hover:bg-hot/[0.13] focus-visible:ring-2 focus-visible:ring-hot"
+                      className="grid grid-cols-[74px_108px_1fr_170px_132px_44px] items-center gap-5 border-b border-foreground/[0.07] bg-hot/[0.07] py-4 pl-6 pr-9 outline-none last:border-b-0 hover:bg-hot/[0.13] focus-visible:ring-2 focus-visible:ring-hot"
                     >
                       <span
-                        className={`w-fit rounded font-mono text-[9px] font-bold tracking-[0.14em] ${
+                        className={`col-span-2 w-fit rounded font-mono text-[9px] font-bold tracking-[0.14em] ${
                           isOpen ? "bg-foreground text-shell-deep" : "bg-hot text-shell-deep"
                         }`}
                         style={{ padding: "5px 10px" }}
