@@ -299,18 +299,35 @@ function EventDetail() {
             {(() => {
               const cardImage = resolveCardImage(event);
               if (!cardImage) return null;
+              const img = (
+                <img
+                  src={cardImage.url}
+                  alt=""
+                  className="h-[220px] w-full rounded-[22px] object-cover"
+                />
+              );
+              const badge = cardImage.kind === "preview" && (
+                <span className="absolute bottom-2.5 left-2.5 rounded-full bg-shell-deep/[0.72] px-2.5 py-1 font-mono text-[9px] tracking-[0.14em] text-muted-2">
+                  VIA {(cardImage.siteName ?? "LINK").toUpperCase()}
+                </span>
+              );
+              if (cardImage.kind === "preview" && event.link) {
+                return (
+                  <a
+                    href={event.link}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="relative block"
+                  >
+                    {img}
+                    {badge}
+                  </a>
+                );
+              }
               return (
                 <div className="relative">
-                  <img
-                    src={cardImage.url}
-                    alt=""
-                    className="h-[220px] w-full rounded-[22px] object-cover"
-                  />
-                  {cardImage.kind === "preview" && (
-                    <span className="absolute bottom-2.5 left-2.5 rounded-full bg-shell-deep/[0.72] px-2.5 py-1 font-mono text-[9px] tracking-[0.14em] text-muted-2">
-                      VIA {(cardImage.siteName ?? "LINK").toUpperCase()}
-                    </span>
-                  )}
+                  {img}
+                  {badge}
                 </div>
               );
             })()}

@@ -50,6 +50,10 @@ function AddEvent() {
     lng: null,
   });
   const [neighborhood, setNeighborhood] = useState<Neighborhood>("Mitte");
+  // True once a Places suggestion has set `neighborhood` from Google's own
+  // sublocality data — that's far more accurate than the nearest-centroid
+  // guess, so it should never be overridden by it at submit time.
+  const [neighborhoodFromPlace, setNeighborhoodFromPlace] = useState(false);
   const [eventType, setEventType] = useState<EventType>("music");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [eventDay, setEventDay] = useState(format(new Date(Date.now() + 86400000), "yyyy-MM-dd"));
@@ -123,12 +127,15 @@ function AddEvent() {
       const geo = await geocodeAddress(`${place.trim()}, ${neighborhood}, Berlin`);
       if (geo) finalCoords = geo;
     }
-    // Coordinates are ground truth — prefer the nearest Bezirk to the final
-    // geocoded point over the (possibly stale or defaulted) form state.
-    const resolvedNeighborhood =
-      (finalCoords.lat != null && finalCoords.lng != null
-        ? nearestBerlinDistrict(finalCoords.lat, finalCoords.lng)
-        : null) ?? neighborhood;
+    // Google's own sublocality data (set via onPlaceSelected) is far more
+    // accurate than nearest-centroid matching, especially near a district
+    // border — only fall back to the coordinate guess when the place was
+    // typed by hand and never resolved through Places Autocomplete.
+    const resolvedNeighborhood = neighborhoodFromPlace
+      ? neighborhood
+      : ((finalCoords.lat != null && finalCoords.lng != null
+          ? nearestBerlinDistrict(finalCoords.lat, finalCoords.lng)
+          : null) ?? neighborhood);
     const basePayload = {
       title: title.trim(),
       place: cleanPlace(place.trim()),
@@ -399,12 +406,14 @@ function AddEvent() {
                 onChange={(v) => {
                   setPlace(v);
                   setCoords({ lat: null, lng: null });
+                  setNeighborhoodFromPlace(false);
                 }}
                 onPlaceSelected={(p) => {
                   setCoords({ lat: p.lat, lng: p.lng });
                   const fallback =
                     p.lat != null && p.lng != null ? nearestBerlinDistrict(p.lat, p.lng) : null;
                   setNeighborhood((p.neighborhood as Neighborhood) ?? fallback ?? "Mitte");
+                  setNeighborhoodFromPlace(true);
                 }}
                 placeholder="Sameheads, Richardstr. 20"
                 maxLength={200}

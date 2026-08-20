@@ -134,6 +134,12 @@ function EditEventForm({
   const [ticketUrl, setTicketUrl] = useState(event.ticket_url ?? "");
 
   const [neighborhood, setNeighborhood] = useState<Neighborhood>(event.neighborhood);
+  // True once a Places suggestion has set `neighborhood` from Google's own
+  // sublocality data during this edit — far more accurate than the
+  // nearest-centroid guess, so it should win over that at save time. Stays
+  // false (and the existing neighborhood is left alone) when the place
+  // isn't touched in this edit.
+  const [neighborhoodFromPlace, setNeighborhoodFromPlace] = useState(false);
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
     lat: event.lat,
     lng: event.lng,
@@ -228,12 +234,15 @@ function EditEventForm({
       const geo = await geocodeAddress(`${nextPlace}, ${nextNeighborhood}, Berlin`);
       if (geo) finalCoords = geo;
     }
-    // Coordinates are ground truth — prefer the nearest Bezirk to the final
-    // geocoded point over the (possibly stale or defaulted) form state.
-    const resolvedNeighborhood =
-      (finalCoords.lat != null && finalCoords.lng != null
-        ? nearestBerlinDistrict(finalCoords.lat, finalCoords.lng)
-        : null) ?? nextNeighborhood;
+    // Google's own sublocality data (set via onPlaceSelected) is far more
+    // accurate than nearest-centroid matching, especially near a district
+    // border — only fall back to the coordinate guess when the place was
+    // retyped by hand and never resolved through Places Autocomplete.
+    const resolvedNeighborhood = neighborhoodFromPlace
+      ? nextNeighborhood
+      : ((finalCoords.lat != null && finalCoords.lng != null
+          ? nearestBerlinDistrict(finalCoords.lat, finalCoords.lng)
+          : null) ?? nextNeighborhood);
     const nextTicketUrl = priceType === "paid" ? ticketUrl.trim() || null : null;
     const { data: updated, error } = await supabase
       .from("events")
@@ -478,12 +487,14 @@ function EditEventForm({
               onChange={(v) => {
                 setPlace(v);
                 setCoords({ lat: null, lng: null });
+                setNeighborhoodFromPlace(false);
               }}
               onPlaceSelected={(p) => {
                 setCoords({ lat: p.lat, lng: p.lng });
                 const fallback =
                   p.lat != null && p.lng != null ? nearestBerlinDistrict(p.lat, p.lng) : null;
                 setNeighborhood((p.neighborhood as Neighborhood) ?? fallback ?? "Mitte");
+                setNeighborhoodFromPlace(true);
               }}
               placeholder="Venue or address"
               required
