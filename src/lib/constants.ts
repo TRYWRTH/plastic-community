@@ -15,6 +15,11 @@ import {
 
 export type EventType = Database["public"]["Enums"]["event_type"];
 export type Neighborhood = Database["public"]["Enums"]["neighborhood"];
+export type PriceType = Database["public"]["Enums"]["event_price_type"];
+
+// Push notification UI (banner, settings menu item, per-event toggle) is
+// hidden temporarily — feature kept in place for later testing.
+export const NOTIFICATIONS_ENABLED = false;
 
 export const EVENT_TYPES: { value: EventType; label: string; Icon: Icon }[] = [
   { value: "music", label: "Music", Icon: IconVinyl },
@@ -28,7 +33,6 @@ export const EVENT_TYPES: { value: EventType; label: string; Icon: Icon }[] = [
   { value: "nightlife", label: "Nightlife", Icon: IconGlassFull },
   { value: "other", label: "Other", Icon: IconDots },
 ];
-
 
 export const BERLIN_DISTRICTS: { value: Neighborhood; label: string }[] = [
   { value: "Mitte", label: "Mitte" },
@@ -73,3 +77,12 @@ export const eventTypeMeta = (v: EventType) =>
   EVENT_TYPES.find((t) => t.value === v) ?? EVENT_TYPES[EVENT_TYPES.length - 1];
 export const neighborhoodMeta = (v: Neighborhood) =>
   NEIGHBORHOODS.find((n) => n.value === v) ?? { value: v, label: v };
+
+export const PRICE_TYPES: { value: PriceType; label: string }[] = [
+  { value: "free", label: "Free" },
+  { value: "donation", label: "Donation" },
+  { value: "paid", label: "Tickets" },
+];
+
+export const priceTypeMeta = (v: PriceType) =>
+  PRICE_TYPES.find((p) => p.value === v) ?? PRICE_TYPES[0];

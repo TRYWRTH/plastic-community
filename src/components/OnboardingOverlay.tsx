@@ -55,13 +55,7 @@ export function useOnboarding() {
   };
 }
 
-export function OnboardingOverlay({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function OnboardingOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [step, setStep] = useState(0);
   const installed = isStandalonePWA();
   const platform = detectPlatform();
@@ -75,7 +69,8 @@ export function OnboardingOverlay({
       title: "WHISPER RING",
       body: (
         <p>
-          See what's going on in your area, add things you spot on posters, hear from friends, or find anywhere
+          See what's going on in your area, add things you spot on posters, hear from friends, or
+          find anywhere
         </p>
       ),
     },
@@ -84,42 +79,50 @@ export function OnboardingOverlay({
       : [
           {
             icon: <Smartphone className="h-10 w-10" strokeWidth={2.5} />,
-title: "ADD TO YOUR DEVICE",
-body: chrome ? (
-  <div className="space-y-2">
-    <p className="font-bold">On your phone:</p>
-    <p>
-      1. Tap the three dots <span className="font-bold">⋮</span> in the top or bottom of your screen. 
-    </p>
-    <p>2. Tap <span className="font-bold">"Add to Home Screen"</span></p>
-    <p>3. Tap <span className="font-bold">"Add"</span></p>
-    <p className="font-bold mt-3">On desktop:</p>
-    <p>
-      1. Look for the install icon <span className="font-bold">⊕</span> in the address bar (right side)
-    </p>
-    <p>2. Click <span className="font-bold">"Install"</span></p>
-    <p className="mt-2 text-muted-foreground">
-      You&apos;ll get a shortcut that opens like an app
-    </p>
-  </div>
+            title: "ADD TO YOUR DEVICE",
+            body: chrome ? (
+              <div className="space-y-2">
+                <p className="font-bold">On your phone:</p>
+                <p>
+                  1. Tap the three dots <span className="font-bold">⋮</span> in the top or bottom of
+                  your screen.
+                </p>
+                <p>
+                  2. Tap <span className="font-bold">"Add to Home Screen"</span>
+                </p>
+                <p>
+                  3. Tap <span className="font-bold">"Add"</span>
+                </p>
+                <p className="font-bold mt-3">On desktop:</p>
+                <p>
+                  1. Look for the install icon <span className="font-bold">⊕</span> in the address
+                  bar (right side)
+                </p>
+                <p>
+                  2. Click <span className="font-bold">"Install"</span>
+                </p>
+                <p className="mt-2 text-muted-foreground">
+                  You&apos;ll get a shortcut that opens like an app
+                </p>
+              </div>
             ) : platform === "ios" ? (
               <div className="space-y-2">
                 <p>
-                  1. Tap the <span className="font-bold">Share</span> button at the bottom of Safari (the box with an arrow)
+                  1. Tap the <span className="font-bold">Share</span> button at the bottom of Safari
+                  (the box with an arrow)
                 </p>
                 <p>
                   2. Scroll down and tap <span className="font-bold">"Add to Home Screen"</span>
                 </p>
-                <p>3. Tap <span className="font-bold">"Add"</span></p>
+                <p>
+                  3. Tap <span className="font-bold">"Add"</span>
+                </p>
                 <p className="mt-2 text-muted-foreground">
                   You&apos;ll get an icon on your home screen that opens like a real app.
                 </p>
               </div>
             ) : (
-              <p>
-                Open this page on your phone and add it to your home screen for instant
-                access.
-              </p>
+              <p>Open this page on your phone and add it to your home screen for instant access.</p>
             ),
           } as Step,
         ]),
@@ -129,14 +132,16 @@ body: chrome ? (
       body: (
         <div className="space-y-3">
           <p>
-            Spot a poster or hear about something? Tap <span className="font-bold">+</span> and add it.
+            Spot a poster or hear about something? Tap <span className="font-bold">+</span> and add
+            it.
           </p>
           <p>
             Mark events as <span className="font-bold">Going</span> or{" "}
             <span className="font-bold">Interested</span> to save them to your list.
           </p>
           <p>
-            Tap <span className="font-bold">Add to calendar</span> on the event page to set up your own reminder — Whisper Ring doesn&apos;t send push notifications.
+            Tap <span className="font-bold">Add to calendar</span> on the event page to set up your
+            own reminder — Whisper Ring doesn&apos;t send push notifications.
           </p>
         </div>
       ),
@@ -192,9 +197,7 @@ body: chrome ? (
           {current.title}
         </h2>
 
-        <div className="mt-3 text-base text-foreground/80 leading-relaxed">
-          {current.body}
-        </div>
+        <div className="mt-3 text-base text-foreground/80 leading-relaxed">{current.body}</div>
 
         <div className="mt-8 flex items-center justify-between gap-3">
           <button

@@ -1,25 +1,23 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Check, Star } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { Link, useRouterState } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
-import { Button } from "@/components/ui/button";
-import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { getNotificationPermission, savePlayerIdForCurrentUser } from "@/lib/onesignal";
+import { NOTIFICATIONS_ENABLED } from "@/lib/constants";
 
 type SaveStatus = "going" | "interested";
 type SaveRow = { id: string; status: SaveStatus; notify: boolean } | null;
 
-export function SaveButtons({
-  eventId,
-}: {
-  eventId: string;
-}) {
+const PILL =
+  "rounded-full border border-border px-2 py-[15px] text-center font-mono text-[10px] tracking-[0.14em]";
+const PILL_ACTIVE = "bg-primary text-primary-foreground";
+const PILL_INACTIVE = "bg-transparent text-foreground";
 
+export function SaveButtons({ eventId }: { eventId: string }) {
   const { user, isAuthenticated, loading } = useAuth();
-  const [signInOpen, setSignInOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const qc = useQueryClient();
   const saveKey = ["event_save", eventId, user?.id];
 
@@ -134,9 +132,7 @@ export function SaveButtons({
 
     const perm = getNotificationPermission();
     if (perm === "denied") {
-      toast.error(
-        "Notifications are blocked. Enable them in your browser or phone settings.",
-      );
+      toast.error("Notifications are blocked. Enable them in your browser or phone settings.");
       return;
     }
     if (perm === "granted") {
@@ -145,7 +141,7 @@ export function SaveButtons({
     }
 
     // perm === "default" → ask SYNCHRONOUSLY inside this gesture.
-    const OneSignal = (window as unknown as { OneSignal?: any }).OneSignal;
+    const OneSignal = window.OneSignal;
     let req: Promise<unknown>;
     try {
       req = OneSignal?.Notifications?.requestPermission
@@ -160,15 +156,15 @@ export function SaveButtons({
       if (Notification.permission === "granted") {
         try {
           OneSignal?.User?.PushSubscription?.optIn?.();
-        } catch {}
+        } catch {
+          // best-effort; permission is already granted regardless
+        }
         // Persist the OneSignal player id for this user so server-side
         // reminders can target this device.
         void savePlayerIdForCurrentUser();
         toggleNotify.mutate(true);
       } else {
-        toast.message(
-          "Notifications not enabled. You can turn them on later in settings.",
-        );
+        toast.message("Notifications not enabled. You can turn them on later in settings.");
       }
     });
   };
@@ -177,67 +173,49 @@ export function SaveButtons({
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" onClick={() => setSignInOpen(true)}>
-          <Check className="h-4 w-4" />
-          Going
-        </Button>
-        <Button variant="outline" onClick={() => setSignInOpen(true)}>
-          <Star className="h-4 w-4" />
-          Interested
-        </Button>
-        <MagicLinkDialog
-          open={signInOpen}
-          onOpenChange={setSignInOpen}
-          title="Enter your email to save this event"
-        />
-      </div>
+      <>
+        <Link to="/login" search={{ redirect: pathname }} className={`${PILL} ${PILL_INACTIVE}`}>
+          GOING
+        </Link>
+        <Link to="/login" search={{ redirect: pathname }} className={`${PILL} ${PILL_INACTIVE}`}>
+          INTERESTED
+        </Link>
+      </>
     );
   }
-
 
   const current = save?.status as SaveStatus | undefined;
   const notify = save?.notify ?? true;
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          variant={current === "going" ? "default" : "outline"}
-          onClick={() => mutate.mutate(current === "going" ? null : "going")}
-          disabled={mutate.isPending}
-        >
-          <Check className="h-4 w-4" />
-          Going
-        </Button>
-        <Button
-          variant={current === "interested" ? "default" : "outline"}
-          onClick={() =>
-            mutate.mutate(current === "interested" ? null : "interested")
-          }
-          disabled={mutate.isPending}
-        >
-          <Star className="h-4 w-4" />
-          Interested
-        </Button>
-
-      </div>
-      {/* Per-event notify toggle hidden temporarily — feature kept for later testing */}
-      {false && current && (
-        <Button
-          variant={notify ? "default" : "outline"}
+    <>
+      <button
+        type="button"
+        onClick={() => mutate.mutate(current === "going" ? null : "going")}
+        disabled={mutate.isPending}
+        className={`${PILL} ${current === "going" ? PILL_ACTIVE : PILL_INACTIVE}`}
+      >
+        GOING
+      </button>
+      <button
+        type="button"
+        onClick={() => mutate.mutate(current === "interested" ? null : "interested")}
+        disabled={mutate.isPending}
+        className={`${PILL} ${current === "interested" ? PILL_ACTIVE : PILL_INACTIVE}`}
+      >
+        INTERESTED
+      </button>
+      {NOTIFICATIONS_ENABLED && current && (
+        <button
+          type="button"
           onClick={onNotifyClick}
           disabled={toggleNotify.isPending}
           aria-pressed={notify}
-          className={
-            notify
-              ? "w-full sm:w-auto border-2 border-primary bg-primary text-primary-foreground hover:bg-primary/90 shadow-stamp"
-              : "w-full sm:w-auto border-2 border-dashed border-muted-foreground/40 text-muted-foreground hover:text-foreground"
-          }
+          className={`col-span-2 ${PILL} ${notify ? PILL_ACTIVE : PILL_INACTIVE}`}
         >
-          {notify ? "Notifications on" : "Notify me"}
-        </Button>
+          {notify ? "NOTIFICATIONS ON" : "NOTIFY ME"}
+        </button>
       )}
-    </div>
+    </>
   );
 }

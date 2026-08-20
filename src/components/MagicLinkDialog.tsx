@@ -94,8 +94,8 @@ export function MagicLinkDialog({
               <>
                 Check your inbox — we sent a 6-digit code to {email}.
                 <br />
-                If this is your first time, you may receive a confirmation link
-                instead — click it and you'll be signed in automatically.
+                If this is your first time, you may receive a confirmation link instead — click it
+                and you'll be signed in automatically.
               </>
             ) : (
               description
@@ -106,9 +106,7 @@ export function MagicLinkDialog({
         {step === "email" && (
           <form onSubmit={sendCode} className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="font-mono text-xs uppercase tracking-wide">
-                Email
-              </Label>
+              <Label className="font-mono text-xs uppercase tracking-wide">Email</Label>
               <Input
                 type="email"
                 value={email}
@@ -129,9 +127,7 @@ export function MagicLinkDialog({
         {step === "code" && (
           <form onSubmit={verifyCode} className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="font-mono text-xs uppercase tracking-wide">
-                6-digit code
-              </Label>
+              <Label className="font-mono text-xs uppercase tracking-wide">6-digit code</Label>
               <Input
                 type="text"
                 inputMode="numeric"

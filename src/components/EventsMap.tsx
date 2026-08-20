@@ -1,107 +1,541 @@
-import { useEffect, useRef } from "react";
-import { format } from "date-fns";
-import { loadGoogleMaps } from "@/lib/google-maps-loader";
-import { neighborhoodMeta } from "@/lib/constants";
+import { useMemo, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { format, isBefore, isSameDay, startOfDay } from "date-fns";
+import { Minus, Plus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/use-auth";
+import type { Neighborhood } from "@/lib/constants";
+import { BERLIN_DISTRICT_CENTROIDS } from "@/lib/district-from-coords";
 
 type EventLike = {
   id: string;
   title: string;
+  place: string;
   event_date: string;
-  neighborhood: string;
+  end_date: string | null;
+  neighborhood: Neighborhood;
   lat: number | null;
   lng: number | null;
+  is_secret: boolean;
+  location_tba: boolean;
 };
 
+/** Inclusive end instant: the event's own end_date, or its start if it's a single-day event. */
+function effectiveEnd(e: EventLike, start: Date): Date {
+  if (!e.end_date) return start;
+  const end = new Date(e.end_date);
+  return isNaN(end.getTime()) || end < start ? start : end;
+}
+
+type WhenFilter = "tonight" | "week" | "all";
+
+// Berlin's own extent (all 12 Bezirke fit inside with a small margin) —
+// deliberately tighter than the wider Brandenburg region used for Places
+// Autocomplete biasing, so the common case (events inside Berlin) spreads
+// across the field instead of clustering in the middle. Events further out
+// in Brandenburg still project sensibly, just clamped near the edge.
+const BOUNDS = { minLat: 52.33, maxLat: 52.68, minLng: 13.08, maxLng: 13.77 };
+
+function project(lat: number, lng: number): { x: number; y: number } {
+  const x = ((lng - BOUNDS.minLng) / (BOUNDS.maxLng - BOUNDS.minLng)) * 100;
+  const y = ((BOUNDS.maxLat - lat) / (BOUNDS.maxLat - BOUNDS.minLat)) * 100;
+  return { x: Math.min(96, Math.max(4, x)), y: Math.min(96, Math.max(4, y)) };
+}
+
+// All 12 Berlin districts, labeled directly on the field at their real
+// projected coordinates (same centroids used to resolve a district from
+// coordinates elsewhere). Labels counter-scale with zoom so they stay
+// legible instead of overlapping at the default zoom level.
+const DISTRICT_LABELS: { label: string; lat: number; lng: number }[] =
+  BERLIN_DISTRICT_CENTROIDS.map((c) => ({
+    label: c.value.split("-")[0].toUpperCase(),
+    lat: c.lat,
+    lng: c.lng,
+  }));
+
+const WHEN_STEPS: { value: WhenFilter; label: string }[] = [
+  { value: "all", label: "EVERYTHING" },
+  { value: "tonight", label: "TONIGHT" },
+  { value: "week", label: "THIS WEEK" },
+];
+
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 12;
+
+function clamp(v: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, v));
+}
+
+function touchDistance(a: React.Touch, b: React.Touch): number {
+  return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+}
+
 export function EventsMap({ events }: { events: EventLike[] }) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
-  const infoRef = useRef<any>(null);
+  const { user, isAuthenticated } = useAuth();
+  const qc = useQueryClient();
+  const [when, setWhen] = useState<WhenFilter>("all");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const dragState = useRef<{
+    x: number;
+    y: number;
+    panX: number;
+    panY: number;
+    dragging: boolean;
+  } | null>(null);
+  const pinchState = useRef<{ dist: number; zoom: number } | null>(null);
 
-  // Init map once
-  useEffect(() => {
-    let cancelled = false;
-    loadGoogleMaps()
-      .then((google) => {
-        if (cancelled || !containerRef.current) return;
-        mapRef.current = new google.maps.Map(containerRef.current, {
-          center: { lat: 52.52, lng: 13.405 },
-          zoom: 12,
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: false,
-        });
-        infoRef.current = new google.maps.InfoWindow();
-        renderMarkers();
-      })
-      .catch(() => {
-        /* fail silently */
-      });
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const maxPan = (400 * (zoom - 1)) / 2;
+  const clampPan = (p: { x: number; y: number }) => ({
+    x: clamp(p.x, -maxPan, maxPan),
+    y: clamp(p.y, -maxPan, maxPan),
+  });
 
-  // Re-render markers when events change
-  useEffect(() => {
-    renderMarkers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events]);
+  const zoomBy = (factor: number) => {
+    setZoom((z) => {
+      const next = clamp(z * factor, MIN_ZOOM, MAX_ZOOM);
+      if (next === MIN_ZOOM) setPan({ x: 0, y: 0 });
+      return next;
+    });
+  };
 
-  function renderMarkers() {
-    const google = window.google;
-    const map = mapRef.current;
-    if (!google || !map) return;
-    for (const m of markersRef.current) m.setMap(null);
-    markersRef.current = [];
+  const onWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    zoomBy(1 - e.deltaY * 0.001);
+  };
 
-    for (const e of events) {
-      if (typeof e.lat !== "number" || typeof e.lng !== "number") continue;
-      const marker = new google.maps.Marker({
-        position: { lat: e.lat, lng: e.lng },
-        map,
-        title: e.title,
-      });
-      marker.addListener("click", () => {
-        const d = e.event_date ? new Date(e.event_date) : null;
-        const when = d && !isNaN(d.getTime()) ? format(d, "EEE d MMM, HH:mm") : "Date TBA";
-        const n = neighborhoodMeta(e.neighborhood as any);
-        const html = `
-          <div style="font-family: ui-monospace, monospace; max-width: 220px;">
-            <div style="font-weight: 700; text-transform: uppercase; font-size: 14px; margin-bottom: 4px;">
-              ${escapeHtml(e.title)}
-            </div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px;">
-              ${escapeHtml(when)}
-            </div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; color: #2f7a3a;">
-              ${escapeHtml(n.label)}
-            </div>
-            <a href="/event/${encodeURIComponent(e.id)}"
-               style="display:inline-block; border:2px solid #000; padding:4px 8px; text-decoration:none; color:#000; font-size:11px; text-transform:uppercase; letter-spacing:0.08em;">
-              View event →
-            </a>
-          </div>
-        `;
-        infoRef.current.setContent(html);
-        infoRef.current.open({ anchor: marker, map });
-      });
-      markersRef.current.push(marker);
+  const DRAG_THRESHOLD = 4;
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (zoom <= MIN_ZOOM) return;
+    dragState.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y, dragging: false };
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const drag = dragState.current;
+    if (!drag) return;
+    const dx = e.clientX - drag.x;
+    const dy = e.clientY - drag.y;
+    if (!drag.dragging) {
+      if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+      drag.dragging = true;
+      e.currentTarget.setPointerCapture(e.pointerId);
     }
-  }
+    e.preventDefault();
+    setPan(clampPan({ x: drag.panX + dx, y: drag.panY + dy }));
+  };
+  const endDrag = () => {
+    dragState.current = null;
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      pinchState.current = { dist: touchDistance(e.touches[0], e.touches[1]), zoom };
+    }
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && pinchState.current) {
+      e.preventDefault();
+      const dist = touchDistance(e.touches[0], e.touches[1]);
+      const next = clamp(
+        pinchState.current.zoom * (dist / pinchState.current.dist),
+        MIN_ZOOM,
+        MAX_ZOOM,
+      );
+      setZoom(next);
+      if (next === MIN_ZOOM) setPan({ x: 0, y: 0 });
+    }
+  };
+  const onTouchEnd = () => {
+    pinchState.current = null;
+  };
+
+  const { data: savedIds = new Set<string>() } = useQuery({
+    queryKey: ["event_save", "mine", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_saves")
+        .select("event_id")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      return new Set((data ?? []).map((r) => r.event_id));
+    },
+  });
+
+  const toggleSave = async (eventId: string) => {
+    if (!user) return;
+    if (savedIds.has(eventId)) {
+      await supabase.from("event_saves").delete().eq("user_id", user.id).eq("event_id", eventId);
+    } else {
+      await supabase
+        .from("event_saves")
+        .upsert(
+          { event_id: eventId, user_id: user.id, status: "going" },
+          { onConflict: "event_id,user_id" },
+        );
+    }
+    qc.invalidateQueries({ queryKey: ["event_save"] });
+    qc.invalidateQueries({ queryKey: ["event_save_counts"] });
+    qc.invalidateQueries({ queryKey: ["my_saved_events"] });
+  };
+
+  const { near, pins } = useMemo(() => {
+    const now = new Date();
+    const todayStart = startOfDay(now);
+    const weekCutoff = new Date(todayStart.getTime() + 7 * 86400000);
+
+    // Collapse recurring series to their nearest upcoming occurrence, same
+    // as Home, so the field isn't cluttered with every future instance.
+    // Still-running multi-day events count as "upcoming" too — only their
+    // end date matters, not when they started.
+    const byKey = new Map<string, EventLike[]>();
+    for (const e of events) {
+      const d = new Date(e.event_date);
+      if (isNaN(d.getTime())) continue;
+      const end = effectiveEnd(e, d);
+      if (isBefore(end, todayStart) && !isSameDay(end, todayStart)) continue;
+      const key = `${e.neighborhood}::${e.title}`;
+      const arr = byKey.get(key) ?? [];
+      arr.push(e);
+      byKey.set(key, arr);
+    }
+    const hiddenIds = new Set<string>();
+    for (const arr of byKey.values()) {
+      if (arr.length < 2) continue;
+      const sorted = [...arr].sort(
+        (a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime(),
+      );
+      for (const e of sorted.slice(1)) hiddenIds.add(e.id);
+    }
+
+    const filtered = events
+      .filter((e) => {
+        if (hiddenIds.has(e.id)) return false;
+        const d = new Date(e.event_date);
+        if (isNaN(d.getTime())) return false;
+        const startDay = startOfDay(d);
+        const endDay = startOfDay(effectiveEnd(e, d));
+        if (isBefore(endDay, todayStart)) return false;
+        if (when === "tonight")
+          return !isBefore(todayStart, startDay) && !isBefore(endDay, todayStart);
+        if (when === "week") return !isBefore(weekCutoff, startDay);
+        return true;
+      })
+      .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+
+    const nearWithIndex = filtered.map((e, i) => ({ ...e, pinNo: i + 1 }));
+    const pinsSource = nearWithIndex
+      .filter(
+        (e) =>
+          !e.is_secret && !e.location_tba && typeof e.lat === "number" && typeof e.lng === "number",
+      )
+      .map((e) => {
+        const isTonight = isSameDay(new Date(e.event_date), now);
+        const selected = e.id === selectedId;
+        const { x, y } = project(e.lat as number, e.lng as number);
+        return {
+          ...e,
+          x,
+          y,
+          isTonight,
+          selected,
+          size: selected ? 16 : isTonight ? 13 : 10,
+          halo: selected ? 9 : 5,
+        };
+      });
+
+    return { near: nearWithIndex, pins: pinsSource };
+  }, [events, when, selectedId]);
+
+  const peek = near.find((e) => e.id === selectedId) ?? null;
 
   return (
-    <div
-      ref={containerRef}
-      className="w-full border-2 border-foreground bg-muted"
-      style={{ height: "calc(100vh - 220px)", minHeight: 400 }}
-    />
+    <div className="flex flex-col">
+      <div
+        className="relative mx-auto h-[400px] w-full max-w-[560px] touch-none select-none overflow-hidden rounded-[26px] bg-shell-deep"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(247,231,228,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(247,231,228,0.06) 1px, transparent 1px)",
+          backgroundSize: "38px 38px",
+          cursor: zoom > MIN_ZOOM ? "grab" : "default",
+        }}
+        onWheel={onWheel}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerLeave={endDrag}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transformOrigin: "center center",
+          }}
+        >
+          <span
+            className="absolute inset-x-0 top-[38%] h-[26px] bg-foreground/[0.05]"
+            style={{ transform: "rotate(-4deg)" }}
+          />
+          <span
+            className="absolute inset-y-0 left-[14%] w-5 bg-foreground/[0.04]"
+            style={{ transform: "rotate(7deg)" }}
+          />
+          {[520, 340, 170].map((size, i) => (
+            <span
+              key={size}
+              className="absolute rounded-full border"
+              style={{
+                width: size,
+                height: size,
+                left: "50%",
+                top: "50%",
+                margin: -size / 2,
+                borderColor: `rgba(247,231,228,${0.08 + i * 0.03})`,
+              }}
+            />
+          ))}
+          <span
+            className="absolute animate-[rdSweep_11s_linear_infinite] rounded-full"
+            style={{
+              width: 520,
+              height: 520,
+              left: "50%",
+              top: "50%",
+              margin: -260,
+              background:
+                "conic-gradient(from 0deg, rgba(255,106,99,0.16), rgba(255,106,99,0.04) 16%, transparent 30%)",
+            }}
+          />
+          {DISTRICT_LABELS.map((d) => {
+            const { x, y } = project(d.lat, d.lng);
+            return (
+              <span
+                key={d.label}
+                className="absolute whitespace-nowrap font-mono text-[9px] tracking-[0.16em] text-foreground/[0.28]"
+                style={{
+                  left: `${x + 5}%`,
+                  top: `${y + 7}%`,
+                  transform: `translate(-50%,-50%) scale(${1 / zoom})`,
+                }}
+              >
+                {d.label}
+              </span>
+            );
+          })}
+          {pins.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setSelectedId(selectedId === p.id ? null : p.id)}
+              className="absolute flex items-center gap-[7px] p-1.5"
+              style={{
+                left: `${p.x}%`,
+                top: `${p.y}%`,
+                transform: `translate(-50%,-50%) scale(${1 / zoom})`,
+              }}
+            >
+              <span
+                className="block rounded-full"
+                style={{
+                  width: p.size,
+                  height: p.size,
+                  background: p.selected
+                    ? "#F7E7E4"
+                    : p.isTonight
+                      ? "#FF6A63"
+                      : "rgba(247,231,228,0.75)",
+                  boxShadow: `0 0 0 ${p.halo}px rgba(255,106,99,0.18)`,
+                }}
+              />
+              {p.selected && (
+                <span className="whitespace-nowrap font-mono text-[9px] tracking-[0.08em] text-foreground">
+                  {format(new Date(p.event_date), "HH:mm")}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <span className="pointer-events-none absolute left-4 top-3 font-mono text-[9px] tracking-[0.14em] text-dim">
+          {peek ? "TAP THE PIN AGAIN TO CLOSE" : "TAP A PIN"}
+        </span>
+
+        <div className="absolute right-3 top-3 flex flex-col overflow-hidden rounded-full border border-foreground/[0.16] bg-shell-deep/80">
+          <button
+            type="button"
+            onClick={() => zoomBy(1.4)}
+            disabled={zoom >= MAX_ZOOM}
+            aria-label="Zoom in"
+            className="grid h-8 w-8 place-items-center text-foreground disabled:opacity-30"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+          <span className="h-px w-full bg-foreground/[0.16]" />
+          <button
+            type="button"
+            onClick={() => zoomBy(1 / 1.4)}
+            disabled={zoom <= MIN_ZOOM}
+            aria-label="Zoom out"
+            className="grid h-8 w-8 place-items-center text-foreground disabled:opacity-30"
+          >
+            <Minus className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        {peek && (
+          <div className="absolute inset-x-3 bottom-3">
+            <Link
+              to="/event/$eventId"
+              params={{ eventId: peek.id }}
+              className="flex items-center gap-3.5 rounded-[22px] bg-primary p-3.5 text-primary-foreground"
+            >
+              <span className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center rounded-2xl bg-shell-deep leading-[1.05] text-foreground">
+                <span className="font-brand text-base">
+                  {format(new Date(peek.event_date), "dd")}
+                </span>
+                <span className="font-mono text-[8px] tracking-[0.1em] uppercase">
+                  {format(new Date(peek.event_date), "MMM")}
+                </span>
+              </span>
+              <span className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="truncate text-[16px] font-semibold tracking-[-0.01em]">
+                  {peek.title}
+                </span>
+                <span className="truncate font-mono text-[10px] tracking-[0.08em] opacity-70">
+                  {format(new Date(peek.event_date), "EEE d MMM")} · {peek.place}
+                </span>
+              </span>
+              <SaveDot
+                saved={savedIds.has(peek.id)}
+                isAuthenticated={isAuthenticated}
+                onToggle={() => toggleSave(peek.id)}
+                inverted
+              />
+            </Link>
+          </div>
+        )}
+      </div>
+
+      <div className="mx-auto flex w-full max-w-[560px] gap-1.5 py-3.5">
+        {WHEN_STEPS.map((w) => {
+          const active = when === w.value;
+          return (
+            <button
+              key={w.value}
+              type="button"
+              onClick={() => setWhen(w.value)}
+              className={`flex-1 rounded-full border border-border py-[11px] font-mono text-[10px] tracking-[0.12em] ${
+                active ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-2"
+              }`}
+            >
+              {w.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-x-8">
+        {near.length === 0 ? (
+          <div className="flex flex-col items-start gap-3 py-6">
+            <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground">
+              NOTHING IN THIS VIEW
+            </span>
+            <button
+              type="button"
+              onClick={() => setWhen("all")}
+              className="rounded-full bg-primary px-4 py-[11px] font-mono text-[10px] tracking-[0.14em] text-primary-foreground"
+            >
+              SHOW ALL BERLIN
+            </button>
+          </div>
+        ) : (
+          near.map((e) => (
+            <div
+              key={e.id}
+              className="grid grid-cols-[26px_1fr_auto] items-center gap-3 border-t border-border/[0.16] py-3.5"
+            >
+              <span
+                className={`font-brand text-[15px] ${
+                  isSameDay(new Date(e.event_date), new Date()) ? "text-hot" : "text-muted-2"
+                }`}
+              >
+                {e.pinNo}
+              </span>
+              <Link
+                to="/event/$eventId"
+                params={{ eventId: e.id }}
+                className="flex min-w-0 flex-col gap-1"
+              >
+                <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground">
+                  {e.title}
+                </span>
+                <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
+                  {format(new Date(e.event_date), "EEE d MMM")} ·{" "}
+                  {(e.neighborhood as string).split("-")[0].toUpperCase()}
+                </span>
+              </Link>
+              <SaveDot
+                saved={savedIds.has(e.id)}
+                isAuthenticated={isAuthenticated}
+                onToggle={() => toggleSave(e.id)}
+              />
+            </div>
+          ))
+        )}
+      </div>
+    </div>
   );
 }
 
-function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
+function SaveDot({
+  saved,
+  isAuthenticated,
+  onToggle,
+  inverted,
+}: {
+  saved: boolean;
+  isAuthenticated: boolean;
+  onToggle: () => void;
+  inverted?: boolean;
+}) {
+  const base =
+    "flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full text-[13px]";
+  const style = inverted
+    ? saved
+      ? "border border-shell-deep/40 bg-shell-deep text-foreground"
+      : "border border-shell-deep/40 bg-transparent text-shell-deep"
+    : saved
+      ? "border border-border bg-primary text-primary-foreground"
+      : "border border-border bg-transparent text-muted-2";
+
+  if (!isAuthenticated) {
+    return (
+      <Link
+        to="/login"
+        search={{ redirect: "/radar" }}
+        onClick={(e) => e.stopPropagation()}
+        className={`${base} ${style}`}
+      >
+        ☆
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onToggle();
+      }}
+      className={`${base} ${style}`}
+    >
+      {saved ? "★" : "☆"}
+    </button>
   );
 }

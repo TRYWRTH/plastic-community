@@ -4,11 +4,7 @@ import { toast } from "sonner";
 
 import { useAuth } from "@/lib/use-auth";
 import { Button } from "@/components/ui/button";
-import {
-  getNotificationPermission,
-  initOneSignal,
-  requestPushPermission,
-} from "@/lib/onesignal";
+import { getNotificationPermission, initOneSignal, requestPushPermission } from "@/lib/onesignal";
 
 /**
  * Shown on the main page to logged-in users who haven't yet decided about
@@ -17,9 +13,7 @@ import {
  */
 export function EnablePushBanner() {
   const { isAuthenticated, loading } = useAuth();
-  const [perm, setPerm] = useState<NotificationPermission | "unsupported">(
-    "default",
-  );
+  const [perm, setPerm] = useState<NotificationPermission | "unsupported">("default");
   const [pending, setPending] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [pushSupported, setPushSupported] = useState(true);
@@ -72,26 +66,15 @@ export function EnablePushBanner() {
               🔔 Enable notifications to stay in the loop
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              You'll only be asked once. You can change this any time in
-              Notification settings.
+              You'll only be asked once. You can change this any time in Notification settings.
             </p>
           </div>
         </div>
         <div className="flex w-full gap-2 sm:w-auto">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onDismiss}
-            className="flex-1 sm:flex-none"
-          >
+          <Button variant="ghost" size="sm" onClick={onDismiss} className="flex-1 sm:flex-none">
             Not now
           </Button>
-          <Button
-            size="sm"
-            onClick={onEnable}
-            disabled={pending}
-            className="flex-1 sm:flex-none"
-          >
+          <Button size="sm" onClick={onEnable} disabled={pending} className="flex-1 sm:flex-none">
             <Bell className="h-4 w-4" />
             Turn on
           </Button>

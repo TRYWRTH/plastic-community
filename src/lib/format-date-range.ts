@@ -20,9 +20,7 @@ export function formatEventDateRange(
     parts.push(format(start, withWeekday ? "MMM d" : "EEE, MMM d"));
     if (withTime) parts.push(` · ${format(start, "HH:mm")}`);
     // simpler:
-    return withTime
-      ? format(start, "EEE, MMM d · HH:mm")
-      : format(start, "EEE, MMM d");
+    return withTime ? format(start, "EEE, MMM d · HH:mm") : format(start, "EEE, MMM d");
   }
 
   // end_date may be "yyyy-MM-dd" or "yyyy-MM-ddTHH:mm"

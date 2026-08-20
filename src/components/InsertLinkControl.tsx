@@ -3,11 +3,7 @@ import { Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export function InsertLinkControl({
-  onInsert,
-}: {
-  onInsert: (markdown: string) => void;
-}) {
+export function InsertLinkControl({ onInsert }: { onInsert: (markdown: string) => void }) {
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");

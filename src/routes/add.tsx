@@ -1,56 +1,73 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { ArrowLeft } from "lucide-react";
 
-import { Header } from "@/components/Header";
 import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
 import { DescriptionEditor } from "@/components/DescriptionEditor";
-
 import { QrScanButton } from "@/components/QrScanButton";
 import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
-import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendNewEventNotification } from "@/lib/notifications";
 import { cleanDescription } from "@/lib/clean-description";
 import {
   EVENT_TYPES,
-  
+  PRICE_TYPES,
   type EventType,
   type Neighborhood,
+  type PriceType,
 } from "@/lib/constants";
 import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
 import { cleanPlace } from "@/lib/clean-place";
 import { geocodeAddress } from "@/lib/geocode";
-
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { nearestBerlinDistrict } from "@/lib/district-from-coords";
+import { triggerLinkPreviewUnfurl } from "@/lib/link-preview";
 
 export const Route = createFileRoute("/add")({
   component: AddEvent,
 });
 
+type Step = 1 | 2 | 3;
+
+type LocationMode = "public" | "secret" | "tba";
+
+const LOCATION_MODES: { value: LocationMode; label: string; hint: string }[] = [
+  { value: "public", label: "PUBLIC ADDRESS", hint: "Address shown on the event page." },
+  {
+    value: "secret",
+    label: "SECRET",
+    hint: "Address hidden — guests contact you via the link.",
+  },
+  {
+    value: "tba",
+    label: "TBA",
+    hint: "Address not set yet — announce it closer to the date.",
+  },
+];
+
 function AddEvent() {
   const { isAuthenticated, user, loading } = useAuth();
   const navigate = useNavigate();
-  const [signInOpen, setSignInOpen] = useState(!loading && !isAuthenticated);
 
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate({ to: "/login", search: { redirect: "/add" } });
+    }
+  }, [loading, isAuthenticated, navigate]);
+
+  const [step, setStep] = useState<Step>(1);
   const [title, setTitle] = useState("");
   const [place, setPlace] = useState("");
-  
-  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
+  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
+    lat: null,
+    lng: null,
+  });
   const [neighborhood, setNeighborhood] = useState<Neighborhood>("Mitte");
+  // True once a Places suggestion has set `neighborhood` from Google's own
+  // sublocality data — that's far more accurate than the nearest-centroid
+  // guess, so it should never be overridden by it at submit time.
+  const [neighborhoodFromPlace, setNeighborhoodFromPlace] = useState(false);
   const [eventType, setEventType] = useState<EventType>("music");
   const [eventDay, setEventDay] = useState(format(new Date(Date.now() + 86400000), "yyyy-MM-dd"));
   const [eventTime, setEventTime] = useState("20:00");
@@ -58,16 +75,26 @@ function AddEvent() {
   const [endDay, setEndDay] = useState("");
   const [endTime, setEndTime] = useState("");
   const [link, setLink] = useState("");
+  const [priceType, setPriceType] = useState<PriceType | null>(null);
+  const [ticketUrl, setTicketUrl] = useState("");
   const [description, setDescription] = useState("");
   const [repeats, setRepeats] = useState<RepeatOption>("none");
-  const [isSecret, setIsSecret] = useState(false);
+  const [locationMode, setLocationMode] = useState<LocationMode>("public");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const endDateError =
-    multiDay && endDay && endDay < eventDay
-      ? "End date must be on or after the start date."
-      : null;
+    multiDay && endDay && endDay < eventDay ? "End date must be on or after the start date." : null;
+
+  const isMultiDayRange =
+    multiDay &&
+    endDay &&
+    !endDateError &&
+    Math.round(
+      (new Date(`${endDay}T00:00`).getTime() - new Date(`${eventDay}T00:00`).getTime()) / 86400000,
+    ) +
+      1 >=
+      2;
 
   const dirty =
     title !== "" ||
@@ -77,12 +104,15 @@ function AddEvent() {
     neighborhood !== "Mitte" ||
     eventType !== "music" ||
     eventTime !== "20:00" ||
+    endTime !== "" ||
     multiDay ||
-    repeats !== "none";
+    repeats !== "none" ||
+    priceType !== null ||
+    ticketUrl !== "" ||
+    locationMode !== "public";
 
-  const submit = async (e: React.FormEvent) => {
+  const publish = async () => {
     setSaved(true);
-    e.preventDefault();
     if (!user) {
       setSaved(false);
       return;
@@ -107,30 +137,43 @@ function AddEvent() {
     }
     setSaving(true);
     let finalCoords = coords;
-    if (finalCoords.lat == null || finalCoords.lng == null) {
+    if (locationMode === "public" && (finalCoords.lat == null || finalCoords.lng == null)) {
       const geo = await geocodeAddress(`${place.trim()}, ${neighborhood}, Berlin`);
       if (geo) finalCoords = geo;
     }
+    // Google's own sublocality data (set via onPlaceSelected) is far more
+    // accurate than nearest-centroid matching, especially near a district
+    // border — only fall back to the coordinate guess when the place was
+    // typed by hand and never resolved through Places Autocomplete.
+    const resolvedNeighborhood = neighborhoodFromPlace
+      ? neighborhood
+      : ((finalCoords.lat != null && finalCoords.lng != null
+          ? nearestBerlinDistrict(finalCoords.lat, finalCoords.lng)
+          : null) ?? neighborhood);
     const basePayload = {
       title: title.trim(),
       place: cleanPlace(place.trim()),
-      neighborhood,
+      neighborhood: resolvedNeighborhood,
       event_type: eventType,
       link: link.trim() || null,
       description: cleanDescription(description) || null,
-      
       created_by: user.id,
       lat: finalCoords.lat,
       lng: finalCoords.lng,
+      image_url: null,
+      price_type: priceType,
+      ticket_url: priceType === "paid" ? ticketUrl.trim() || null : null,
     };
     const { data, error } = await supabase
       .from("events")
       .insert({
         ...basePayload,
         event_date: parsedDate.toISOString(),
-        end_date: multiDay && endDay ? (endTime ? `${endDay}T${endTime}` : endDay) : null,
+        end_date: multiDay && endDay ? endDay : null,
+        end_time: endTime || null,
         repeats,
-        is_secret: isSecret,
+        is_secret: locationMode === "secret",
+        location_tba: locationMode === "tba",
       })
       .select("id")
       .single();
@@ -143,11 +186,11 @@ function AddEvent() {
 
     const extraCount = await createRecurringInstances(basePayload, parsedDate, repeats);
     setSaving(false);
-    toast.success(
-      extraCount > 0
-        ? `Event added (+${extraCount} repeats)`
-        : "Event added",
-    );
+    toast.success(extraCount > 0 ? `EVENT PUBLISHED (+${extraCount} repeats)` : "EVENT PUBLISHED");
+
+    if (link.trim()) {
+      triggerLinkPreviewUnfurl(data.id);
+    }
 
     // Fire-and-forget push broadcast to all subscribers (client-side OneSignal call)
     const eventUrl = `${window.location.origin}/event/${data.id}`;
@@ -160,277 +203,383 @@ function AddEvent() {
     navigate({ to: "/event/$eventId", params: { eventId: data.id } });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-xl px-4 py-12 text-center text-muted-foreground">
-          Loading…
-        </div>
-      </div>
-    );
+  const nextStep = () => {
+    if (step === 1) {
+      if (!title.trim()) {
+        toast.error("GIVE IT A TITLE FIRST");
+        return;
+      }
+      setStep(2);
+      return;
+    }
+    if (step === 2) {
+      const parsedDate = new Date(`${eventDay}T${eventTime}`);
+      if (Number.isNaN(parsedDate.getTime())) {
+        toast.error("Please choose a valid date and time.");
+        return;
+      }
+      if (multiDay && (!endDay || endDateError)) {
+        toast.error(endDateError ?? "Please pick an end date.");
+        return;
+      }
+      setStep(3);
+      return;
+    }
+    if (locationMode === "public" && !place.trim()) {
+      toast.error("Please add a place, or mark it Secret or TBA.");
+      return;
+    }
+    void publish();
+  };
+
+  const prevStep = () => {
+    if (step === 1) {
+      navigate({ to: "/" });
+      return;
+    }
+    setStep((step - 1) as Step);
+  };
+
+  if (loading || !isAuthenticated) {
+    return <div className="min-h-screen bg-background" />;
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen">
-        <Header />
-        <main className="mx-auto max-w-xl px-4 py-12 text-center">
-          <h1 className="font-brand text-3xl uppercase">Sign in to add events</h1>
-          <p className="mt-2 font-mono text-xs uppercase tracking-wide text-muted-foreground">
-            We'll email you a magic link — no password needed.
-          </p>
-          <Button className="mt-6" onClick={() => setSignInOpen(true)}>
-            Enter your email
-          </Button>
-        </main>
-        <MagicLinkDialog
-          open={signInOpen}
-          onOpenChange={setSignInOpen}
-          title="Enter your email to add an event"
-        />
-      </div>
-    );
-  }
+  const stepTitle = step === 1 ? "What is it?" : step === 2 ? "When" : "Where";
+  const nextLabel = step === 3 ? "PUBLISH EVENT" : "CONTINUE";
+  const prevLabel = step === 1 ? "CANCEL" : "BACK";
 
   return (
-    <div className="min-h-screen">
-      <Header />
-      <main className="mx-auto max-w-xl px-3 py-2 sm:px-4 sm:py-6">
-        <UnsavedChangesGuard when={dirty && !saving && !saved} />
-        <Link
-          to="/"
-          className="inline-flex h-11 items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-widest text-foreground hover:text-primary"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back
-        </Link>
+    <div className="min-h-screen bg-background">
+      <UnsavedChangesGuard when={dirty && !saving && !saved} />
+      <div className="mx-auto flex max-w-[430px] flex-col gap-4 px-5 pb-28 pt-2 lg:max-w-[560px]">
+        <div className="flex flex-col gap-2.5">
+          <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground">
+            STEP {step} OF 3
+          </span>
+          <h1 className="font-brand text-4xl uppercase leading-none tracking-[0.02em] text-foreground">
+            {stepTitle}
+          </h1>
+          <div className="flex gap-1">
+            {[1, 2, 3].map((n) => (
+              <span
+                key={n}
+                className={`h-1 flex-1 rounded-full ${n <= step ? "bg-primary" : "bg-foreground/20"}`}
+              />
+            ))}
+          </div>
+        </div>
 
-        <h1 className="mt-1 font-display text-xl font-bold sm:text-3xl">Add an event</h1>
-        <p className="mt-0.5 text-xs text-muted-foreground sm:text-base">
-          Saw a poster or heard a whisper? Add it here.
-        </p>
+        {step === 1 && (
+          <div className="flex flex-col gap-4">
+            <FieldLabel label="TITLE">
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Basement noise set"
+                maxLength={120}
+                autoFocus
+                className="h-12 rounded-full border border-border bg-input px-4 text-[15px] text-foreground outline-none placeholder:text-dim"
+              />
+            </FieldLabel>
+            <div className="flex flex-col gap-1.5">
+              <span className="font-mono text-[9px] tracking-[0.16em] text-muted-foreground">
+                CATEGORY
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {EVENT_TYPES.map((t) => {
+                  const active = eventType === t.value;
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setEventType(t.value)}
+                      className={`rounded-full border px-3.5 py-2.5 font-mono text-[10px] tracking-[0.1em] ${
+                        active
+                          ? "border-transparent bg-primary text-primary-foreground"
+                          : "border-border/[0.22] text-muted-2"
+                      }`}
+                    >
+                      {t.label.toUpperCase()}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
-        <form
-          onSubmit={submit}
-          className="mt-3 space-y-2.5 sm:mt-6 sm:space-y-4 [&_input]:h-9 [&_input]:py-1 [&_input]:text-sm sm:[&_input]:h-10 sm:[&_input]:text-base [&_button[role=combobox]]:h-9 sm:[&_button[role=combobox]]:h-10"
-        >
-          <Field label="Title" required>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Open-air jazz night"
-              required
-              maxLength={120}
-            />
-          </Field>
-
-          {/* Date section — all three rows grouped with even spacing */}
-          <div className="space-y-2">
-            {/* Row 1: Date + Time */}
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr] sm:gap-4">
-              <Field label="Date" required>
-                <Input
+        {step === 2 && (
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-3 gap-2.5">
+              <FieldLabel label="DATE">
+                <input
                   type="date"
                   value={eventDay}
                   onChange={(e) => setEventDay(e.target.value)}
-                  required
+                  className="h-12 rounded-full border border-border bg-input px-3.5 font-mono text-xs text-foreground outline-none"
+                  style={{ colorScheme: "dark" }}
                 />
-              </Field>
-              <Field label="Time" required>
-                <Input
+              </FieldLabel>
+              <FieldLabel label="START">
+                <input
                   type="time"
                   value={eventTime}
                   onChange={(e) => setEventTime(e.target.value)}
-                  required
+                  className="h-12 rounded-full border border-border bg-input px-3.5 font-mono text-xs text-foreground outline-none"
+                  style={{ colorScheme: "dark" }}
                 />
-              </Field>
+              </FieldLabel>
+              <FieldLabel label="END (OPTIONAL)">
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="h-12 rounded-full border border-border bg-input px-3.5 font-mono text-xs text-foreground outline-none"
+                  style={{ colorScheme: "dark" }}
+                />
+              </FieldLabel>
             </div>
 
-            {/* Row 2: Add end date checkbox */}
-            <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
-              <input
-                type="checkbox"
-                checked={multiDay}
-                onChange={(e) => {
-                  setMultiDay(e.target.checked);
-                  if (!e.target.checked) { setEndDay(""); setEndTime(""); }
-                  else if (!endDay) setEndDay(eventDay);
-                }}
-                className="h-4 w-4 accent-primary"
-              />
-              Add end date
-            </label>
+            <CompactToggle
+              label="RUNS OVER MULTIPLE DAYS"
+              checked={multiDay}
+              onChange={(v) => {
+                setMultiDay(v);
+                if (!v) setEndDay("");
+                else if (!endDay) setEndDay(eventDay);
+              }}
+            />
 
-            {/* End date/time fields — animated expand */}
-            <div
-              className={`grid overflow-hidden transition-all duration-300 ease-out ${
-                multiDay ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-              }`}
-            >
-              <div className="min-h-0">
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr] sm:gap-4">
-                  <Field label="End date" required={multiDay}>
-                    <Input
-                      type="date"
-                      value={endDay}
-                      min={eventDay}
-                      onChange={(ev) => setEndDay(ev.target.value)}
-                    />
-                    {endDateError && (
-                      <p className="mt-1 text-[11px] text-destructive sm:text-xs">
-                        {endDateError}
-                      </p>
-                    )}
-                  </Field>
-                  <Field label="End time (optional)">
-                    <Input
-                      type="time"
-                      value={endTime}
-                      onChange={(ev) => setEndTime(ev.target.value)}
-                    />
-                  </Field>
-                </div>
+            {multiDay && (
+              <FieldLabel label="END DATE">
+                <input
+                  type="date"
+                  value={endDay}
+                  min={eventDay}
+                  onChange={(e) => setEndDay(e.target.value)}
+                  className="h-12 max-w-[220px] rounded-full border border-border bg-input px-3.5 font-mono text-xs text-foreground outline-none"
+                  style={{ colorScheme: "dark" }}
+                />
+                {endDateError && <p className="text-[11px] text-destructive">{endDateError}</p>}
+              </FieldLabel>
+            )}
+
+            {isMultiDayRange && (
+              <p className="font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
+                Multi-day events aren't repeated every day — they show in "On now" once they start.
+              </p>
+            )}
+
+            <div className="flex flex-col gap-1.5">
+              <span className="font-mono text-[9px] tracking-[0.16em] text-muted-foreground">
+                REPEATS
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {REPEAT_OPTIONS.map((o) => {
+                  const active = repeats === o.value;
+                  return (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => setRepeats(o.value)}
+                      className={`rounded-full border px-3.5 py-2.5 font-mono text-[10px] tracking-[0.1em] ${
+                        active
+                          ? "border-transparent bg-primary text-primary-foreground"
+                          : "border-border/[0.22] text-muted-2"
+                      }`}
+                    >
+                      {o.label.toUpperCase()}
+                    </button>
+                  );
+                })}
               </div>
-            </div>
-
-            {/* Row 3: Repeats */}
-            <div className="space-y-1">
-              <label className="text-xs font-medium sm:text-sm">Repeats</label>
-              <Select value={repeats} onValueChange={(v) => setRepeats(v as RepeatOption)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {REPEAT_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
               {repeats !== "none" && (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="font-mono text-[9px] text-muted-foreground">
                   Future instances auto-created up to 3 months ahead.
                 </p>
               )}
             </div>
-          </div>
 
-          <Field label="Place" required>
-            <PlaceAutocompleteInput
-              value={place}
-              onChange={(v) => {
-                setPlace(v);
-                setCoords({ lat: null, lng: null });
-              }}
-              onPlaceSelected={(p) => {
-                setCoords({ lat: p.lat, lng: p.lng });
-                setNeighborhood((p.neighborhood as Neighborhood) ?? "Mitte");
-              }}
-              placeholder="Venue or address"
-              required
-              maxLength={200}
-            />
-          </Field>
-
-          <Field label="Category">
-            <Select value={eventType} onValueChange={(v) => setEventType(v as EventType)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {EVENT_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    <span className="inline-flex items-center gap-2">
-                      <t.Icon className="h-4 w-4" aria-hidden="true" />
-                      {t.label}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-
-          <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
-            <input
-              type="checkbox"
-              checked={isSecret}
-              onChange={(e) => setIsSecret(e.target.checked)}
-              className="h-4 w-4 accent-primary"
-            />
-            Secret event
-            <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40">
-              — hides location from public
-            </span>
-          </label>
-
-          <Field label="Link">
-            <div className="flex gap-2">
-              <Input
-                value={link}
-                onChange={(e) => setLink(e.target.value)}
-                placeholder="https://…"
-                type="url"
-                inputMode="url"
+            <FieldLabel label="DESCRIPTION — LINKS BECOME CLICKABLE">
+              <DescriptionEditor
+                value={description}
+                onChange={setDescription}
+                maxLength={1500}
+                placeholder="Doors 20:00. Cash only. instagram.com/…"
               />
-              <QrScanButton
-                onResult={(text) => {
-                  setLink(text);
-                  toast.success("QR captured");
+            </FieldLabel>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="flex flex-col gap-4">
+            <FieldLabel label={locationMode === "public" ? "PLACE" : "PLACE (OPTIONAL)"}>
+              <PlaceAutocompleteInput
+                value={place}
+                onChange={(v) => {
+                  setPlace(v);
+                  setCoords({ lat: null, lng: null });
+                  setNeighborhoodFromPlace(false);
                 }}
+                onPlaceSelected={(p) => {
+                  setCoords({ lat: p.lat, lng: p.lng });
+                  const fallback =
+                    p.lat != null && p.lng != null ? nearestBerlinDistrict(p.lat, p.lng) : null;
+                  setNeighborhood((p.neighborhood as Neighborhood) ?? fallback ?? "Mitte");
+                  setNeighborhoodFromPlace(true);
+                }}
+                placeholder="Sameheads, Richardstr. 20"
+                maxLength={200}
               />
-            </div>
-          </Field>
-
-          <Field label="Description">
-            <DescriptionEditor
-              value={description}
-              onChange={setDescription}
-              maxLength={1500}
-              placeholder="What makes it worth showing up?"
-            />
-            <div className="flex items-center justify-end gap-2">
-              <p className="font-mono text-[11px] text-muted-foreground sm:text-xs">
-                {description.length}/1500
+            </FieldLabel>
+            <FieldLabel label="LINK — INSTAGRAM, SIGN-UP, MORE INFO">
+              <div className="flex gap-2">
+                <input
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                  placeholder="instagram.com/plastic_productions_"
+                  type="text"
+                  inputMode="url"
+                  className="h-12 min-w-0 flex-1 rounded-full border border-border bg-input px-4 text-[15px] text-foreground outline-none placeholder:text-dim"
+                />
+                <QrScanButton
+                  onResult={(text) => {
+                    setLink(text);
+                    toast.success("QR captured");
+                  }}
+                />
+              </div>
+            </FieldLabel>
+            {!link.trim() && (
+              <p className="-mt-2.5 font-mono text-[9px] tracking-[0.1em] text-muted-foreground">
+                Tip: an Instagram post link helps people trust the event is real.
               </p>
-            </div>
-          </Field>
+            )}
 
-          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:items-center">
-            <Button type="button" variant="ghost" asChild size="sm" className="w-full sm:w-auto">
-              <Link to="/">Cancel</Link>
-            </Button>
-            <Button type="submit" disabled={saving} size="sm" className="w-full shadow-glow sm:w-auto">
-              {saving ? "Saving…" : "Save event"}
-            </Button>
+            <div className="flex flex-col gap-1.5">
+              <span className="font-mono text-[9px] tracking-[0.16em] text-muted-foreground">
+                PRICE — OPTIONAL
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {PRICE_TYPES.map((p) => {
+                  const active = priceType === p.value;
+                  return (
+                    <button
+                      key={p.value}
+                      type="button"
+                      onClick={() => setPriceType(active ? null : p.value)}
+                      className={`rounded-full border px-3.5 py-2.5 font-mono text-[10px] tracking-[0.1em] ${
+                        active
+                          ? "border-transparent bg-primary text-primary-foreground"
+                          : "border-border/[0.22] text-muted-2"
+                      }`}
+                    >
+                      {p.label.toUpperCase()}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {priceType === "paid" && (
+              <FieldLabel label="TICKET LINK (OPTIONAL)">
+                <input
+                  value={ticketUrl}
+                  onChange={(e) => setTicketUrl(e.target.value)}
+                  placeholder="ra.co/events/…"
+                  type="text"
+                  inputMode="url"
+                  className="h-12 w-full rounded-full border border-border bg-input px-4 text-[15px] text-foreground outline-none placeholder:text-dim"
+                />
+              </FieldLabel>
+            )}
+
+            <div className="flex flex-col gap-1.5">
+              <span className="font-mono text-[9px] tracking-[0.16em] text-muted-foreground">
+                LOCATION
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {LOCATION_MODES.map((m) => {
+                  const active = locationMode === m.value;
+                  return (
+                    <button
+                      key={m.value}
+                      type="button"
+                      onClick={() => setLocationMode(m.value)}
+                      className={`rounded-full border px-3.5 py-2.5 font-mono text-[10px] tracking-[0.1em] ${
+                        active
+                          ? "border-transparent bg-primary text-primary-foreground"
+                          : "border-border/[0.22] text-muted-2"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <span className="font-mono text-[9px] text-muted-foreground">
+                {LOCATION_MODES.find((m) => m.value === locationMode)?.hint}
+              </span>
+            </div>
           </div>
-        </form>
-      </main>
+        )}
+
+        <div className="flex gap-2 pt-1">
+          <button
+            type="button"
+            onClick={prevStep}
+            className="shrink-0 rounded-full border border-border px-[18px] py-4 font-mono text-[10px] tracking-[0.14em] text-foreground"
+          >
+            {prevLabel}
+          </button>
+          <button
+            type="button"
+            onClick={nextStep}
+            disabled={saving}
+            className="flex-1 rounded-full bg-primary py-4 font-mono text-[10px] font-bold tracking-[0.16em] text-primary-foreground disabled:opacity-60"
+          >
+            {saving ? "…" : nextLabel}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
+function FieldLabel({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="font-mono text-[9px] tracking-[0.16em] text-muted-foreground">{label}</span>
+      {children}
+    </label>
+  );
+}
 
-function Field({
+function CompactToggle({
   label,
-  required,
-  hint,
-  children,
+  checked,
+  onChange,
 }: {
   label: string;
-  required?: boolean;
-  hint?: string;
-  children: React.ReactNode;
+  checked: boolean;
+  onChange: (v: boolean) => void;
 }) {
   return (
-    <div className="space-y-1">
-      <Label className="text-xs font-medium sm:text-sm">
-        {label}
-        {required && <span className="text-primary"> *</span>}
-      </Label>
-      {children}
-      {hint && <p className="text-[11px] text-muted-foreground sm:text-xs">{hint}</p>}
-    </div>
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className="flex items-center justify-between gap-2.5 rounded-full border border-border/[0.22] px-4 py-2 text-left text-foreground"
+    >
+      <span className="font-mono text-[10px] tracking-[0.12em] text-muted-2">{label}</span>
+      <span
+        className={`flex h-5 w-9 shrink-0 items-center rounded-full p-[3px] ${
+          checked ? "justify-end bg-primary" : "justify-start bg-foreground/[0.18]"
+        }`}
+      >
+        <span
+          className={`h-3.5 w-3.5 rounded-full ${checked ? "bg-primary-foreground" : "bg-foreground"}`}
+        />
+      </span>
+    </button>
   );
 }
-

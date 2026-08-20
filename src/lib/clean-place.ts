@@ -2,9 +2,7 @@ import { NEIGHBORHOODS } from "@/lib/constants";
 
 // Neighborhood names sorted longest first so multi-word/hyphenated ones
 // (e.g. "Treptow-Köpenick") match before shorter prefixes.
-const NEIGHBORHOOD_NAMES = NEIGHBORHOODS.map((n) => n.label).sort(
-  (a, b) => b.length - a.length,
-);
+const NEIGHBORHOOD_NAMES = NEIGHBORHOODS.map((n) => n.label).sort((a, b) => b.length - a.length);
 
 function escapeRegExp(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -59,4 +57,3 @@ export function cleanPlace(input: string | null | undefined): string {
 
   return s;
 }
-

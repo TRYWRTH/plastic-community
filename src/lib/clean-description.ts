@@ -146,9 +146,7 @@ function stripUtm(url: string): string {
     const hashIdx = rest.indexOf("#");
     const query = hashIdx === -1 ? rest : rest.slice(0, hashIdx);
     const frag = hashIdx === -1 ? "" : rest.slice(hashIdx);
-    const kept = query
-      .split("&")
-      .filter((p) => p && !/^utm_/i.test(p.split("=")[0]));
+    const kept = query.split("&").filter((p) => p && !/^utm_/i.test(p.split("=")[0]));
     return base + (kept.length ? "?" + kept.join("&") : "") + frag;
   } catch {
     return url;

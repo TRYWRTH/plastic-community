@@ -16,9 +16,10 @@ import { useAuth } from "@/lib/use-auth";
 import { sendEventUpdateNotification } from "@/lib/notifications";
 import {
   EVENT_TYPES,
-  
+  PRICE_TYPES,
   type EventType,
   type Neighborhood,
+  type PriceType,
 } from "@/lib/constants";
 import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,8 @@ import { Input } from "@/components/ui/input";
 
 import { cleanPlace } from "@/lib/clean-place";
 import { geocodeAddress } from "@/lib/geocode";
+import { nearestBerlinDistrict } from "@/lib/district-from-coords";
+import { triggerLinkPreviewUnfurl } from "@/lib/link-preview";
 
 import { Label } from "@/components/ui/label";
 import {
@@ -38,6 +41,14 @@ import {
 import type { Database } from "@/integrations/supabase/types";
 
 type EventForEdit = Database["public"]["Tables"]["events"]["Row"];
+
+type LocationMode = "public" | "secret" | "tba";
+
+const LOCATION_MODES: { value: LocationMode; label: string; hint: string }[] = [
+  { value: "public", label: "Public address", hint: "Address shown on the event page." },
+  { value: "secret", label: "Secret", hint: "Address hidden — guests contact you via the link." },
+  { value: "tba", label: "TBA", hint: "Address not set yet — announce it closer to the date." },
+];
 
 export const Route = createFileRoute("/event/$eventId_/edit")({
   component: EditEvent,
@@ -56,7 +67,6 @@ function EditEvent() {
         .eq("id", eventId)
         .maybeSingle();
       if (error) throw error;
-      console.log("[edit-event] fetched event data before form render", data);
       return data;
     },
     refetchOnMount: "always",
@@ -88,7 +98,7 @@ function EditEvent() {
     );
   }
 
-if (!user || (user.id !== event.created_by && user.id !== import.meta.env.VITE_ADMIN_USER_ID)) {
+  if (!user || (user.id !== event.created_by && user.id !== import.meta.env.VITE_ADMIN_USER_ID)) {
     return (
       <div className="min-h-screen">
         <Header />
@@ -106,13 +116,6 @@ if (!user || (user.id !== event.created_by && user.id !== import.meta.env.VITE_A
       </div>
     );
   }
-
-  console.log("[edit-event] rendering form with fetched event data", {
-    id: event.id,
-    place: event.place,
-    neighborhood: event.neighborhood,
-    event_date: event.event_date,
-  });
 
   return <EditEventForm event={event} eventId={eventId} userId={user.id} />;
 }
@@ -132,26 +135,47 @@ function EditEventForm({
   const [saved, setSaved] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
   const [place, setPlace] = useState(event.place);
-  
+  const [priceType, setPriceType] = useState<PriceType | null>(event.price_type);
+  const [ticketUrl, setTicketUrl] = useState(event.ticket_url ?? "");
+
   const [neighborhood, setNeighborhood] = useState<Neighborhood>(event.neighborhood);
+  // True once a Places suggestion has set `neighborhood` from Google's own
+  // sublocality data during this edit — far more accurate than the
+  // nearest-centroid guess, so it should win over that at save time. Stays
+  // false (and the existing neighborhood is left alone) when the place
+  // isn't touched in this edit.
+  const [neighborhoodFromPlace, setNeighborhoodFromPlace] = useState(false);
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
     lat: event.lat,
     lng: event.lng,
   });
   const [repeats, setRepeats] = useState<RepeatOption>((event.repeats as RepeatOption) ?? "none");
-  const [isSecret, setIsSecret] = useState(event.is_secret ?? false);
+  const initialLocationMode: LocationMode = event.is_secret
+    ? "secret"
+    : event.location_tba
+      ? "tba"
+      : "public";
+  const [locationMode, setLocationMode] = useState<LocationMode>(initialLocationMode);
   const initialDateOnly = format(new Date(event.event_date), "yyyy-MM-dd");
   const initialTimeOnly = format(new Date(event.event_date), "HH:mm");
   const [eventDay, setEventDay] = useState(initialDateOnly);
   const [multiDay, setMultiDay] = useState(!!event.end_date);
   const initialEndDay = event.end_date ? event.end_date.split("T")[0] : "";
-  const initialEndTime = event.end_date?.includes("T") ? event.end_date.split("T")[1] : "";
+  const initialEndTime = event.end_time ? event.end_time.slice(0, 5) : "";
   const [endDay, setEndDay] = useState(initialEndDay);
   const [endTime, setEndTime] = useState(initialEndTime);
   const endDateError =
-    multiDay && endDay && endDay < eventDay
-      ? "End date must be on or after the start date."
-      : null;
+    multiDay && endDay && endDay < eventDay ? "End date must be on or after the start date." : null;
+
+  const isMultiDayRange =
+    multiDay &&
+    endDay &&
+    !endDateError &&
+    Math.round(
+      (new Date(`${endDay}T00:00`).getTime() - new Date(`${eventDay}T00:00`).getTime()) / 86400000,
+    ) +
+      1 >=
+      2;
 
   // Dirty when any controlled field changed OR an uncontrolled form input fired.
   const [touched, setTouched] = useState(false);
@@ -167,7 +191,9 @@ function EditEventForm({
     multiDay !== !!event.end_date ||
     endDay !== initialEndDay ||
     endTime !== initialEndTime ||
-    isSecret !== (event.is_secret ?? false);
+    locationMode !== initialLocationMode ||
+    priceType !== event.price_type ||
+    ticketUrl !== (event.ticket_url ?? "");
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     setSaved(true);
@@ -182,7 +208,7 @@ function EditEventForm({
     const nextLink = String(form.get("link") ?? "").trim();
     const nextDescription = cleanDescription(String(form.get("description") ?? ""));
 
-    if (!nextTitle || !nextPlace || !nextDay || !nextTime) {
+    if (!nextTitle || (locationMode === "public" && !nextPlace) || !nextDay || !nextTime) {
       setSaved(false);
       toast.error("Please fill in the required fields.");
       return;
@@ -210,47 +236,65 @@ function EditEventForm({
     setSaving(true);
     let finalCoords = coords;
     if (
-      finalCoords.lat == null ||
-      finalCoords.lng == null ||
-      nextPlace !== cleanPlace(event.place)
+      locationMode === "public" &&
+      (finalCoords.lat == null || finalCoords.lng == null || nextPlace !== cleanPlace(event.place))
     ) {
       const geo = await geocodeAddress(`${nextPlace}, ${nextNeighborhood}, Berlin`);
       if (geo) finalCoords = geo;
     }
+    // Google's own sublocality data (set via onPlaceSelected) is far more
+    // accurate than nearest-centroid matching, especially near a district
+    // border — only fall back to the coordinate guess when the place was
+    // retyped by hand and never resolved through Places Autocomplete.
+    const resolvedNeighborhood = neighborhoodFromPlace
+      ? nextNeighborhood
+      : ((finalCoords.lat != null && finalCoords.lng != null
+          ? nearestBerlinDistrict(finalCoords.lat, finalCoords.lng)
+          : null) ?? nextNeighborhood);
+    const nextTicketUrl = priceType === "paid" ? ticketUrl.trim() || null : null;
     const { data: updated, error } = await supabase
-  .from("events")
-  .update({
-    title: nextTitle,
-    place: nextPlace,
-    neighborhood: nextNeighborhood,
-    event_type: nextEventType,
-    event_date: parsedDate.toISOString(),
-    end_date: multiDay && endDay ? (endTime ? `${endDay}T${endTime}` : endDay) : null,
-    link: nextLink || null,
-    description: nextDescription || null,
-    lat: finalCoords.lat,
-    lng: finalCoords.lng,
-    repeats,
-    is_secret: isSecret,
-  })
-  .eq("id", eventId)
-  .select("*")
-  .maybeSingle();
+      .from("events")
+      .update({
+        title: nextTitle,
+        place: nextPlace,
+        neighborhood: resolvedNeighborhood,
+        event_type: nextEventType,
+        event_date: parsedDate.toISOString(),
+        end_date: multiDay && endDay ? endDay : null,
+        end_time: endTime || null,
+        link: nextLink || null,
+        description: nextDescription || null,
+        lat: finalCoords.lat,
+        lng: finalCoords.lng,
+        repeats,
+        is_secret: locationMode === "secret",
+        location_tba: locationMode === "tba",
+        image_url: event.image_url,
+        price_type: priceType,
+        ticket_url: nextTicketUrl,
+      })
+      .eq("id", eventId)
+      .select("*")
+      .maybeSingle();
     const initialRepeats = (event.repeats as RepeatOption) ?? "none";
 
     if (updated) {
       // Cascade shared fields to all future sibling instances (same creator + original title).
       // Each sibling keeps its own event_date; only metadata is synced.
-      const siblingFields: Record<string, unknown> = {
+      const siblingFields: Database["public"]["Tables"]["events"]["Update"] = {
         title: nextTitle,
         place: nextPlace,
-        neighborhood: nextNeighborhood,
+        neighborhood: resolvedNeighborhood,
         event_type: nextEventType,
         link: nextLink || null,
         description: nextDescription || null,
         lat: finalCoords.lat,
         lng: finalCoords.lng,
-        is_secret: isSecret,
+        is_secret: locationMode === "secret",
+        location_tba: locationMode === "tba",
+        image_url: event.image_url,
+        price_type: priceType,
+        ticket_url: nextTicketUrl,
       };
       await supabase
         .from("events")
@@ -266,13 +310,16 @@ function EditEventForm({
           {
             title: nextTitle,
             place: nextPlace,
-            neighborhood: nextNeighborhood,
+            neighborhood: resolvedNeighborhood,
             event_type: nextEventType,
             link: nextLink || null,
             description: nextDescription || null,
             created_by: userId,
             lat: finalCoords.lat,
             lng: finalCoords.lng,
+            image_url: event.image_url,
+            price_type: priceType,
+            ticket_url: nextTicketUrl,
           },
           parsedDate,
           repeats,
@@ -293,7 +340,17 @@ function EditEventForm({
     }
     try {
       sessionStorage.setItem("event-just-saved", eventId);
-    } catch {}
+    } catch {
+      // sessionStorage may be unavailable (e.g. private browsing) — not critical
+    }
+
+    if (
+      nextLink &&
+      !event.image_url &&
+      (nextLink !== (event.link ?? "") || event.link_preview_status !== "ok")
+    ) {
+      triggerLinkPreviewUnfurl(eventId);
+    }
 
     await queryClient.invalidateQueries({ queryKey: ["event-edit", eventId] });
     await queryClient.invalidateQueries({ queryKey: ["events", eventId] });
@@ -304,9 +361,7 @@ function EditEventForm({
       .select("user_id")
       .eq("event_id", eventId)
       .eq("notify", true);
-    const externalUserIds = (saves ?? [])
-      .map((s) => s.user_id)
-      .filter((id) => id !== userId);
+    const externalUserIds = (saves ?? []).map((s) => s.user_id).filter((id) => id !== userId);
     const eventUrl = `${window.location.origin}/event/${eventId}`;
     void sendEventUpdateNotification({
       title: "Event updated",
@@ -342,18 +397,13 @@ function EditEventForm({
           className="mt-3 space-y-2.5 sm:mt-6 sm:space-y-4 [&_input]:h-9 [&_input]:py-1 [&_input]:text-sm sm:[&_input]:h-10 sm:[&_input]:text-base [&_button[role=combobox]]:h-9 sm:[&_button[role=combobox]]:h-10"
         >
           <Field label="Title" required>
-            <Input
-              name="title"
-              defaultValue={event.title}
-              required
-              maxLength={120}
-            />
+            <Input name="title" defaultValue={event.title} required maxLength={120} />
           </Field>
 
           {/* Date section — all three rows grouped with even spacing */}
           <div className="space-y-2">
-            {/* Row 1: Date + Time */}
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr] sm:gap-4">
+            {/* Row 1: Date + Time + optional end time */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[2fr_1.5fr_1.5fr] sm:gap-4">
               <Field label="Date" required>
                 <Input
                   type="date"
@@ -364,59 +414,53 @@ function EditEventForm({
                 />
               </Field>
               <Field label="Time" required>
-                <Input
-                  type="time"
-                  name="event_time"
-                  defaultValue={initialTimeOnly}
-                  required
-                />
+                <Input type="time" name="event_time" defaultValue={initialTimeOnly} required />
+              </Field>
+              <Field label="End time (optional)">
+                <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
               </Field>
             </div>
 
-            {/* Row 2: Add end date checkbox */}
+            {/* Row 2: Runs over multiple days checkbox */}
             <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
               <input
                 type="checkbox"
                 checked={multiDay}
                 onChange={(e) => {
                   setMultiDay(e.target.checked);
-                  if (!e.target.checked) { setEndDay(""); setEndTime(""); }
+                  if (!e.target.checked) setEndDay("");
                   else if (!endDay) setEndDay(eventDay);
                 }}
                 className="h-4 w-4 accent-primary"
               />
-              Add end date
+              Runs over multiple days
             </label>
 
-            {/* End date/time fields — animated expand */}
+            {/* End date field — animated expand */}
             <div
               className={`grid overflow-hidden transition-all duration-300 ease-out ${
                 multiDay ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
               }`}
             >
               <div className="min-h-0">
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr] sm:gap-4">
-                  <Field label="End date" required={multiDay}>
-                    <Input
-                      type="date"
-                      value={endDay}
-                      min={eventDay}
-                      onChange={(ev) => setEndDay(ev.target.value)}
-                    />
-                    {endDateError && (
-                      <p className="mt-1 text-[11px] text-destructive sm:text-xs">
-                        {endDateError}
-                      </p>
-                    )}
-                  </Field>
-                  <Field label="End time (optional)">
-                    <Input
-                      type="time"
-                      value={endTime}
-                      onChange={(ev) => setEndTime(ev.target.value)}
-                    />
-                  </Field>
-                </div>
+                <Field label="End date" required={multiDay}>
+                  <Input
+                    type="date"
+                    value={endDay}
+                    min={eventDay}
+                    onChange={(ev) => setEndDay(ev.target.value)}
+                    className="sm:max-w-xs"
+                  />
+                  {endDateError && (
+                    <p className="mt-1 text-[11px] text-destructive sm:text-xs">{endDateError}</p>
+                  )}
+                </Field>
+                {isMultiDayRange && (
+                  <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+                    Multi-day events aren't repeated every day — they show in "On now" once they
+                    start.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -443,19 +487,23 @@ function EditEventForm({
             </div>
           </div>
 
-          <Field label="Place" required>
+          <Field label="Place" required={locationMode === "public"}>
             <PlaceAutocompleteInput
               value={place}
               onChange={(v) => {
                 setPlace(v);
                 setCoords({ lat: null, lng: null });
+                setNeighborhoodFromPlace(false);
               }}
               onPlaceSelected={(p) => {
                 setCoords({ lat: p.lat, lng: p.lng });
-                setNeighborhood((p.neighborhood as Neighborhood) ?? "Mitte");
+                const fallback =
+                  p.lat != null && p.lng != null ? nearestBerlinDistrict(p.lat, p.lng) : null;
+                setNeighborhood((p.neighborhood as Neighborhood) ?? fallback ?? "Mitte");
+                setNeighborhoodFromPlace(true);
               }}
               placeholder="Venue or address"
-              required
+              required={locationMode === "public"}
               maxLength={200}
             />
           </Field>
@@ -478,18 +526,23 @@ function EditEventForm({
             </Select>
           </Field>
 
-          <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
-            <input
-              type="checkbox"
-              checked={isSecret}
-              onChange={(e) => setIsSecret(e.target.checked)}
-              className="h-4 w-4 accent-primary"
-            />
-            Secret event
-            <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40">
-              — hides location from public
-            </span>
-          </label>
+          <Field label="Location">
+            <Select value={locationMode} onValueChange={(v) => setLocationMode(v as LocationMode)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LOCATION_MODES.map((m) => (
+                  <SelectItem key={m.value} value={m.value}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground sm:text-xs">
+              {LOCATION_MODES.find((m) => m.value === locationMode)?.hint}
+            </p>
+          </Field>
 
           <Field label="Link">
             <div className="flex gap-2">
@@ -508,7 +561,43 @@ function EditEventForm({
                 }}
               />
             </div>
+            {!link.trim() && (
+              <p className="text-[11px] text-muted-foreground sm:text-xs">
+                Tip: an Instagram post link helps people trust the event is real.
+              </p>
+            )}
           </Field>
+
+          <Field label="Price">
+            <Select
+              value={priceType ?? "unset"}
+              onValueChange={(v) => setPriceType(v === "unset" ? null : (v as PriceType))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unset">Not set</SelectItem>
+                {PRICE_TYPES.map((p) => (
+                  <SelectItem key={p.value} value={p.value}>
+                    {p.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          {priceType === "paid" && (
+            <Field label="Ticket link (optional)">
+              <Input
+                value={ticketUrl}
+                onChange={(e) => setTicketUrl(e.target.value)}
+                placeholder="https://…"
+                type="url"
+                inputMode="url"
+              />
+            </Field>
+          )}
 
           <Field label="Description">
             <DescriptionField defaultValue={event.description ?? ""} />
@@ -520,7 +609,12 @@ function EditEventForm({
                 Cancel
               </Link>
             </Button>
-            <Button type="submit" disabled={saving} size="sm" className="w-full shadow-glow sm:w-auto">
+            <Button
+              type="submit"
+              disabled={saving}
+              size="sm"
+              className="w-full shadow-glow sm:w-auto"
+            >
               {saving ? "Saving…" : "Save changes"}
             </Button>
           </div>
@@ -557,12 +651,7 @@ function DescriptionField({ defaultValue }: { defaultValue: string }) {
   const [value, setValue] = useState(defaultValue);
   return (
     <>
-      <DescriptionEditor
-        name="description"
-        value={value}
-        onChange={setValue}
-        maxLength={1500}
-      />
+      <DescriptionEditor name="description" value={value} onChange={setValue} maxLength={1500} />
       <div className="flex items-center justify-end gap-2">
         <p className="font-mono text-[11px] text-muted-foreground sm:text-xs">
           {value.length}/1500
@@ -571,5 +660,3 @@ function DescriptionField({ defaultValue }: { defaultValue: string }) {
     </>
   );
 }
-
-

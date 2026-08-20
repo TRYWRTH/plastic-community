@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Plus, LogOut, Bookmark, UserRound, Bell, HelpCircle, LogIn, Search, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Plus, LogOut, Bookmark, UserRound, Bell, HelpCircle, LogIn, User } from "lucide-react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -14,24 +14,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MagicLinkDialog } from "@/components/MagicLinkDialog";
+import { NOTIFICATIONS_ENABLED } from "@/lib/constants";
 
 export function Header() {
   const { isAuthenticated, user, loading } = useAuth();
   const navigate = useNavigate();
-  const [signInOpen, setSignInOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
     const handler = () => {
       toast.error("Your session expired. Please sign in again.");
-      setSignInOpen(true);
+      navigate({ to: "/login", search: { redirect: pathname } });
     };
     window.addEventListener("whisperring:session-expired", handler);
     return () => window.removeEventListener("whisperring:session-expired", handler);
-  }, []);
-
-
+  }, [navigate, pathname]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -41,31 +38,19 @@ export function Header() {
   return (
     <header className="bg-background">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-3 sm:px-4">
-      <Link to="/" className="flex min-w-0 items-baseline gap-2">
-        <span className="sr-only">Whisper Ring</span>
-        {pathname !== "/" && (
-          <span
-            aria-hidden="true"
-            className="truncate font-brand text-xl uppercase leading-none text-foreground hover:text-primary sm:text-2xl"
-          >
-            Whisper Ring
-          </span>
-        )}
-      </Link>
-
+        <Link to="/" className="flex min-w-0 items-baseline gap-2">
+          <span className="sr-only">Whisper Ring</span>
+          {pathname !== "/" && (
+            <span
+              aria-hidden="true"
+              className="truncate font-brand text-xl uppercase leading-none text-foreground hover:text-primary sm:text-2xl"
+            >
+              Whisper Ring
+            </span>
+          )}
+        </Link>
 
         <nav className="flex items-center gap-1 sm:gap-2">
-          {pathname === "/" && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-9 w-9 sm:hidden"
-              aria-label="Search events"
-              onClick={() => window.dispatchEvent(new CustomEvent("whisperring:open-search"))}
-            >
-              <Search className="h-4 w-4" />
-            </Button>
-          )}
           <Button
             size="icon"
             variant="ghost"
@@ -91,10 +76,12 @@ export function Header() {
               </Link>
             </Button>
           ) : (
-            <Button size="sm" variant="default" onClick={() => setSignInOpen(true)}>
-              <LogIn className="h-4 w-4" />
-              <span className="hidden sm:inline">Sign in to add event</span>
-              <span className="sm:hidden">Sign in</span>
+            <Button asChild size="sm" variant="default">
+              <Link to="/login" search={{ redirect: pathname }}>
+                <LogIn className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign in to add event</span>
+                <span className="sm:hidden">Sign in</span>
+              </Link>
             </Button>
           )}
           {!loading && isAuthenticated && (
@@ -119,8 +106,7 @@ export function Header() {
                     <User className="mr-2 h-4 w-4" /> Profile
                   </Link>
                 </DropdownMenuItem>
-                {/* Notification settings hidden temporarily — feature kept for later testing */}
-                {false && (
+                {NOTIFICATIONS_ENABLED && (
                   <DropdownMenuItem asChild>
                     <Link to="/settings/notifications">
                       <Bell className="mr-2 h-4 w-4" /> Notification settings
@@ -135,7 +121,6 @@ export function Header() {
           )}
         </nav>
       </div>
-      <MagicLinkDialog open={signInOpen} onOpenChange={setSignInOpen} />
     </header>
   );
 }

@@ -49,9 +49,7 @@ export const Route = createFileRoute("/api/public/hooks/send-event-reminders")({
 
         const { data: saves, error: sErr } = await supabaseAdmin
           .from("event_saves")
-          .select(
-            "id, user_id, event_id, event:events(id, title, place, neighborhood, event_date)",
-          )
+          .select("id, user_id, event_id, event:events(id, title, place, neighborhood, event_date)")
           .eq("notify", true)
           .in("status", ["going", "interested"])
           .is("reminded_at", null);
@@ -73,10 +71,9 @@ export const Route = createFileRoute("/api/public/hooks/send-event-reminders")({
         void nowIso;
 
         if (candidateSaves.length === 0) {
-          return new Response(
-            JSON.stringify({ ok: true, notifications_sent: 0, checked: 0 }),
-            { headers: { "Content-Type": "application/json" } },
-          );
+          return new Response(JSON.stringify({ ok: true, notifications_sent: 0, checked: 0 }), {
+            headers: { "Content-Type": "application/json" },
+          });
         }
 
         // Load reminder prefs for involved users.

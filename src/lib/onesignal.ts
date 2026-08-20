@@ -5,10 +5,35 @@ const ONESIGNAL_APP_ID = "d208ae10-4afe-4f51-9bd6-f07041c51fe6";
 
 let initPromise: Promise<void> | null = null;
 
+// Minimal surface of the OneSignal Web SDK v16 actually used here.
+// There is no official @types package for the web SDK.
+interface OneSignalSdk {
+  init(options: {
+    appId: string;
+    serviceWorkerPath: string;
+    serviceWorkerParam: { scope: string };
+    notifyButton: { enable: boolean };
+    autoResubscribe: boolean;
+  }): Promise<void>;
+  login(externalId: string): Promise<void>;
+  logout(): Promise<void>;
+  User?: {
+    PushSubscription?: {
+      optedIn?: boolean;
+      id?: string;
+      optIn?: () => Promise<void>;
+      optOut?: () => Promise<void>;
+    };
+  };
+  Notifications?: {
+    requestPermission?: () => Promise<void>;
+  };
+}
+
 declare global {
   interface Window {
-    OneSignal?: any;
-    OneSignalDeferred?: any[];
+    OneSignal?: OneSignalSdk;
+    OneSignalDeferred?: Array<(OneSignal: OneSignalSdk) => void>;
   }
 }
 
@@ -25,13 +50,12 @@ export function initOneSignal(): Promise<void> {
     }
   })();
   const host = window.location.hostname;
-  const isPreviewHost =
-    host.includes("lovableproject.com") || host.includes("id-preview--");
+  const isPreviewHost = host.includes("lovableproject.com") || host.includes("id-preview--");
   if (inIframe || isPreviewHost) return Promise.resolve();
 
   initPromise = new Promise<void>((resolve) => {
     // Inject SDK script if not already present
-    if (!document.querySelector('script[data-onesignal-sdk]')) {
+    if (!document.querySelector("script[data-onesignal-sdk]")) {
       const script = document.createElement("script");
       script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
       script.defer = true;
@@ -40,7 +64,7 @@ export function initOneSignal(): Promise<void> {
     }
 
     window.OneSignalDeferred = window.OneSignalDeferred || [];
-    window.OneSignalDeferred.push(async (OneSignal: any) => {
+    window.OneSignalDeferred.push(async (OneSignal) => {
       try {
         await OneSignal.init({
           appId: ONESIGNAL_APP_ID,
@@ -110,10 +134,9 @@ export async function setPushOptIn(next: boolean): Promise<boolean> {
   if (current !== "granted") {
     try {
       // Call directly (no await before this point) so iOS keeps gesture context.
-      const reqPromise =
-        OneSignal?.Notifications?.requestPermission
-          ? OneSignal.Notifications.requestPermission()
-          : Notification.requestPermission();
+      const reqPromise = OneSignal?.Notifications?.requestPermission
+        ? OneSignal.Notifications.requestPermission()
+        : Notification.requestPermission();
       await reqPromise;
     } catch (err) {
       console.error("requestPermission failed", err);
@@ -143,7 +166,9 @@ export async function requestPushPermission(): Promise<boolean> {
   if (current === "granted") {
     try {
       await window.OneSignal?.User?.PushSubscription?.optIn?.();
-    } catch {}
+    } catch {
+      // best-effort; permission is already granted regardless
+    }
     return true;
   }
   if (current === "denied") return false;
@@ -152,10 +177,9 @@ export async function requestPushPermission(): Promise<boolean> {
   try {
     // Call requestPermission directly — no awaits before, no deferred queue —
     // so iOS keeps the user-gesture context and actually shows the prompt.
-    const reqPromise =
-      OneSignal?.Notifications?.requestPermission
-        ? OneSignal.Notifications.requestPermission()
-        : Notification.requestPermission();
+    const reqPromise = OneSignal?.Notifications?.requestPermission
+      ? OneSignal.Notifications.requestPermission()
+      : Notification.requestPermission();
     await reqPromise;
   } catch (err) {
     console.error("Push permission request failed", err);
@@ -166,7 +190,9 @@ export async function requestPushPermission(): Promise<boolean> {
   if (granted) {
     try {
       await window.OneSignal?.User?.PushSubscription?.optIn?.();
-    } catch {}
+    } catch {
+      // best-effort; permission is already granted regardless
+    }
     void savePlayerIdForCurrentUser();
   }
   return granted;
@@ -177,7 +203,7 @@ export async function requestPushPermission(): Promise<boolean> {
 export function setOneSignalExternalId(userId: string | null) {
   if (typeof window === "undefined") return;
   window.OneSignalDeferred = window.OneSignalDeferred || [];
-  window.OneSignalDeferred.push(async (OneSignal: any) => {
+  window.OneSignalDeferred.push(async (OneSignal) => {
     try {
       if (userId) {
         await OneSignal.login(userId);
@@ -214,12 +240,9 @@ export async function savePlayerIdForCurrentUser(): Promise<void> {
     }
     if (!playerId) return;
 
-    const { data: upsertData, error: upsertError } = await supabase
+    const { error: upsertError } = await supabase
       .from("user_push_subscriptions")
-      .upsert(
-        { user_id: userId, onesignal_player_id: playerId },
-        { onConflict: "user_id" },
-      )
+      .upsert({ user_id: userId, onesignal_player_id: playerId }, { onConflict: "user_id" })
       .select();
     if (upsertError) {
       console.error("[push] upsert failed", {
@@ -230,8 +253,6 @@ export async function savePlayerIdForCurrentUser(): Promise<void> {
         userId,
         playerId,
       });
-    } else {
-      console.log("[push] upsert ok", upsertData);
     }
   } catch (err) {
     console.error("savePlayerIdForCurrentUser failed", err);

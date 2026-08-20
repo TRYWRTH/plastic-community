@@ -10,8 +10,8 @@ import {
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
-import { FeedbackButton } from "@/components/FeedbackButton";
 import { OnboardingOverlay, useOnboarding } from "@/components/OnboardingOverlay";
+import { BottomNav } from "@/components/BottomNav";
 
 import { supabase } from "@/integrations/supabase/client";
 import { refreshAuthSession } from "@/lib/use-auth";
@@ -81,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "viewport",
         content: "width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no",
       },
-      { name: "theme-color", content: "#F2F0EB" },
+      { name: "theme-color", content: "#5A0210" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
@@ -116,9 +116,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap",
       },
-
     ],
   }),
   shellComponent: RootShell,
@@ -184,15 +183,11 @@ function RootComponent() {
     let handling = false;
     const isRefreshTokenError = (err: unknown): boolean => {
       if (!err) return false;
-      const msg =
-        (typeof err === "string" && err) ||
-        (err as { message?: string })?.message ||
-        "";
+      const msg = (typeof err === "string" && err) || (err as { message?: string })?.message || "";
       const code = (err as { code?: string })?.code || "";
       return (
-        /invalid refresh token|refresh token not found|refresh_token_not_found/i.test(
-          msg,
-        ) || code === "refresh_token_not_found"
+        /invalid refresh token|refresh token not found|refresh_token_not_found/i.test(msg) ||
+        code === "refresh_token_not_found"
       );
     };
 
@@ -220,7 +215,6 @@ function RootComponent() {
       window.removeEventListener("error", onError);
     };
   }, [router, queryClient]);
-
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
@@ -286,10 +280,24 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <FeedbackButton />
+      <div className="pb-24">
+        <Outlet />
+      </div>
+      <BottomNav />
       <OnboardingHost />
-      <Toaster theme="light" position="top-center" richColors />
+      <Toaster
+        theme="dark"
+        position="top-center"
+        toastOptions={{
+          unstyled: true,
+          classNames: {
+            toast:
+              "rounded-full bg-[#F7E7E4] text-[#5A0210] px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.14em] shadow-none flex items-center justify-center gap-2 w-fit mx-auto",
+            error: "bg-[#F7E7E4] text-[#5A0210]",
+            success: "bg-[#F7E7E4] text-[#5A0210]",
+          },
+        }}
+      />
       <Analytics />
     </QueryClientProvider>
   );

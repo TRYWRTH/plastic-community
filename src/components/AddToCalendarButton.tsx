@@ -8,6 +8,8 @@ type Props = {
   location?: string;
   description?: string;
   uid?: string;
+  className?: string;
+  children?: React.ReactNode;
 };
 
 function pad(n: number) {
@@ -28,11 +30,7 @@ function toIcsUtc(d: Date) {
 }
 
 function escapeIcs(s: string) {
-  return s
-    .replace(/\\/g, "\\\\")
-    .replace(/\n/g, "\\n")
-    .replace(/,/g, "\\,")
-    .replace(/;/g, "\\;");
+  return s.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
 }
 
 export function AddToCalendarButton({
@@ -42,6 +40,8 @@ export function AddToCalendarButton({
   location,
   description,
   uid,
+  className,
+  children,
 }: Props) {
   const onClick = () => {
     const startDate = new Date(start);
@@ -78,11 +78,12 @@ export function AddToCalendarButton({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    const slug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "")
-      .slice(0, 50) || "event";
+    const slug =
+      title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 50) || "event";
     a.download = `${slug}.ics`;
     document.body.appendChild(a);
     a.click();
@@ -90,8 +91,16 @@ export function AddToCalendarButton({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
+  if (children) {
+    return (
+      <button type="button" onClick={onClick} className={className}>
+        {children}
+      </button>
+    );
+  }
+
   return (
-    <Button variant="outline" onClick={onClick}>
+    <Button variant="outline" onClick={onClick} className={className}>
       <CalendarPlus className="h-4 w-4" />
       Add to calendar
     </Button>
