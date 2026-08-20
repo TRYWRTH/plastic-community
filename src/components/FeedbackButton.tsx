@@ -44,13 +44,10 @@ export function FeedbackButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center justify-between gap-2.5 rounded-full border border-border px-4 py-[15px] text-left text-foreground"
+        className="flex items-center justify-center gap-2 rounded-full border border-border py-[15px] font-mono text-[10px] tracking-[0.16em] text-foreground"
       >
-        <span className="flex items-center gap-2 font-mono text-[10px] tracking-[0.16em]">
-          <MessageCircle className="h-3.5 w-3.5" />
-          SEND FEEDBACK
-        </span>
-        <span className="font-mono text-[9px] text-muted-foreground">→</span>
+        <MessageCircle className="h-3.5 w-3.5" />
+        SEND FEEDBACK
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>

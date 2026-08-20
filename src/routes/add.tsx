@@ -7,7 +7,6 @@ import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
 import { DescriptionEditor } from "@/components/DescriptionEditor";
 import { QrScanButton } from "@/components/QrScanButton";
 import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
-import { EventImageUpload } from "@/components/EventImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendNewEventNotification } from "@/lib/notifications";
@@ -24,7 +23,6 @@ import { cleanPlace } from "@/lib/clean-place";
 import { geocodeAddress } from "@/lib/geocode";
 import { nearestBerlinDistrict } from "@/lib/district-from-coords";
 import { triggerLinkPreviewUnfurl } from "@/lib/link-preview";
-import { LONG_RUN_MIN_DAYS } from "@/lib/agenda";
 
 export const Route = createFileRoute("/add")({
   component: AddEvent,
@@ -55,7 +53,6 @@ function AddEvent() {
   // guess, so it should never be overridden by it at submit time.
   const [neighborhoodFromPlace, setNeighborhoodFromPlace] = useState(false);
   const [eventType, setEventType] = useState<EventType>("music");
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [eventDay, setEventDay] = useState(format(new Date(Date.now() + 86400000), "yyyy-MM-dd"));
   const [eventTime, setEventTime] = useState("20:00");
   const [multiDay, setMultiDay] = useState(false);
@@ -73,7 +70,7 @@ function AddEvent() {
   const endDateError =
     multiDay && endDay && endDay < eventDay ? "End date must be on or after the start date." : null;
 
-  const isLongRun =
+  const isMultiDayRange =
     multiDay &&
     endDay &&
     !endDateError &&
@@ -81,7 +78,7 @@ function AddEvent() {
       (new Date(`${endDay}T00:00`).getTime() - new Date(`${eventDay}T00:00`).getTime()) / 86400000,
     ) +
       1 >=
-      LONG_RUN_MIN_DAYS;
+      2;
 
   const dirty =
     title !== "" ||
@@ -146,7 +143,7 @@ function AddEvent() {
       created_by: user.id,
       lat: finalCoords.lat,
       lng: finalCoords.lng,
-      image_url: imageUrl,
+      image_url: null,
       price_type: priceType,
       ticket_url: priceType === "paid" ? ticketUrl.trim() || null : null,
     };
@@ -173,7 +170,7 @@ function AddEvent() {
     setSaving(false);
     toast.success(extraCount > 0 ? `EVENT PUBLISHED (+${extraCount} repeats)` : "EVENT PUBLISHED");
 
-    if (link.trim() && !imageUrl) {
+    if (link.trim()) {
       triggerLinkPreviewUnfurl(data.id);
     }
 
@@ -266,7 +263,6 @@ function AddEvent() {
                 className="h-12 rounded-full border border-border bg-input px-4 text-[15px] text-foreground outline-none placeholder:text-dim"
               />
             </FieldLabel>
-            {user && <EventImageUpload value={imageUrl} onChange={setImageUrl} userId={user.id} />}
             <div className="flex flex-col gap-1.5">
               <span className="font-mono text-[9px] tracking-[0.16em] text-muted-foreground">
                 CATEGORY
@@ -351,9 +347,9 @@ function AddEvent() {
               </FieldLabel>
             )}
 
-            {isLongRun && (
+            {isMultiDayRange && (
               <p className="font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
-                Long runs show in "On now" — not repeated every day.
+                Multi-day events aren't repeated every day — they show in "On now" once they start.
               </p>
             )}
 

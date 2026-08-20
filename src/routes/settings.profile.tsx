@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
@@ -12,9 +13,12 @@ export const Route = createFileRoute("/settings/profile")({
   component: MePage,
 });
 
+const MY_EVENTS_PREVIEW_COUNT = 3;
+
 function MePage() {
   const { user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
+  const [showAllMine, setShowAllMine] = useState(false);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -100,6 +104,13 @@ function MePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex max-w-[430px] flex-col gap-5 px-5 pb-28 pt-5 lg:max-w-[640px]">
+        <Link
+          to="/"
+          className="inline-flex h-9 w-fit items-center gap-1.5 rounded-full border border-border px-[14px] font-mono text-[10px] tracking-[0.14em] text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> BACK
+        </Link>
+
         <div className="flex items-center gap-3.5">
           <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[24px] bg-primary font-brand text-[22px] text-primary-foreground">
             {initials}
@@ -176,35 +187,46 @@ function MePage() {
               YOU HAVEN'T ADDED ANY EVENTS YET.
             </span>
           ) : (
-            mine.map((event) => {
-              const d = new Date(event.event_date);
-              return (
-                <Link
-                  key={event.id}
-                  to="/event/$eventId"
-                  params={{ eventId: event.id }}
-                  className="flex items-center gap-3.5 rounded-[22px] bg-foreground/[0.07] px-4 py-3.5"
+            <>
+              {(showAllMine ? mine : mine.slice(0, MY_EVENTS_PREVIEW_COUNT)).map((event) => {
+                const d = new Date(event.event_date);
+                return (
+                  <Link
+                    key={event.id}
+                    to="/event/$eventId"
+                    params={{ eventId: event.id }}
+                    className="flex items-center gap-3.5 rounded-[22px] bg-foreground/[0.07] px-4 py-3.5"
+                  >
+                    <span className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-2xl bg-hot leading-[1.05] text-shell-deep">
+                      <span className="font-brand text-[15px]">{format(d, "dd")}</span>
+                      <span className="font-mono text-[8px] tracking-[0.1em] uppercase">
+                        {format(d, "MMM")}
+                      </span>
+                    </span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-1">
+                      <span className="truncate text-[15px] font-medium text-foreground">
+                        {event.title}
+                      </span>
+                      <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
+                        {format(d, "HH:mm")} · {(event.neighborhood as string).split("-")[0]}
+                      </span>
+                    </span>
+                    <span className="shrink-0 font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
+                      EDIT
+                    </span>
+                  </Link>
+                );
+              })}
+              {mine.length > MY_EVENTS_PREVIEW_COUNT && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllMine((v) => !v)}
+                  className="w-fit rounded-full border border-border px-[13px] py-2 font-mono text-[9px] tracking-[0.14em] text-foreground"
                 >
-                  <span className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-2xl bg-hot leading-[1.05] text-shell-deep">
-                    <span className="font-brand text-[15px]">{format(d, "dd")}</span>
-                    <span className="font-mono text-[8px] tracking-[0.1em] uppercase">
-                      {format(d, "MMM")}
-                    </span>
-                  </span>
-                  <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="truncate text-[15px] font-medium text-foreground">
-                      {event.title}
-                    </span>
-                    <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
-                      {format(d, "HH:mm")} · {(event.neighborhood as string).split("-")[0]}
-                    </span>
-                  </span>
-                  <span className="shrink-0 font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
-                    EDIT
-                  </span>
-                </Link>
-              );
-            })
+                  {showAllMine ? "SHOW LESS" : `SHOW ${mine.length - MY_EVENTS_PREVIEW_COUNT} MORE`}
+                </button>
+              )}
+            </>
           )}
         </section>
 

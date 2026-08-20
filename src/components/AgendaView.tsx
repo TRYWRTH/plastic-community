@@ -133,9 +133,9 @@ export function AgendaView({
                         <span className="truncate text-[19px] font-semibold tracking-[-0.01em] text-foreground">
                           {e.title}
                         </span>
-                        {e.isMultiDay && (
+                        {e.dateRangeLabel && (
                           <span className="shrink-0 whitespace-nowrap font-mono text-[11px] tracking-[0.1em] text-link">
-                            (DAY {e.dayIndex} OF {e.totalDays})
+                            ({e.dateRangeLabel})
                           </span>
                         )}
                       </span>

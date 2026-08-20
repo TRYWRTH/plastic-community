@@ -11,7 +11,6 @@ import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
 import { DescriptionEditor } from "@/components/DescriptionEditor";
 import { QrScanButton } from "@/components/QrScanButton";
 import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
-import { EventImageUpload } from "@/components/EventImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendEventUpdateNotification } from "@/lib/notifications";
@@ -23,7 +22,6 @@ import {
   type PriceType,
 } from "@/lib/constants";
 import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
-import { LONG_RUN_MIN_DAYS } from "@/lib/agenda";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -129,7 +127,6 @@ function EditEventForm({
   const [saved, setSaved] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
   const [place, setPlace] = useState(event.place);
-  const [imageUrl, setImageUrl] = useState<string | null>(event.image_url);
   const [priceType, setPriceType] = useState<PriceType>(event.price_type ?? "free");
   const [ticketUrl, setTicketUrl] = useState(event.ticket_url ?? "");
 
@@ -157,7 +154,7 @@ function EditEventForm({
   const endDateError =
     multiDay && endDay && endDay < eventDay ? "End date must be on or after the start date." : null;
 
-  const isLongRun =
+  const isMultiDayRange =
     multiDay &&
     endDay &&
     !endDateError &&
@@ -165,7 +162,7 @@ function EditEventForm({
       (new Date(`${endDay}T00:00`).getTime() - new Date(`${eventDay}T00:00`).getTime()) / 86400000,
     ) +
       1 >=
-      LONG_RUN_MIN_DAYS;
+      2;
 
   // Dirty when any controlled field changed OR an uncontrolled form input fired.
   const [touched, setTouched] = useState(false);
@@ -182,7 +179,6 @@ function EditEventForm({
     endDay !== initialEndDay ||
     endTime !== initialEndTime ||
     isSecret !== (event.is_secret ?? false) ||
-    imageUrl !== event.image_url ||
     priceType !== (event.price_type ?? "free") ||
     ticketUrl !== (event.ticket_url ?? "");
 
@@ -260,7 +256,7 @@ function EditEventForm({
         lng: finalCoords.lng,
         repeats,
         is_secret: isSecret,
-        image_url: imageUrl,
+        image_url: event.image_url,
         price_type: priceType,
         ticket_url: nextTicketUrl,
       })
@@ -282,7 +278,7 @@ function EditEventForm({
         lat: finalCoords.lat,
         lng: finalCoords.lng,
         is_secret: isSecret,
-        image_url: imageUrl,
+        image_url: event.image_url,
         price_type: priceType,
         ticket_url: nextTicketUrl,
       };
@@ -307,7 +303,7 @@ function EditEventForm({
             created_by: userId,
             lat: finalCoords.lat,
             lng: finalCoords.lng,
-            image_url: imageUrl,
+            image_url: event.image_url,
             price_type: priceType,
             ticket_url: nextTicketUrl,
           },
@@ -334,7 +330,11 @@ function EditEventForm({
       // sessionStorage may be unavailable (e.g. private browsing) — not critical
     }
 
-    if (nextLink && !imageUrl && (nextLink !== (event.link ?? "") || !event.link_preview_status)) {
+    if (
+      nextLink &&
+      !event.image_url &&
+      (nextLink !== (event.link ?? "") || !event.link_preview_status)
+    ) {
       triggerLinkPreviewUnfurl(eventId);
     }
 
@@ -385,15 +385,6 @@ function EditEventForm({
           <Field label="Title" required>
             <Input name="title" defaultValue={event.title} required maxLength={120} />
           </Field>
-
-          <EventImageUpload
-            value={imageUrl}
-            onChange={(url) => {
-              setImageUrl(url);
-              setTouched(true);
-            }}
-            userId={userId}
-          />
 
           {/* Date section — all three rows grouped with even spacing */}
           <div className="space-y-2">
@@ -450,9 +441,10 @@ function EditEventForm({
                     <p className="mt-1 text-[11px] text-destructive sm:text-xs">{endDateError}</p>
                   )}
                 </Field>
-                {isLongRun && (
+                {isMultiDayRange && (
                   <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
-                    Long runs show in "On now" — not repeated every day.
+                    Multi-day events aren't repeated every day — they show in "On now" once they
+                    start.
                   </p>
                 )}
               </div>
