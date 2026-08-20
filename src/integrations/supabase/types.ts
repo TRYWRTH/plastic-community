@@ -55,6 +55,7 @@ export type Database = {
           created_by: string;
           description: string | null;
           end_date: string | null;
+          end_time: string | null;
           event_date: string;
           event_type: Database["public"]["Enums"]["event_type"];
           id: string;
@@ -80,6 +81,7 @@ export type Database = {
           created_by: string;
           description?: string | null;
           end_date?: string | null;
+          end_time?: string | null;
           event_date: string;
           event_type: Database["public"]["Enums"]["event_type"];
           id?: string;
@@ -105,6 +107,7 @@ export type Database = {
           created_by?: string;
           description?: string | null;
           end_date?: string | null;
+          end_time?: string | null;
           event_date?: string;
           event_type?: Database["public"]["Enums"]["event_type"];
           id?: string;

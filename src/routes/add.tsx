@@ -18,6 +18,7 @@ import { cleanPlace } from "@/lib/clean-place";
 import { geocodeAddress } from "@/lib/geocode";
 import { nearestBerlinDistrict } from "@/lib/district-from-coords";
 import { triggerLinkPreviewUnfurl } from "@/lib/link-preview";
+import { LONG_RUN_MIN_DAYS } from "@/lib/agenda";
 
 export const Route = createFileRoute("/add")({
   component: AddEvent,
@@ -60,6 +61,16 @@ function AddEvent() {
   const endDateError =
     multiDay && endDay && endDay < eventDay ? "End date must be on or after the start date." : null;
 
+  const isLongRun =
+    multiDay &&
+    endDay &&
+    !endDateError &&
+    Math.round(
+      (new Date(`${endDay}T00:00`).getTime() - new Date(`${eventDay}T00:00`).getTime()) / 86400000,
+    ) +
+      1 >=
+      LONG_RUN_MIN_DAYS;
+
   const dirty =
     title !== "" ||
     place !== "" ||
@@ -68,6 +79,7 @@ function AddEvent() {
     neighborhood !== "Mitte" ||
     eventType !== "music" ||
     eventTime !== "20:00" ||
+    endTime !== "" ||
     multiDay ||
     repeats !== "none";
 
@@ -124,7 +136,8 @@ function AddEvent() {
       .insert({
         ...basePayload,
         event_date: parsedDate.toISOString(),
-        end_date: multiDay && endDay ? (endTime ? `${endDay}T${endTime}` : endDay) : null,
+        end_date: multiDay && endDay ? endDay : null,
+        end_time: endTime || null,
         repeats,
         is_secret: isSecret,
       })
@@ -264,7 +277,7 @@ function AddEvent() {
 
         {step === 2 && (
           <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-3 gap-2.5">
               <FieldLabel label="DATE">
                 <input
                   type="date"
@@ -283,44 +296,46 @@ function AddEvent() {
                   style={{ colorScheme: "dark" }}
                 />
               </FieldLabel>
+              <FieldLabel label="END TIME (OPTIONAL)">
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="h-12 rounded-full border border-border bg-input px-3.5 font-mono text-xs text-foreground outline-none"
+                  style={{ colorScheme: "dark" }}
+                />
+              </FieldLabel>
             </div>
 
             <ToggleRow
-              label="ADD END DATE"
-              sublabel="FOR MULTI-DAY EVENTS"
+              label="RUNS OVER MULTIPLE DAYS"
+              sublabel="ADD AN END DATE"
               checked={multiDay}
               onChange={(v) => {
                 setMultiDay(v);
-                if (!v) {
-                  setEndDay("");
-                  setEndTime("");
-                } else if (!endDay) setEndDay(eventDay);
+                if (!v) setEndDay("");
+                else if (!endDay) setEndDay(eventDay);
               }}
             />
 
             {multiDay && (
-              <div className="grid grid-cols-2 gap-2.5">
-                <FieldLabel label="END DATE">
-                  <input
-                    type="date"
-                    value={endDay}
-                    min={eventDay}
-                    onChange={(e) => setEndDay(e.target.value)}
-                    className="h-12 rounded-full border border-border bg-input px-3.5 font-mono text-xs text-foreground outline-none"
-                    style={{ colorScheme: "dark" }}
-                  />
-                  {endDateError && <p className="text-[11px] text-destructive">{endDateError}</p>}
-                </FieldLabel>
-                <FieldLabel label="END TIME (OPTIONAL)">
-                  <input
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    className="h-12 rounded-full border border-border bg-input px-3.5 font-mono text-xs text-foreground outline-none"
-                    style={{ colorScheme: "dark" }}
-                  />
-                </FieldLabel>
-              </div>
+              <FieldLabel label="END DATE">
+                <input
+                  type="date"
+                  value={endDay}
+                  min={eventDay}
+                  onChange={(e) => setEndDay(e.target.value)}
+                  className="h-12 max-w-[220px] rounded-full border border-border bg-input px-3.5 font-mono text-xs text-foreground outline-none"
+                  style={{ colorScheme: "dark" }}
+                />
+                {endDateError && <p className="text-[11px] text-destructive">{endDateError}</p>}
+              </FieldLabel>
+            )}
+
+            {isLongRun && (
+              <p className="font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
+                Long runs show in "On now" — not repeated every day.
+              </p>
             )}
 
             <div className="flex flex-col gap-1.5">

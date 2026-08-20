@@ -1,6 +1,7 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import type { AgendaDay } from "@/lib/agenda";
+import { hoursRangeLabel } from "@/lib/agenda";
 import { eventTypeMeta } from "@/lib/constants";
 import { resolveCardImage } from "@/lib/event-card-image";
 import { EventThumbPoster } from "@/components/EventPoster";
@@ -48,15 +49,48 @@ export function AgendaView({
                 </span>
               </span>
               <span className="font-mono text-[10px] tracking-[0.16em] text-dim">
-                {format(day.date, "EEE").toUpperCase()} · {day.items.length}{" "}
-                {day.items.length === 1 ? "EVENT" : "EVENTS"}
+                {format(day.date, "EEE").toUpperCase()} · {day.eventCount}{" "}
+                {day.eventCount === 1 ? "EVENT" : "EVENTS"}
               </span>
             </div>
 
             <div className="flex flex-col">
               {day.items.map((e) => {
-                const d = new Date(e.event_date);
                 const districtLabel = (e.neighborhood as string).split("-")[0].toUpperCase();
+
+                if (e.edgeKind) {
+                  const isOpen = e.edgeKind === "open";
+                  return (
+                    <Link
+                      key={`${day.key}-${e.id}-${e.edgeKind}`}
+                      to="/event/$eventId"
+                      params={{ eventId: e.id }}
+                      className="grid grid-cols-[150px_1fr_170px] items-center gap-5 border-b border-foreground/[0.07] bg-hot/[0.07] py-4 pl-6 pr-9 outline-none last:border-b-0 hover:bg-hot/[0.13] focus-visible:ring-2 focus-visible:ring-hot"
+                    >
+                      <span
+                        className={`w-fit rounded font-mono text-[9px] font-bold tracking-[0.14em] ${
+                          isOpen ? "bg-foreground text-shell-deep" : "bg-hot text-shell-deep"
+                        }`}
+                        style={{ padding: "5px 10px" }}
+                      >
+                        {isOpen ? (isToday ? "OPENS TODAY" : "OPENS") : "LAST DAY"}
+                      </span>
+                      <span className="flex min-w-0 items-baseline gap-2.5">
+                        <span className="truncate text-[19px] font-semibold tracking-[-0.01em] text-foreground">
+                          {e.title}
+                        </span>
+                        <span className="shrink-0 font-mono text-[11px] tracking-[0.1em] text-muted-foreground">
+                          {hoursRangeLabel(new Date(e.event_date), e.end_time)}
+                        </span>
+                      </span>
+                      <span className="truncate font-mono text-[10px] tracking-[0.14em] text-link">
+                        {e.is_secret ? "SECRET" : districtLabel}
+                      </span>
+                    </Link>
+                  );
+                }
+
+                const d = new Date(e.event_date);
                 const category = eventTypeMeta(e.event_type);
                 const cardImage = resolveCardImage(e);
                 const saved = savedIds.has(e.id);
@@ -101,7 +135,7 @@ export function AgendaView({
                         </span>
                         {e.isMultiDay && (
                           <span className="shrink-0 whitespace-nowrap font-mono text-[11px] tracking-[0.1em] text-link">
-                            (DAY {e.dayIndex})
+                            (DAY {e.dayIndex} OF {e.totalDays})
                           </span>
                         )}
                       </span>

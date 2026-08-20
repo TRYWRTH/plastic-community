@@ -17,6 +17,7 @@ import { useAuth } from "@/lib/use-auth";
 import { sendEventUpdateNotification } from "@/lib/notifications";
 import { EVENT_TYPES, type EventType, type Neighborhood } from "@/lib/constants";
 import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
+import { LONG_RUN_MIN_DAYS } from "@/lib/agenda";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -136,11 +137,21 @@ function EditEventForm({
   const [eventDay, setEventDay] = useState(initialDateOnly);
   const [multiDay, setMultiDay] = useState(!!event.end_date);
   const initialEndDay = event.end_date ? event.end_date.split("T")[0] : "";
-  const initialEndTime = event.end_date?.includes("T") ? event.end_date.split("T")[1] : "";
+  const initialEndTime = event.end_time ? event.end_time.slice(0, 5) : "";
   const [endDay, setEndDay] = useState(initialEndDay);
   const [endTime, setEndTime] = useState(initialEndTime);
   const endDateError =
     multiDay && endDay && endDay < eventDay ? "End date must be on or after the start date." : null;
+
+  const isLongRun =
+    multiDay &&
+    endDay &&
+    !endDateError &&
+    Math.round(
+      (new Date(`${endDay}T00:00`).getTime() - new Date(`${eventDay}T00:00`).getTime()) / 86400000,
+    ) +
+      1 >=
+      LONG_RUN_MIN_DAYS;
 
   // Dirty when any controlled field changed OR an uncontrolled form input fired.
   const [touched, setTouched] = useState(false);
@@ -221,7 +232,8 @@ function EditEventForm({
         neighborhood: resolvedNeighborhood,
         event_type: nextEventType,
         event_date: parsedDate.toISOString(),
-        end_date: multiDay && endDay ? (endTime ? `${endDay}T${endTime}` : endDay) : null,
+        end_date: multiDay && endDay ? endDay : null,
+        end_time: endTime || null,
         link: nextLink || null,
         description: nextDescription || null,
         lat: finalCoords.lat,
@@ -359,8 +371,8 @@ function EditEventForm({
 
           {/* Date section — all three rows grouped with even spacing */}
           <div className="space-y-2">
-            {/* Row 1: Date + Time */}
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr] sm:gap-4">
+            {/* Row 1: Date + Time + optional end time */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[2fr_1.5fr_1.5fr] sm:gap-4">
               <Field label="Date" required>
                 <Input
                   type="date"
@@ -373,52 +385,50 @@ function EditEventForm({
               <Field label="Time" required>
                 <Input type="time" name="event_time" defaultValue={initialTimeOnly} required />
               </Field>
+              <Field label="End time (optional)">
+                <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+              </Field>
             </div>
 
-            {/* Row 2: Add end date checkbox */}
+            {/* Row 2: Runs over multiple days checkbox */}
             <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
               <input
                 type="checkbox"
                 checked={multiDay}
                 onChange={(e) => {
                   setMultiDay(e.target.checked);
-                  if (!e.target.checked) {
-                    setEndDay("");
-                    setEndTime("");
-                  } else if (!endDay) setEndDay(eventDay);
+                  if (!e.target.checked) setEndDay("");
+                  else if (!endDay) setEndDay(eventDay);
                 }}
                 className="h-4 w-4 accent-primary"
               />
-              Add end date
+              Runs over multiple days
             </label>
 
-            {/* End date/time fields — animated expand */}
+            {/* End date field — animated expand */}
             <div
               className={`grid overflow-hidden transition-all duration-300 ease-out ${
                 multiDay ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
               }`}
             >
               <div className="min-h-0">
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3fr_2fr] sm:gap-4">
-                  <Field label="End date" required={multiDay}>
-                    <Input
-                      type="date"
-                      value={endDay}
-                      min={eventDay}
-                      onChange={(ev) => setEndDay(ev.target.value)}
-                    />
-                    {endDateError && (
-                      <p className="mt-1 text-[11px] text-destructive sm:text-xs">{endDateError}</p>
-                    )}
-                  </Field>
-                  <Field label="End time (optional)">
-                    <Input
-                      type="time"
-                      value={endTime}
-                      onChange={(ev) => setEndTime(ev.target.value)}
-                    />
-                  </Field>
-                </div>
+                <Field label="End date" required={multiDay}>
+                  <Input
+                    type="date"
+                    value={endDay}
+                    min={eventDay}
+                    onChange={(ev) => setEndDay(ev.target.value)}
+                    className="sm:max-w-xs"
+                  />
+                  {endDateError && (
+                    <p className="mt-1 text-[11px] text-destructive sm:text-xs">{endDateError}</p>
+                  )}
+                </Field>
+                {isLongRun && (
+                  <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
+                    Long runs show in "On now" — not repeated every day.
+                  </p>
+                )}
               </div>
             </div>
 

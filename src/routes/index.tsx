@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 
 import { useAuth } from "@/lib/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { BERLIN_DISTRICTS, GERMAN_STATES, type Neighborhood } from "@/lib/constants";
-import { buildAgendaDays, type TimeFilter } from "@/lib/agenda";
+import { buildAgendaDays, getActiveRuns, hoursRangeLabel, type TimeFilter } from "@/lib/agenda";
 import { AgendaView } from "@/components/AgendaView";
+import { OnNowShelf } from "@/components/OnNowShelf";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -38,6 +39,12 @@ function Home() {
   const [search, setSearch] = useState("");
   const [district, setDistrict] = useState<Neighborhood | "all">("all");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
+
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   const { data: savedIds = new Set<string>() } = useQuery({
     queryKey: ["event_save", "mine", user?.id],
@@ -88,6 +95,11 @@ function Home() {
   const days = useMemo(
     () => buildAgendaDays(events, { district, search, timeFilter }),
     [events, search, district, timeFilter],
+  );
+
+  const activeRuns = useMemo(
+    () => getActiveRuns(events, { district, search }, now),
+    [events, district, search, now],
   );
 
   const isEmpty = !isLoading && days.length === 0;
@@ -193,6 +205,8 @@ function Home() {
           })}
         </div>
 
+        <OnNowShelf runs={activeRuns} now={now} />
+
         {/* Agenda */}
         {isLoading ? (
           <div className="flex flex-col gap-3 px-5 pb-4 lg:px-9">
@@ -226,13 +240,50 @@ function Home() {
                     </span>
                     <span className="h-px flex-1 bg-border/[0.18]" />
                     <span className="font-mono text-[10px] text-muted-foreground">
-                      {day.items.length}
+                      {day.eventCount}
                     </span>
                   </div>
                   <div className="flex flex-col gap-2">
                     {day.items.map((e) => {
-                      const d = new Date(e.event_date);
                       const districtLabel = (e.neighborhood as string).split("-")[0].toUpperCase();
+
+                      if (e.edgeKind) {
+                        const isOpen = e.edgeKind === "open";
+                        return (
+                          <Link
+                            key={`${day.key}-${e.id}-${e.edgeKind}`}
+                            to="/event/$eventId"
+                            params={{ eventId: e.id }}
+                            className="flex flex-col gap-2 rounded-[22px] bg-hot/[0.1] px-4 py-3.5 hover:bg-hot/[0.16]"
+                          >
+                            <span
+                              className={`w-fit rounded font-mono text-[9px] font-bold tracking-[0.14em] ${
+                                isOpen ? "bg-foreground text-shell-deep" : "bg-hot text-shell-deep"
+                              }`}
+                              style={{ padding: "5px 10px" }}
+                            >
+                              {isOpen
+                                ? day.relLabel === "TONIGHT"
+                                  ? "OPENS TODAY"
+                                  : "OPENS"
+                                : "LAST DAY"}
+                            </span>
+                            <span className="flex min-w-0 items-baseline gap-1.5">
+                              <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground">
+                                {e.title}
+                              </span>
+                              <span className="shrink-0 font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
+                                {hoursRangeLabel(new Date(e.event_date), e.end_time)}
+                              </span>
+                            </span>
+                            <span className="font-mono text-[9px] tracking-[0.1em] text-link">
+                              {e.is_secret ? "SECRET" : districtLabel}
+                            </span>
+                          </Link>
+                        );
+                      }
+
+                      const d = new Date(e.event_date);
                       return (
                         <Link
                           key={`${day.key}-${e.id}`}
@@ -253,7 +304,7 @@ function Home() {
                               </span>
                               {e.isMultiDay && (
                                 <span className="shrink-0 whitespace-nowrap font-mono text-[9px] tracking-[0.1em] text-link">
-                                  (DAY {e.dayIndex})
+                                  (DAY {e.dayIndex} OF {e.totalDays})
                                 </span>
                               )}
                             </span>
