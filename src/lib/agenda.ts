@@ -30,7 +30,7 @@ export type AgendaDay = {
   date: Date;
   relLabel: "TONIGHT" | "TOMORROW" | null;
   items: AgendaEvent[];
-  /** Count of normal rows only (excludes long-run open/close edge rows). */
+  /** Count of events happening this day — includes long-run open/close edge rows. */
   eventCount: number;
 };
 
@@ -241,7 +241,7 @@ export function buildAgendaDays(
       date,
       relLabel: isSameDay(date, today) ? "TONIGHT" : isSameDay(date, tomorrow) ? "TOMORROW" : null,
       items,
-      eventCount: items.filter((i) => !i.edgeKind).length,
+      eventCount: items.length,
     };
   });
 }

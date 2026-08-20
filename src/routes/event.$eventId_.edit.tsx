@@ -347,7 +347,7 @@ function EditEventForm({
     if (
       nextLink &&
       !event.image_url &&
-      (nextLink !== (event.link ?? "") || !event.link_preview_status)
+      (nextLink !== (event.link ?? "") || event.link_preview_status !== "ok")
     ) {
       triggerLinkPreviewUnfurl(eventId);
     }

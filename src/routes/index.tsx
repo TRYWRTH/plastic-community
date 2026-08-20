@@ -124,23 +124,25 @@ function Home() {
       <div className="mx-auto max-w-[430px] lg:max-w-[1440px]">
         {/* Brand lockup */}
         <div className="flex flex-col gap-3 px-5 pb-3 pt-5 lg:flex-row lg:items-end lg:justify-between lg:gap-6 lg:px-9 lg:pb-[22px] lg:pt-[30px]">
-          <div className="flex min-w-0 flex-col gap-1.5">
-            <h1 className="font-brand text-[44px] uppercase leading-[0.92] tracking-[0.02em] text-foreground lg:text-[46px]">
-              Whisper Ring
-            </h1>
-            <span className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground">
-              BROUGHT TO YOU BY PLASTIC PRODUCTIONS
-            </span>
-          </div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 flex-col gap-1.5">
+              <h1 className="font-brand text-[44px] uppercase leading-[0.92] tracking-[0.02em] text-foreground lg:text-[46px]">
+                Whisper Ring
+              </h1>
+              <span className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground">
+                BROUGHT TO YOU BY PLASTIC PRODUCTIONS
+              </span>
+            </div>
 
-          {!isAuthenticated && (
-            <Link
-              to="/login"
-              className="shrink-0 self-start rounded-full border border-border px-[13px] py-[9px] font-mono text-[9px] tracking-[0.14em] text-foreground lg:hidden"
-            >
-              SIGN IN
-            </Link>
-          )}
+            {!isAuthenticated && (
+              <Link
+                to="/login"
+                className="shrink-0 rounded-full border border-border px-[13px] py-[9px] font-mono text-[9px] tracking-[0.14em] text-foreground lg:hidden"
+              >
+                SIGN IN
+              </Link>
+            )}
+          </div>
 
           {/* Desktop-only: search + primary action live in the header */}
           <div className="hidden shrink-0 items-center gap-2.5 lg:flex">

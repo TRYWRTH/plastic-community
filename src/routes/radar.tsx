@@ -9,10 +9,13 @@ export const Route = createFileRoute("/radar")({
 });
 
 async function fetchUpcomingEvents() {
+  // No event_date >= now filter here: a multi-day event that started in the
+  // past but is still running (end_date in the future) needs to stay
+  // eligible — EventsMap does the actual relevance filtering client-side,
+  // same as Home.
   const { data, error } = await supabase
     .from("events")
     .select("*")
-    .gte("event_date", new Date().toISOString())
     .order("event_date", { ascending: true });
   if (error) throw error;
   return data;

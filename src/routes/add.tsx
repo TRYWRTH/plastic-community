@@ -329,7 +329,7 @@ function AddEvent() {
                   style={{ colorScheme: "dark" }}
                 />
               </FieldLabel>
-              <FieldLabel label="END TIME (OPTIONAL)">
+              <FieldLabel label="END (OPTIONAL)">
                 <input
                   type="time"
                   value={endTime}

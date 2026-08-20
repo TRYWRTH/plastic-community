@@ -13,12 +13,20 @@ type EventLike = {
   title: string;
   place: string;
   event_date: string;
+  end_date: string | null;
   neighborhood: Neighborhood;
   lat: number | null;
   lng: number | null;
   is_secret: boolean;
   location_tba: boolean;
 };
+
+/** Inclusive end instant: the event's own end_date, or its start if it's a single-day event. */
+function effectiveEnd(e: EventLike, start: Date): Date {
+  if (!e.end_date) return start;
+  const end = new Date(e.end_date);
+  return isNaN(end.getTime()) || end < start ? start : end;
+}
 
 type WhenFilter = "tonight" | "week" | "all";
 
@@ -47,13 +55,13 @@ const DISTRICT_LABELS: { label: string; lat: number; lng: number }[] =
   }));
 
 const WHEN_STEPS: { value: WhenFilter; label: string }[] = [
+  { value: "all", label: "EVERYTHING" },
   { value: "tonight", label: "TONIGHT" },
   { value: "week", label: "THIS WEEK" },
-  { value: "all", label: "EVERYTHING" },
 ];
 
 const MIN_ZOOM = 1;
-const MAX_ZOOM = 3.5;
+const MAX_ZOOM = 12;
 
 function clamp(v: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, v));
@@ -180,10 +188,14 @@ export function EventsMap({ events }: { events: EventLike[] }) {
 
     // Collapse recurring series to their nearest upcoming occurrence, same
     // as Home, so the field isn't cluttered with every future instance.
+    // Still-running multi-day events count as "upcoming" too — only their
+    // end date matters, not when they started.
     const byKey = new Map<string, EventLike[]>();
     for (const e of events) {
       const d = new Date(e.event_date);
-      if (isNaN(d.getTime()) || isBefore(d, todayStart)) continue;
+      if (isNaN(d.getTime())) continue;
+      const end = effectiveEnd(e, d);
+      if (isBefore(end, todayStart) && !isSameDay(end, todayStart)) continue;
       const key = `${e.neighborhood}::${e.title}`;
       const arr = byKey.get(key) ?? [];
       arr.push(e);
@@ -202,9 +214,13 @@ export function EventsMap({ events }: { events: EventLike[] }) {
       .filter((e) => {
         if (hiddenIds.has(e.id)) return false;
         const d = new Date(e.event_date);
-        if (isNaN(d.getTime()) || isBefore(d, todayStart)) return false;
-        if (when === "tonight") return isSameDay(d, now);
-        if (when === "week") return d <= weekCutoff;
+        if (isNaN(d.getTime())) return false;
+        const startDay = startOfDay(d);
+        const endDay = startOfDay(effectiveEnd(e, d));
+        if (isBefore(endDay, todayStart)) return false;
+        if (when === "tonight")
+          return !isBefore(todayStart, startDay) && !isBefore(endDay, todayStart);
+        if (when === "week") return !isBefore(weekCutoff, startDay);
         return true;
       })
       .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
