@@ -30,6 +30,22 @@ export const Route = createFileRoute("/add")({
 
 type Step = 1 | 2 | 3;
 
+type LocationMode = "public" | "secret" | "tba";
+
+const LOCATION_MODES: { value: LocationMode; label: string; hint: string }[] = [
+  { value: "public", label: "PUBLIC ADDRESS", hint: "Address shown on the event page." },
+  {
+    value: "secret",
+    label: "SECRET",
+    hint: "Address hidden — guests contact you via the link.",
+  },
+  {
+    value: "tba",
+    label: "TBA",
+    hint: "Address not set yet — announce it closer to the date.",
+  },
+];
+
 function AddEvent() {
   const { isAuthenticated, user, loading } = useAuth();
   const navigate = useNavigate();
@@ -59,11 +75,11 @@ function AddEvent() {
   const [endDay, setEndDay] = useState("");
   const [endTime, setEndTime] = useState("");
   const [link, setLink] = useState("");
-  const [priceType, setPriceType] = useState<PriceType>("free");
+  const [priceType, setPriceType] = useState<PriceType | null>(null);
   const [ticketUrl, setTicketUrl] = useState("");
   const [description, setDescription] = useState("");
   const [repeats, setRepeats] = useState<RepeatOption>("none");
-  const [isSecret, setIsSecret] = useState(false);
+  const [locationMode, setLocationMode] = useState<LocationMode>("public");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -91,8 +107,9 @@ function AddEvent() {
     endTime !== "" ||
     multiDay ||
     repeats !== "none" ||
-    priceType !== "free" ||
-    ticketUrl !== "";
+    priceType !== null ||
+    ticketUrl !== "" ||
+    locationMode !== "public";
 
   const publish = async () => {
     setSaved(true);
@@ -120,7 +137,7 @@ function AddEvent() {
     }
     setSaving(true);
     let finalCoords = coords;
-    if (finalCoords.lat == null || finalCoords.lng == null) {
+    if (locationMode === "public" && (finalCoords.lat == null || finalCoords.lng == null)) {
       const geo = await geocodeAddress(`${place.trim()}, ${neighborhood}, Berlin`);
       if (geo) finalCoords = geo;
     }
@@ -155,7 +172,8 @@ function AddEvent() {
         end_date: multiDay && endDay ? endDay : null,
         end_time: endTime || null,
         repeats,
-        is_secret: isSecret,
+        is_secret: locationMode === "secret",
+        location_tba: locationMode === "tba",
       })
       .select("id")
       .single();
@@ -207,8 +225,8 @@ function AddEvent() {
       setStep(3);
       return;
     }
-    if (!place.trim()) {
-      toast.error("Please add a place, or turn on NO PUBLIC ADDRESS.");
+    if (locationMode === "public" && !place.trim()) {
+      toast.error("Please add a place, or mark it Secret or TBA.");
       return;
     }
     void publish();
@@ -322,9 +340,8 @@ function AddEvent() {
               </FieldLabel>
             </div>
 
-            <ToggleRow
+            <CompactToggle
               label="RUNS OVER MULTIPLE DAYS"
-              sublabel="ADD AN END DATE"
               checked={multiDay}
               onChange={(v) => {
                 setMultiDay(v);
@@ -396,7 +413,7 @@ function AddEvent() {
 
         {step === 3 && (
           <div className="flex flex-col gap-4">
-            <FieldLabel label="PLACE">
+            <FieldLabel label={locationMode === "public" ? "PLACE" : "PLACE (OPTIONAL)"}>
               <PlaceAutocompleteInput
                 value={place}
                 onChange={(v) => {
@@ -433,10 +450,15 @@ function AddEvent() {
                 />
               </div>
             </FieldLabel>
+            {!link.trim() && (
+              <p className="-mt-2.5 font-mono text-[9px] tracking-[0.1em] text-muted-foreground">
+                Tip: an Instagram post link helps people trust the event is real.
+              </p>
+            )}
 
             <div className="flex flex-col gap-1.5">
               <span className="font-mono text-[9px] tracking-[0.16em] text-muted-foreground">
-                PRICE
+                PRICE — OPTIONAL
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {PRICE_TYPES.map((p) => {
@@ -445,7 +467,7 @@ function AddEvent() {
                     <button
                       key={p.value}
                       type="button"
-                      onClick={() => setPriceType(p.value)}
+                      onClick={() => setPriceType(active ? null : p.value)}
                       className={`rounded-full border px-3.5 py-2.5 font-mono text-[10px] tracking-[0.1em] ${
                         active
                           ? "border-transparent bg-primary text-primary-foreground"
@@ -472,12 +494,33 @@ function AddEvent() {
               </FieldLabel>
             )}
 
-            <ToggleRow
-              label="NO PUBLIC ADDRESS"
-              sublabel="GUESTS REGISTER OR ASK VIA THE LINK"
-              checked={isSecret}
-              onChange={setIsSecret}
-            />
+            <div className="flex flex-col gap-1.5">
+              <span className="font-mono text-[9px] tracking-[0.16em] text-muted-foreground">
+                LOCATION
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {LOCATION_MODES.map((m) => {
+                  const active = locationMode === m.value;
+                  return (
+                    <button
+                      key={m.value}
+                      type="button"
+                      onClick={() => setLocationMode(m.value)}
+                      className={`rounded-full border px-3.5 py-2.5 font-mono text-[10px] tracking-[0.1em] ${
+                        active
+                          ? "border-transparent bg-primary text-primary-foreground"
+                          : "border-border/[0.22] text-muted-2"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <span className="font-mono text-[9px] text-muted-foreground">
+                {LOCATION_MODES.find((m) => m.value === locationMode)?.hint}
+              </span>
+            </div>
           </div>
         )}
 
@@ -512,14 +555,12 @@ function FieldLabel({ label, children }: { label: string; children: React.ReactN
   );
 }
 
-function ToggleRow({
+function CompactToggle({
   label,
-  sublabel,
   checked,
   onChange,
 }: {
   label: string;
-  sublabel: string;
   checked: boolean;
   onChange: (v: boolean) => void;
 }) {
@@ -527,19 +568,16 @@ function ToggleRow({
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className="flex items-center justify-between gap-2.5 rounded-2xl bg-foreground/[0.07] px-4 py-3.5 text-left text-foreground"
+      className="flex items-center justify-between gap-2.5 rounded-full border border-border/[0.22] px-4 py-2 text-left text-foreground"
     >
-      <span className="flex flex-col gap-1">
-        <span className="font-mono text-[10px] tracking-[0.14em]">{label}</span>
-        <span className="font-mono text-[9px] text-muted-foreground">{sublabel}</span>
-      </span>
+      <span className="font-mono text-[10px] tracking-[0.12em] text-muted-2">{label}</span>
       <span
-        className={`flex h-[26px] w-[46px] shrink-0 items-center rounded-full p-[3px] ${
+        className={`flex h-5 w-9 shrink-0 items-center rounded-full p-[3px] ${
           checked ? "justify-end bg-primary" : "justify-start bg-foreground/[0.18]"
         }`}
       >
         <span
-          className={`h-5 w-5 rounded-full ${checked ? "bg-primary-foreground" : "bg-foreground"}`}
+          className={`h-3.5 w-3.5 rounded-full ${checked ? "bg-primary-foreground" : "bg-foreground"}`}
         />
       </span>
     </button>

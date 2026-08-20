@@ -64,7 +64,9 @@ export function OnNowShelf({ runs, now }: { runs: ActiveRun[]; now: Date }) {
                     {hoursRangeLabel(start, event.end_time, { daily: true })} ·{" "}
                     {event.is_secret
                       ? "SECRET"
-                      : (event.neighborhood as string).split("-")[0].toUpperCase()}
+                      : event.location_tba
+                        ? "TBA"
+                        : (event.neighborhood as string).split("-")[0].toUpperCase()}
                   </div>
                   <div className="h-[3px] w-full overflow-hidden rounded-full bg-foreground/[0.16]">
                     <div className="h-full rounded-full bg-hot" style={{ width: `${pct}%` }} />

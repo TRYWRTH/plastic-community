@@ -70,9 +70,10 @@ export type Database = {
           link_preview_status: string | null;
           link_preview_title: string | null;
           lng: number | null;
+          location_tba: boolean;
           neighborhood: Database["public"]["Enums"]["neighborhood"];
           place: string;
-          price_type: Database["public"]["Enums"]["event_price_type"];
+          price_type: Database["public"]["Enums"]["event_price_type"] | null;
           repeats: Database["public"]["Enums"]["event_repeat"];
           ticket_url: string | null;
           title: string;
@@ -98,9 +99,10 @@ export type Database = {
           link_preview_status?: string | null;
           link_preview_title?: string | null;
           lng?: number | null;
+          location_tba?: boolean;
           neighborhood: Database["public"]["Enums"]["neighborhood"];
           place: string;
-          price_type?: Database["public"]["Enums"]["event_price_type"];
+          price_type?: Database["public"]["Enums"]["event_price_type"] | null;
           repeats?: Database["public"]["Enums"]["event_repeat"];
           ticket_url?: string | null;
           title: string;
@@ -126,9 +128,10 @@ export type Database = {
           link_preview_status?: string | null;
           link_preview_title?: string | null;
           lng?: number | null;
+          location_tba?: boolean;
           neighborhood?: Database["public"]["Enums"]["neighborhood"];
           place?: string;
-          price_type?: Database["public"]["Enums"]["event_price_type"];
+          price_type?: Database["public"]["Enums"]["event_price_type"] | null;
           repeats?: Database["public"]["Enums"]["event_repeat"];
           ticket_url?: string | null;
           title?: string;

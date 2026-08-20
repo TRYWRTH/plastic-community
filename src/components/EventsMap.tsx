@@ -16,6 +16,7 @@ type EventLike = {
   lat: number | null;
   lng: number | null;
   is_secret: boolean;
+  location_tba: boolean;
 };
 
 type WhenFilter = "tonight" | "week" | "all";
@@ -211,7 +212,10 @@ export function EventsMap({ events }: { events: EventLike[] }) {
 
     const nearWithIndex = filtered.map((e, i) => ({ ...e, pinNo: i + 1 }));
     const pinsSource = nearWithIndex
-      .filter((e) => !e.is_secret && typeof e.lat === "number" && typeof e.lng === "number")
+      .filter(
+        (e) =>
+          !e.is_secret && !e.location_tba && typeof e.lat === "number" && typeof e.lng === "number",
+      )
       .map((e) => {
         const isTonight = isSameDay(new Date(e.event_date), now);
         const selected = e.id === selectedId;

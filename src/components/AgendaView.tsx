@@ -84,7 +84,7 @@ export function AgendaView({
                         </span>
                       </span>
                       <span className="truncate font-mono text-[10px] tracking-[0.14em] text-link">
-                        {e.is_secret ? "SECRET" : districtLabel}
+                        {e.is_secret ? "SECRET" : e.location_tba ? "TBA" : districtLabel}
                       </span>
                     </Link>
                   );

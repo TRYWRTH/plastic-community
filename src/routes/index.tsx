@@ -319,7 +319,7 @@ function Home() {
                               </span>
                             </span>
                             <span className="font-mono text-[9px] tracking-[0.1em] text-link">
-                              {e.is_secret ? "SECRET" : districtLabel}
+                              {e.is_secret ? "SECRET" : e.location_tba ? "TBA" : districtLabel}
                             </span>
                           </Link>
                         );

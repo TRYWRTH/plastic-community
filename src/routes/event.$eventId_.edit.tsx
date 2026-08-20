@@ -42,6 +42,14 @@ import type { Database } from "@/integrations/supabase/types";
 
 type EventForEdit = Database["public"]["Tables"]["events"]["Row"];
 
+type LocationMode = "public" | "secret" | "tba";
+
+const LOCATION_MODES: { value: LocationMode; label: string; hint: string }[] = [
+  { value: "public", label: "Public address", hint: "Address shown on the event page." },
+  { value: "secret", label: "Secret", hint: "Address hidden — guests contact you via the link." },
+  { value: "tba", label: "TBA", hint: "Address not set yet — announce it closer to the date." },
+];
+
 export const Route = createFileRoute("/event/$eventId_/edit")({
   component: EditEvent,
 });
@@ -127,7 +135,7 @@ function EditEventForm({
   const [saved, setSaved] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
   const [place, setPlace] = useState(event.place);
-  const [priceType, setPriceType] = useState<PriceType>(event.price_type ?? "free");
+  const [priceType, setPriceType] = useState<PriceType | null>(event.price_type);
   const [ticketUrl, setTicketUrl] = useState(event.ticket_url ?? "");
 
   const [neighborhood, setNeighborhood] = useState<Neighborhood>(event.neighborhood);
@@ -142,7 +150,12 @@ function EditEventForm({
     lng: event.lng,
   });
   const [repeats, setRepeats] = useState<RepeatOption>((event.repeats as RepeatOption) ?? "none");
-  const [isSecret, setIsSecret] = useState(event.is_secret ?? false);
+  const initialLocationMode: LocationMode = event.is_secret
+    ? "secret"
+    : event.location_tba
+      ? "tba"
+      : "public";
+  const [locationMode, setLocationMode] = useState<LocationMode>(initialLocationMode);
   const initialDateOnly = format(new Date(event.event_date), "yyyy-MM-dd");
   const initialTimeOnly = format(new Date(event.event_date), "HH:mm");
   const [eventDay, setEventDay] = useState(initialDateOnly);
@@ -178,8 +191,8 @@ function EditEventForm({
     multiDay !== !!event.end_date ||
     endDay !== initialEndDay ||
     endTime !== initialEndTime ||
-    isSecret !== (event.is_secret ?? false) ||
-    priceType !== (event.price_type ?? "free") ||
+    locationMode !== initialLocationMode ||
+    priceType !== event.price_type ||
     ticketUrl !== (event.ticket_url ?? "");
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -195,7 +208,7 @@ function EditEventForm({
     const nextLink = String(form.get("link") ?? "").trim();
     const nextDescription = cleanDescription(String(form.get("description") ?? ""));
 
-    if (!nextTitle || !nextPlace || !nextDay || !nextTime) {
+    if (!nextTitle || (locationMode === "public" && !nextPlace) || !nextDay || !nextTime) {
       setSaved(false);
       toast.error("Please fill in the required fields.");
       return;
@@ -223,9 +236,8 @@ function EditEventForm({
     setSaving(true);
     let finalCoords = coords;
     if (
-      finalCoords.lat == null ||
-      finalCoords.lng == null ||
-      nextPlace !== cleanPlace(event.place)
+      locationMode === "public" &&
+      (finalCoords.lat == null || finalCoords.lng == null || nextPlace !== cleanPlace(event.place))
     ) {
       const geo = await geocodeAddress(`${nextPlace}, ${nextNeighborhood}, Berlin`);
       if (geo) finalCoords = geo;
@@ -255,7 +267,8 @@ function EditEventForm({
         lat: finalCoords.lat,
         lng: finalCoords.lng,
         repeats,
-        is_secret: isSecret,
+        is_secret: locationMode === "secret",
+        location_tba: locationMode === "tba",
         image_url: event.image_url,
         price_type: priceType,
         ticket_url: nextTicketUrl,
@@ -277,7 +290,8 @@ function EditEventForm({
         description: nextDescription || null,
         lat: finalCoords.lat,
         lng: finalCoords.lng,
-        is_secret: isSecret,
+        is_secret: locationMode === "secret",
+        location_tba: locationMode === "tba",
         image_url: event.image_url,
         price_type: priceType,
         ticket_url: nextTicketUrl,
@@ -473,7 +487,7 @@ function EditEventForm({
             </div>
           </div>
 
-          <Field label="Place" required>
+          <Field label="Place" required={locationMode === "public"}>
             <PlaceAutocompleteInput
               value={place}
               onChange={(v) => {
@@ -489,7 +503,7 @@ function EditEventForm({
                 setNeighborhoodFromPlace(true);
               }}
               placeholder="Venue or address"
-              required
+              required={locationMode === "public"}
               maxLength={200}
             />
           </Field>
@@ -512,18 +526,23 @@ function EditEventForm({
             </Select>
           </Field>
 
-          <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground sm:text-sm">
-            <input
-              type="checkbox"
-              checked={isSecret}
-              onChange={(e) => setIsSecret(e.target.checked)}
-              className="h-4 w-4 accent-primary"
-            />
-            Secret event
-            <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40">
-              — hides location from public
-            </span>
-          </label>
+          <Field label="Location">
+            <Select value={locationMode} onValueChange={(v) => setLocationMode(v as LocationMode)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LOCATION_MODES.map((m) => (
+                  <SelectItem key={m.value} value={m.value}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-muted-foreground sm:text-xs">
+              {LOCATION_MODES.find((m) => m.value === locationMode)?.hint}
+            </p>
+          </Field>
 
           <Field label="Link">
             <div className="flex gap-2">
@@ -542,14 +561,23 @@ function EditEventForm({
                 }}
               />
             </div>
+            {!link.trim() && (
+              <p className="text-[11px] text-muted-foreground sm:text-xs">
+                Tip: an Instagram post link helps people trust the event is real.
+              </p>
+            )}
           </Field>
 
           <Field label="Price">
-            <Select value={priceType} onValueChange={(v) => setPriceType(v as PriceType)}>
+            <Select
+              value={priceType ?? "unset"}
+              onValueChange={(v) => setPriceType(v === "unset" ? null : (v as PriceType))}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="unset">Not set</SelectItem>
                 {PRICE_TYPES.map((p) => (
                   <SelectItem key={p.value} value={p.value}>
                     {p.label}

@@ -358,7 +358,7 @@ function EventDetail() {
               <span className="rounded-full border border-border px-[11px] py-[5px] text-muted-2">
                 {districtLabel}
               </span>
-              {event.price_type === "paid" && event.ticket_url ? (
+              {event.price_type === "paid" && event.ticket_url && (
                 <a
                   href={event.ticket_url}
                   target="_blank"
@@ -367,7 +367,8 @@ function EventDetail() {
                 >
                   {priceTypeMeta(event.price_type).label.toUpperCase()} ↗
                 </a>
-              ) : (
+              )}
+              {event.price_type && !(event.price_type === "paid" && event.ticket_url) && (
                 <span
                   className={`rounded-full border px-[11px] py-[5px] ${
                     event.price_type === "paid"
@@ -385,6 +386,13 @@ function EventDetail() {
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
                 <span className="text-[13px] leading-snug">
                   Secret location — contact the organiser
+                </span>
+              </div>
+            ) : event.location_tba ? (
+              <div className="flex items-start gap-2 rounded-2xl bg-foreground/[0.07] px-4 py-3 text-muted-foreground">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                <span className="text-[13px] leading-snug">
+                  Location to be announced — check back closer to the date
                 </span>
               </div>
             ) : (
