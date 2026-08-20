@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { loadGooglePlaces } from "@/lib/google-places";
 import { cleanPlace } from "@/lib/clean-place";
@@ -70,6 +71,10 @@ const NEIGHBORHOOD_MAP: Record<string, string> = {
   reinickendorf: "Reinickendorf",
   "bezirk reinickendorf": "Reinickendorf",
 };
+
+// Only nag once per session — every mount of this component would otherwise
+// re-fire the same cached rejection from loadGooglePlaces().
+let hasWarnedAboutLoadFailure = false;
 
 // Normalize for substring comparison: lowercase, strip punctuation/whitespace.
 function normalize(s: string): string {
@@ -253,7 +258,13 @@ export function PlaceAutocompleteInput({
           (document.activeElement as HTMLElement | null)?.blur?.();
         });
       })
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        console.error(err);
+        if (!hasWarnedAboutLoadFailure) {
+          hasWarnedAboutLoadFailure = true;
+          toast.error("Address search isn't available — type the address manually.");
+        }
+      });
 
     return () => {
       cancelled = true;
@@ -330,7 +341,7 @@ export function PlaceAutocompleteInput({
     <div className="relative w-full">
       <Input
         ref={inputRef}
-        type="search"
+        type="text"
         defaultValue={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}

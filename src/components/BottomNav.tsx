@@ -48,7 +48,7 @@ export function BottomNav() {
       }}
       aria-label="Primary"
     >
-      <div className="grid w-full max-w-[406px] grid-cols-4 gap-1 rounded-full bg-shell-deep p-1.5">
+      <div className="grid w-full max-w-[456px] grid-cols-4 gap-1.5 rounded-full bg-shell-deep p-2">
         {TABS.map((tab) => {
           const active = tab.isActive(pathname);
           const gated = tab.requiresAuth && !loading && !isAuthenticated;
@@ -57,7 +57,7 @@ export function BottomNav() {
               key={tab.label}
               to={gated ? "/login" : tab.to}
               search={gated ? { redirect: tab.to } : undefined}
-              className={`rounded-full px-1 py-3.5 text-center font-mono text-[10px] font-bold tracking-[0.14em] ${
+              className={`rounded-full px-1 py-[18px] text-center font-mono text-[11px] font-bold tracking-[0.14em] ${
                 active ? "bg-primary text-primary-foreground" : "bg-transparent text-dim"
               }`}
             >
