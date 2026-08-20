@@ -12,7 +12,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendNewEventNotification } from "@/lib/notifications";
 import { cleanDescription } from "@/lib/clean-description";
-import { EVENT_TYPES, type EventType, type Neighborhood } from "@/lib/constants";
+import {
+  EVENT_TYPES,
+  PRICE_TYPES,
+  type EventType,
+  type Neighborhood,
+  type PriceType,
+} from "@/lib/constants";
 import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
 import { cleanPlace } from "@/lib/clean-place";
 import { geocodeAddress } from "@/lib/geocode";
@@ -52,6 +58,8 @@ function AddEvent() {
   const [endDay, setEndDay] = useState("");
   const [endTime, setEndTime] = useState("");
   const [link, setLink] = useState("");
+  const [priceType, setPriceType] = useState<PriceType>("free");
+  const [ticketUrl, setTicketUrl] = useState("");
   const [description, setDescription] = useState("");
   const [repeats, setRepeats] = useState<RepeatOption>("none");
   const [isSecret, setIsSecret] = useState(false);
@@ -81,7 +89,9 @@ function AddEvent() {
     eventTime !== "20:00" ||
     endTime !== "" ||
     multiDay ||
-    repeats !== "none";
+    repeats !== "none" ||
+    priceType !== "free" ||
+    ticketUrl !== "";
 
   const publish = async () => {
     setSaved(true);
@@ -130,6 +140,8 @@ function AddEvent() {
       lat: finalCoords.lat,
       lng: finalCoords.lng,
       image_url: imageUrl,
+      price_type: priceType,
+      ticket_url: priceType === "paid" ? ticketUrl.trim() || null : null,
     };
     const { data, error } = await supabase
       .from("events")
@@ -398,7 +410,7 @@ function AddEvent() {
                 maxLength={200}
               />
             </FieldLabel>
-            <FieldLabel label="LINK — INSTAGRAM, TICKETS, SIGN-UP">
+            <FieldLabel label="LINK — INSTAGRAM, SIGN-UP, MORE INFO">
               <div className="flex gap-2">
                 <input
                   value={link}
@@ -416,6 +428,45 @@ function AddEvent() {
                 />
               </div>
             </FieldLabel>
+
+            <div className="flex flex-col gap-1.5">
+              <span className="font-mono text-[9px] tracking-[0.16em] text-muted-foreground">
+                PRICE
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {PRICE_TYPES.map((p) => {
+                  const active = priceType === p.value;
+                  return (
+                    <button
+                      key={p.value}
+                      type="button"
+                      onClick={() => setPriceType(p.value)}
+                      className={`rounded-full border px-3.5 py-2.5 font-mono text-[10px] tracking-[0.1em] ${
+                        active
+                          ? "border-transparent bg-primary text-primary-foreground"
+                          : "border-border/[0.22] text-muted-2"
+                      }`}
+                    >
+                      {p.label.toUpperCase()}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {priceType === "paid" && (
+              <FieldLabel label="TICKET LINK (OPTIONAL)">
+                <input
+                  value={ticketUrl}
+                  onChange={(e) => setTicketUrl(e.target.value)}
+                  placeholder="ra.co/events/…"
+                  type="text"
+                  inputMode="url"
+                  className="h-12 w-full rounded-full border border-border bg-input px-4 text-[15px] text-foreground outline-none placeholder:text-dim"
+                />
+              </FieldLabel>
+            )}
+
             <ToggleRow
               label="NO PUBLIC ADDRESS"
               sublabel="GUESTS REGISTER OR ASK VIA THE LINK"

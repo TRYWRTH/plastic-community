@@ -10,7 +10,6 @@ import {
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
-import { FeedbackButton } from "@/components/FeedbackButton";
 import { OnboardingOverlay, useOnboarding } from "@/components/OnboardingOverlay";
 import { BottomNav } from "@/components/BottomNav";
 
@@ -285,7 +284,6 @@ function RootComponent() {
         <Outlet />
       </div>
       <BottomNav />
-      <FeedbackButton />
       <OnboardingHost />
       <Toaster
         theme="dark"

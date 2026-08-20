@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { format } from "date-fns";
-import { ArrowLeft, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, MapPin, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { SaveButtons } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
@@ -14,7 +14,7 @@ import { useEventSaveCounts } from "@/lib/use-event-save-counts";
 import { useEventSaverNames } from "@/lib/use-event-going-initials";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
-import { eventTypeMeta, neighborhoodMeta } from "@/lib/constants";
+import { eventTypeMeta, neighborhoodMeta, priceTypeMeta } from "@/lib/constants";
 import { resolveCardImage } from "@/lib/event-card-image";
 import { cleanPlace } from "@/lib/clean-place";
 import {
@@ -350,7 +350,48 @@ function EventDetail() {
               <span className="rounded-full border border-border px-[11px] py-[5px] text-muted-2">
                 {districtLabel}
               </span>
+              {event.price_type === "paid" && event.ticket_url ? (
+                <a
+                  href={event.ticket_url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="rounded-full bg-hot px-[11px] py-[5px] text-shell-deep"
+                >
+                  {priceTypeMeta(event.price_type).label.toUpperCase()} ↗
+                </a>
+              ) : (
+                <span
+                  className={`rounded-full border px-[11px] py-[5px] ${
+                    event.price_type === "paid"
+                      ? "border-hot text-hot"
+                      : "border-border text-muted-2"
+                  }`}
+                >
+                  {priceTypeMeta(event.price_type).label.toUpperCase()}
+                </span>
+              )}
             </div>
+
+            {event.is_secret ? (
+              <div className="flex items-start gap-2 rounded-2xl bg-foreground/[0.07] px-4 py-3 text-muted-foreground">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                <span className="text-[13px] leading-snug">
+                  Secret location — contact the organiser
+                </span>
+              </div>
+            ) : (
+              <a
+                href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="flex items-start gap-2 rounded-2xl bg-foreground/[0.07] px-4 py-3 text-foreground hover:bg-foreground/[0.12]"
+              >
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-link" />
+                <span className="text-[13px] leading-snug underline-offset-2 hover:underline">
+                  {stripNeighborhoodSuffix(event.place, districtLabel)}
+                </span>
+              </a>
+            )}
 
             {upcomingOccurrences && upcomingOccurrences.length > 0 && (
               <div className="font-mono text-[11px] tracking-[0.1em] text-muted-foreground">
@@ -377,14 +418,6 @@ function EventDetail() {
             )}
 
             <div className="grid grid-cols-[80px_1fr] gap-x-3 gap-y-2.5 font-mono text-[11px] text-foreground">
-              <span className="pt-0.5 text-[9px] tracking-[0.16em] text-muted-foreground">
-                WHERE
-              </span>
-              <span>
-                {event.is_secret
-                  ? "Secret location — contact the organiser"
-                  : stripNeighborhoodSuffix(event.place, districtLabel)}
-              </span>
               {isAdmin && (
                 <>
                   <span className="pt-0.5 text-[9px] tracking-[0.16em] text-muted-foreground">
@@ -399,16 +432,6 @@ function EventDetail() {
               <span>{savedByLabel}</span>
             </div>
 
-            {event.link && !isImageUrl(event.link) && (
-              <a
-                href={event.link}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="font-mono text-[11px] tracking-[0.08em] text-link underline underline-offset-[3px]"
-              >
-                ↗ {event.link.replace(/^https?:\/\//, "")}
-              </a>
-            )}
             {event.link && isImageUrl(event.link) && (
               <img
                 src={event.link}
@@ -417,40 +440,15 @@ function EventDetail() {
                 loading="lazy"
               />
             )}
-            {event.link && !isImageUrl(event.link) && <LinkPreviewCard url={event.link} />}
-
-            {!event.is_secret && (
-              <div className="relative h-[170px] overflow-hidden rounded-2xl bg-shell-deep">
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(rgba(247,231,228,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(247,231,228,0.07) 1px, transparent 1px)",
-                    backgroundSize: "30px 30px",
-                  }}
-                />
-                <span
-                  className="absolute left-0 right-0 top-[44%] h-[18px] bg-foreground/[0.05]"
-                  style={{ transform: "rotate(-5deg)" }}
-                />
-                <span className="absolute left-1/2 top-1/2 h-[150px] w-[150px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground/[0.16]" />
-                <span className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full border border-foreground/[0.22]" />
-                <span
-                  className="absolute left-1/2 top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-hot"
-                  style={{ boxShadow: "0 0 0 7px rgba(255,106,99,0.18)" }}
-                />
-                <span className="absolute left-1/2 top-[calc(50%+14px)] -translate-x-1/2 whitespace-nowrap font-mono text-[9px] tracking-[0.12em] text-muted-2">
-                  {districtShort}
-                </span>
-                <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="absolute bottom-3 right-3 rounded-full bg-primary px-[13px] py-[9px] font-mono text-[9px] tracking-[0.12em] text-primary-foreground"
-                >
-                  OPEN IN MAPS
-                </a>
-              </div>
+            {event.link && !isImageUrl(event.link) && (
+              <a
+                href={event.link}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex w-fit items-center gap-1.5 self-start rounded-full border border-border px-[13px] py-2 font-mono text-[10px] tracking-[0.12em] text-link"
+              >
+                ↗ {linkLabel(event.link)}
+              </a>
             )}
 
             {nearby && nearby.length > 0 && (
@@ -589,121 +587,13 @@ function stripNeighborhoodSuffix(place: string, neighborhood: string) {
   return cleaned.endsWith(suffix) ? cleaned.slice(0, -suffix.length) : cleaned;
 }
 
-function LinkFallback({ url, domain }: { url: string; domain: string }) {
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noreferrer noopener"
-      className="flex w-full items-center gap-3 rounded-2xl bg-foreground/[0.07] px-4 py-3"
-    >
-      <div className="min-w-0">
-        <div className="font-mono text-[10px] tracking-[0.1em] text-muted-foreground">{domain}</div>
-        <div className="truncate font-mono text-xs text-foreground">{url}</div>
-      </div>
-    </a>
-  );
-}
-
-function LinkPreviewCard({ url }: { url: string }) {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["link-preview", url],
-    queryFn: async () => {
-      const res = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}`);
-      if (!res.ok) throw new Error("preview failed");
-      const json = (await res.json()) as {
-        status?: string;
-        data?: {
-          title?: string;
-          description?: string;
-          image?: { url?: string };
-          publisher?: string;
-          url?: string;
-        };
-      };
-      if (json.status !== "success" || !json.data) throw new Error("no data");
-      return json.data;
-    },
-    staleTime: 1000 * 60 * 60 * 24,
-    gcTime: 1000 * 60 * 60 * 24,
-    retry: false,
-  });
-
-  if (isLoading) {
-    return (
-      <div className="w-full overflow-hidden rounded-2xl bg-foreground/[0.07]">
-        <div className="h-[200px] w-full animate-pulse bg-muted" />
-        <div className="space-y-2 p-3">
-          <div className="h-2 w-20 animate-pulse bg-muted" />
-          <div className="h-4 w-3/4 animate-pulse bg-muted" />
-        </div>
-      </div>
-    );
+/** Short label for the source-link chip, e.g. "instagram.com" -> "INSTAGRAM.COM". */
+function linkLabel(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "").toUpperCase();
+  } catch {
+    return url.replace(/^https?:\/\//, "").toUpperCase();
   }
-
-  const domain = (() => {
-    try {
-      return new URL(url).hostname.replace(/^www\./, "");
-    } catch {
-      return url;
-    }
-  })();
-
-  if (isError || !data) return <LinkFallback url={url} domain={domain} />;
-  const title = data.title || data.publisher;
-  if (!title && !data.image?.url) return <LinkFallback url={url} domain={domain} />;
-
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noreferrer noopener"
-      className="block w-full overflow-hidden rounded-2xl bg-foreground/[0.07]"
-    >
-      {data.image?.url && <LinkPreviewImage src={data.image.url} />}
-      <div className="space-y-1 p-3">
-        {data.publisher && (
-          <div className="font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
-            {data.publisher}
-          </div>
-        )}
-        {title && (
-          <div className="font-brand text-base uppercase leading-tight text-foreground">
-            {title}
-          </div>
-        )}
-        {data.description && <p className="line-clamp-2 text-xs text-body">{data.description}</p>}
-      </div>
-    </a>
-  );
-}
-
-function LinkPreviewImage({ src }: { src: string }) {
-  const [orientation, setOrientation] = useState<"landscape" | "portrait" | null>(null);
-  const [hidden, setHidden] = useState(false);
-  if (hidden) return null;
-  const isPortrait = orientation === "portrait";
-  return (
-    <div
-      className={`relative flex w-full items-center justify-center overflow-hidden bg-muted ${
-        isPortrait ? "max-h-[300px]" : "h-[200px]"
-      }`}
-    >
-      <img
-        src={src}
-        alt=""
-        loading="lazy"
-        onLoad={(e) => {
-          const img = e.currentTarget;
-          setOrientation(img.naturalWidth >= img.naturalHeight ? "landscape" : "portrait");
-        }}
-        onError={() => setHidden(true)}
-        className={
-          isPortrait ? "max-h-[300px] w-auto object-contain" : "h-full w-full object-cover"
-        }
-      />
-    </div>
-  );
 }
 
 const LINK_CLASS = "text-link underline underline-offset-2";

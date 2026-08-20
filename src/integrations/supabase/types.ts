@@ -72,7 +72,9 @@ export type Database = {
           lng: number | null;
           neighborhood: Database["public"]["Enums"]["neighborhood"];
           place: string;
+          price_type: Database["public"]["Enums"]["event_price_type"];
           repeats: Database["public"]["Enums"]["event_repeat"];
+          ticket_url: string | null;
           title: string;
           updated_at: string;
         };
@@ -98,7 +100,9 @@ export type Database = {
           lng?: number | null;
           neighborhood: Database["public"]["Enums"]["neighborhood"];
           place: string;
+          price_type?: Database["public"]["Enums"]["event_price_type"];
           repeats?: Database["public"]["Enums"]["event_repeat"];
+          ticket_url?: string | null;
           title: string;
           updated_at?: string;
         };
@@ -124,7 +128,9 @@ export type Database = {
           lng?: number | null;
           neighborhood?: Database["public"]["Enums"]["neighborhood"];
           place?: string;
+          price_type?: Database["public"]["Enums"]["event_price_type"];
           repeats?: Database["public"]["Enums"]["event_repeat"];
+          ticket_url?: string | null;
           title?: string;
           updated_at?: string;
         };
@@ -228,6 +234,7 @@ export type Database = {
       default_username_from_email: { Args: { email: string }; Returns: string };
     };
     Enums: {
+      event_price_type: "free" | "donation" | "paid";
       event_repeat: "none" | "weekly" | "biweekly" | "monthly";
       event_type:
         | "music"
@@ -394,6 +401,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      event_price_type: ["free", "donation", "paid"],
       event_repeat: ["none", "weekly", "biweekly", "monthly"],
       event_type: [
         "music",

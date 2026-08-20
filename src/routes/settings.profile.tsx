@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
+import { FeedbackButton } from "@/components/FeedbackButton";
 
 export const Route = createFileRoute("/settings/profile")({
   component: MePage,
@@ -206,6 +207,8 @@ function MePage() {
             })
           )}
         </section>
+
+        <FeedbackButton />
 
         <button
           type="button"

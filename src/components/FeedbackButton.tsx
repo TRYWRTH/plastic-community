@@ -3,7 +3,6 @@ import { MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +10,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 
 export function FeedbackButton() {
   const [open, setOpen] = useState(false);
@@ -46,15 +44,17 @@ export function FeedbackButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Send feedback"
-        className="fixed bottom-40 right-4 z-40 inline-flex items-center gap-2 rounded-full bg-primary px-3 py-2 font-mono text-xs uppercase tracking-widest text-primary-foreground"
+        className="flex items-center justify-between gap-2.5 rounded-full border border-border px-4 py-[15px] text-left text-foreground"
       >
-        <MessageCircle className="h-4 w-4" />
-        Feedback
+        <span className="flex items-center gap-2 font-mono text-[10px] tracking-[0.16em]">
+          <MessageCircle className="h-3.5 w-3.5" />
+          SEND FEEDBACK
+        </span>
+        <span className="font-mono text-[9px] text-muted-foreground">→</span>
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-none border-2 border-foreground">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle className="font-brand uppercase">Feedback</DialogTitle>
             <DialogDescription className="font-mono text-xs uppercase tracking-wide">
@@ -62,17 +62,21 @@ export function FeedbackButton() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-3">
-            <Textarea
+            <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Your feedback…"
               rows={5}
-              className="rounded-none border-2 border-foreground"
               required
+              className="w-full rounded-2xl border border-border bg-input px-4 py-3 text-[15px] text-foreground outline-none placeholder:text-dim"
             />
-            <Button type="submit" disabled={submitting || !message.trim()} className="w-full">
-              {submitting ? "Sending…" : "Send feedback"}
-            </Button>
+            <button
+              type="submit"
+              disabled={submitting || !message.trim()}
+              className="w-full rounded-full bg-primary py-4 font-mono text-[10px] font-bold tracking-[0.16em] text-primary-foreground disabled:opacity-60"
+            >
+              {submitting ? "SENDING…" : "SEND FEEDBACK"}
+            </button>
           </form>
         </DialogContent>
       </Dialog>

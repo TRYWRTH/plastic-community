@@ -15,7 +15,13 @@ import { EventImageUpload } from "@/components/EventImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendEventUpdateNotification } from "@/lib/notifications";
-import { EVENT_TYPES, type EventType, type Neighborhood } from "@/lib/constants";
+import {
+  EVENT_TYPES,
+  PRICE_TYPES,
+  type EventType,
+  type Neighborhood,
+  type PriceType,
+} from "@/lib/constants";
 import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
 import { LONG_RUN_MIN_DAYS } from "@/lib/agenda";
 import { Button } from "@/components/ui/button";
@@ -124,6 +130,8 @@ function EditEventForm({
   const [link, setLink] = useState(event.link ?? "");
   const [place, setPlace] = useState(event.place);
   const [imageUrl, setImageUrl] = useState<string | null>(event.image_url);
+  const [priceType, setPriceType] = useState<PriceType>(event.price_type ?? "free");
+  const [ticketUrl, setTicketUrl] = useState(event.ticket_url ?? "");
 
   const [neighborhood, setNeighborhood] = useState<Neighborhood>(event.neighborhood);
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
@@ -168,7 +176,9 @@ function EditEventForm({
     endDay !== initialEndDay ||
     endTime !== initialEndTime ||
     isSecret !== (event.is_secret ?? false) ||
-    imageUrl !== event.image_url;
+    imageUrl !== event.image_url ||
+    priceType !== (event.price_type ?? "free") ||
+    ticketUrl !== (event.ticket_url ?? "");
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     setSaved(true);
@@ -224,6 +234,7 @@ function EditEventForm({
       (finalCoords.lat != null && finalCoords.lng != null
         ? nearestBerlinDistrict(finalCoords.lat, finalCoords.lng)
         : null) ?? nextNeighborhood;
+    const nextTicketUrl = priceType === "paid" ? ticketUrl.trim() || null : null;
     const { data: updated, error } = await supabase
       .from("events")
       .update({
@@ -241,6 +252,8 @@ function EditEventForm({
         repeats,
         is_secret: isSecret,
         image_url: imageUrl,
+        price_type: priceType,
+        ticket_url: nextTicketUrl,
       })
       .eq("id", eventId)
       .select("*")
@@ -261,6 +274,8 @@ function EditEventForm({
         lng: finalCoords.lng,
         is_secret: isSecret,
         image_url: imageUrl,
+        price_type: priceType,
+        ticket_url: nextTicketUrl,
       };
       await supabase
         .from("events")
@@ -284,6 +299,8 @@ function EditEventForm({
             lat: finalCoords.lat,
             lng: finalCoords.lng,
             image_url: imageUrl,
+            price_type: priceType,
+            ticket_url: nextTicketUrl,
           },
           parsedDate,
           repeats,
@@ -523,6 +540,33 @@ function EditEventForm({
               />
             </div>
           </Field>
+
+          <Field label="Price">
+            <Select value={priceType} onValueChange={(v) => setPriceType(v as PriceType)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PRICE_TYPES.map((p) => (
+                  <SelectItem key={p.value} value={p.value}>
+                    {p.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          {priceType === "paid" && (
+            <Field label="Ticket link (optional)">
+              <Input
+                value={ticketUrl}
+                onChange={(e) => setTicketUrl(e.target.value)}
+                placeholder="https://…"
+                type="url"
+                inputMode="url"
+              />
+            </Field>
+          )}
 
           <Field label="Description">
             <DescriptionField defaultValue={event.description ?? ""} />
