@@ -2,13 +2,26 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
+import { ChevronDown } from "lucide-react";
 
 import { useAuth } from "@/lib/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { BERLIN_DISTRICTS, GERMAN_STATES, type Neighborhood } from "@/lib/constants";
-import { buildAgendaDays, getActiveRuns, hoursRangeLabel, type TimeFilter } from "@/lib/agenda";
+import { BERLIN_DISTRICTS, type Neighborhood } from "@/lib/constants";
+import {
+  buildAgendaDays,
+  getActiveRuns,
+  getDistrictCounts,
+  hoursRangeLabel,
+  type TimeFilter,
+} from "@/lib/agenda";
 import { AgendaView } from "@/components/AgendaView";
 import { OnNowShelf } from "@/components/OnNowShelf";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -23,7 +36,8 @@ async function fetchEvents() {
   return data;
 }
 
-const TIME_CHIPS: { value: TimeFilter; label: string }[] = [
+const WHEN_CHIPS: { value: TimeFilter; label: string }[] = [
+  { value: "all", label: "ALL DATES" },
   { value: "tonight", label: "TONIGHT" },
   { value: "weekend", label: "THIS WEEKEND" },
 ];
@@ -76,21 +90,17 @@ function Home() {
     qc.invalidateQueries({ queryKey: ["my_saved_events"] });
   };
 
-  const districtChips = useMemo(() => {
-    const usedStates = new Set(
-      events
-        .map((e) => e.neighborhood)
-        .filter((n): n is Neighborhood => !!n && GERMAN_STATES.some((s) => s.value === n)),
-    );
-    const stateOptions = GERMAN_STATES.filter((s) => usedStates.has(s.value));
-    return [
-      { value: "all" as const, label: "ALL DISTRICTS" },
-      ...[...BERLIN_DISTRICTS, ...stateOptions].map((n) => ({
-        value: n.value,
-        label: n.label.split("-")[0].toUpperCase(),
-      })),
-    ];
-  }, [events]);
+  const { total: districtTotal, byDistrict: districtCounts } = useMemo(
+    () => getDistrictCounts(events, { search, timeFilter }),
+    [events, search, timeFilter],
+  );
+
+  const districtTriggerLabel =
+    district === "all"
+      ? "ALL DISTRICTS"
+      : (BERLIN_DISTRICTS.find((d) => d.value === district)?.label ?? district)
+          .split("-")[0]
+          .toUpperCase();
 
   const days = useMemo(
     () => buildAgendaDays(events, { district, search, timeFilter }),
@@ -167,42 +177,85 @@ function Home() {
           </div>
         </div>
 
-        {/* Filter chips */}
-        <div className="scrollbar-hide flex gap-1.5 overflow-x-auto px-5 pb-4 lg:flex-wrap lg:overflow-visible lg:px-9">
-          {districtChips.map((c) => {
-            const active = district === c.value;
-            return (
+        {/* Filter bar: WHEN (segmented control) + WHERE (dropdown) */}
+        <div className="scrollbar-hide flex items-center gap-2.5 overflow-x-auto px-5 pb-4 lg:overflow-visible lg:px-9">
+          <div className="flex shrink-0 items-center gap-0.5 rounded-full border border-border/[0.22] p-1">
+            {WHEN_CHIPS.map((c) => {
+              const active = timeFilter === c.value;
+              return (
+                <button
+                  key={c.value}
+                  type="button"
+                  onClick={() => setTimeFilter(c.value)}
+                  className={`shrink-0 whitespace-nowrap rounded-full px-3 py-2 font-mono text-[10px] tracking-[0.1em] ${
+                    active ? "bg-hot text-shell-deep" : "bg-transparent text-muted-2"
+                  }`}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <span className="h-6 w-px shrink-0 bg-border/[0.22]" />
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <button
-                key={c.value}
                 type="button"
-                onClick={() => setDistrict(c.value)}
-                className={`shrink-0 whitespace-nowrap rounded-full border px-[13px] py-[9px] font-mono text-[10px] tracking-[0.1em] ${
-                  active
-                    ? "border-transparent bg-hot text-shell-deep"
-                    : "border-border/[0.22] bg-transparent text-muted-2"
-                }`}
+                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-border/[0.22] px-[13px] py-[9px] font-mono text-[10px] tracking-[0.1em] text-muted-2"
               >
-                {c.label}
+                {districtTriggerLabel}
+                <ChevronDown className="h-3 w-3" />
               </button>
-            );
-          })}
-          {TIME_CHIPS.map((c) => {
-            const active = timeFilter === c.value;
-            return (
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              className="w-[min(90vw,420px)] rounded-[24px] border border-foreground/[0.14] bg-shell-deep p-4 text-foreground"
+            >
               <button
-                key={c.value}
                 type="button"
-                onClick={() => setTimeFilter(active ? "all" : c.value)}
-                className={`shrink-0 whitespace-nowrap rounded-full border px-[13px] py-[9px] font-mono text-[10px] tracking-[0.1em] ${
-                  active
-                    ? "border-transparent bg-hot text-shell-deep"
-                    : "border-border/[0.22] bg-transparent text-muted-2"
-                }`}
+                onClick={() => setDistrict("all")}
+                className="mb-3 flex w-full items-baseline justify-between gap-2 text-left"
               >
-                {c.label}
+                <span className="font-mono text-[10px] font-bold tracking-[0.18em] text-link">
+                  ALL DISTRICTS · {districtTotal}
+                </span>
+                <span className="font-mono text-[9px] tracking-[0.12em] text-dim">
+                  EVENTS THIS WEEK
+                </span>
               </button>
-            );
-          })}
+              <div className="grid grid-cols-2 gap-x-3">
+                {BERLIN_DISTRICTS.map((d) => {
+                  const count = districtCounts[d.value] ?? 0;
+                  const active = district === d.value;
+                  if (count === 0) {
+                    return (
+                      <span
+                        key={d.value}
+                        className="flex items-center justify-between gap-2 px-2 py-2 font-mono text-[10px] tracking-[0.08em] text-muted-foreground/50"
+                      >
+                        <span className="truncate">{d.label.toUpperCase()}</span>
+                        <span className="shrink-0">—</span>
+                      </span>
+                    );
+                  }
+                  return (
+                    <DropdownMenuItem
+                      key={d.value}
+                      onSelect={() => setDistrict(d.value)}
+                      className={`flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-2 font-mono text-[10px] tracking-[0.08em] focus:bg-hot/[0.14] focus:text-foreground ${
+                        active ? "text-hot" : "text-foreground"
+                      }`}
+                    >
+                      <span className="truncate">{d.label.toUpperCase()}</span>
+                      <span className="shrink-0 text-muted-foreground">{count}</span>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <OnNowShelf runs={activeRuns} now={now} />

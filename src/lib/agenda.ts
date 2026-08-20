@@ -120,6 +120,41 @@ function applyFilters(events: EventRow[], opts: FilterOpts): EventRow[] {
   return dedupeRecurring(candidates);
 }
 
+/**
+ * How many upcoming events match the current search + WHEN filter, broken
+ * down by district — powers the WHERE dropdown's counts. Ignores the
+ * district filter itself so every district's count reflects what picking
+ * it would show.
+ */
+export function getDistrictCounts(
+  events: EventRow[],
+  opts: { search: string; timeFilter: TimeFilter },
+): { total: number; byDistrict: Partial<Record<Neighborhood, number>> } {
+  const today = startOfDay(new Date());
+  const todayISO = toISODate(today);
+  const weekendKeys = [...weekendDates(today)].map(toISODate);
+  const candidates = applyFilters(events, { district: "all", search: opts.search });
+
+  let total = 0;
+  const byDistrict: Partial<Record<Neighborhood, number>> = {};
+  for (const e of candidates) {
+    const start = startOfDay(new Date(e.event_date));
+    const rawEnd = parseEndDate(e);
+    const end = rawEnd && !isBefore(rawEnd, start) ? startOfDay(rawEnd) : start;
+    const startKey = toISODate(start);
+    const endKey = toISODate(end);
+
+    if (opts.timeFilter === "tonight" && (startKey > todayISO || endKey < todayISO)) continue;
+    if (opts.timeFilter === "weekend" && !weekendKeys.some((k) => k >= startKey && k <= endKey)) {
+      continue;
+    }
+
+    total += 1;
+    byDistrict[e.neighborhood] = (byDistrict[e.neighborhood] ?? 0) + 1;
+  }
+  return { total, byDistrict };
+}
+
 export function buildAgendaDays(
   events: EventRow[],
   opts: FilterOpts & { timeFilter: TimeFilter },
