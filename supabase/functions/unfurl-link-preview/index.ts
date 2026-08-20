@@ -13,7 +13,6 @@
 // URL directly: it's still a third-party URL outside our control:
 // unpredictable caching/availability long-term, so we keep our own copy.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { decode as decodeImage, Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
@@ -21,8 +20,6 @@ const UA =
 const MICROLINK_TIMEOUT_MS = 12_000;
 const IMAGE_FETCH_TIMEOUT_MS = 10_000;
 const IMAGE_SIZE_CAP = 5_000_000; // 5 MB
-const MAX_IMAGE_DIMENSION = 1600;
-const JPEG_QUALITY = 80;
 const BUCKET = "event-images";
 
 type PreviewResult = {
@@ -193,31 +190,6 @@ async function unfurl(rawUrl: string): Promise<PreviewResult> {
   };
 }
 
-/**
- * Resizes + re-encodes as JPEG when possible. imagescript's decode() only
- * understands PNG/JPEG/TIFF — a growing share of sites default to WebP or
- * AVIF for their og:image, which would otherwise throw here and silently
- * drop the whole preview. Falls back to storing the original bytes/format
- * untouched (still a real, working image) rather than showing nothing.
- */
-async function reencodeForCard(
-  bytes: Uint8Array,
-  contentType: string,
-): Promise<{ bytes: Uint8Array; contentType: string }> {
-  try {
-    const decoded = await decodeImage(bytes);
-    const image = decoded instanceof Image ? decoded : decoded.frames[0];
-    const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(image.width, image.height));
-    if (scale < 1) {
-      image.resize(Math.round(image.width * scale), Math.round(image.height * scale));
-    }
-    return { bytes: await image.encodeJPEG(JPEG_QUALITY), contentType: "image/jpeg" };
-  } catch (err) {
-    console.warn("[unfurl-link-preview] decode/resize failed, storing original image as-is", err);
-    return { bytes, contentType };
-  }
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
@@ -251,10 +223,8 @@ Deno.serve(async (req) => {
   let previewImageUrl: string | null = null;
   if (result.status === "ok" && result.imageBytes) {
     try {
-      const { bytes, contentType } = await reencodeForCard(
-        result.imageBytes,
-        result.imageContentType ?? "image/jpeg",
-      );
+      const bytes = result.imageBytes;
+      const contentType = result.imageContentType ?? "image/jpeg";
       const ext = contentType.split("/")[1]?.split("+")[0] || "jpg";
       const path = `previews/${eventId}.${ext}`;
       const { error: uploadError } = await admin.storage
