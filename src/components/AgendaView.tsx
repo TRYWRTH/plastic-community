@@ -160,7 +160,13 @@ export function AgendaView({
                           </span>
                         )}
                       </span>
-                      <span className="truncate text-[13px] text-muted-foreground">{e.place}</span>
+                      <span className="truncate text-[13px] text-muted-foreground">
+                        {e.is_secret
+                          ? "Secret location"
+                          : e.location_tba
+                            ? "Location TBA"
+                            : e.place}
+                      </span>
                     </span>
 
                     <span className="truncate font-mono text-[10px] tracking-[0.14em] text-link">

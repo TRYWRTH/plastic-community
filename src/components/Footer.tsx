@@ -13,7 +13,7 @@ export function Footer() {
         className="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] text-link underline underline-offset-2"
       >
         <Instagram className="h-3 w-3" />
-        @PLASTIC_PRODUCTIONS_
+        PLASTIC PRODUCTIONS
       </a>
     </footer>
   );
