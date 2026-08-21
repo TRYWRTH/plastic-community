@@ -249,10 +249,10 @@ function AddEvent() {
   const prevLabel = step === 1 ? "CANCEL" : "BACK";
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <UnsavedChangesGuard when={dirty && !saving && !saved} />
       <RadarSweepBand />
-      <div className="mx-auto flex w-full max-w-[430px] flex-1 flex-col justify-center gap-4 px-5 py-6 lg:max-w-[560px]">
+      <div className="mx-auto flex w-full max-w-[430px] flex-1 flex-col justify-center gap-4 px-5 py-6 lg:max-w-[560px] lg:justify-start lg:pt-10">
         <div className="flex flex-col gap-2.5">
           <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground">
             STEP {step} OF 3
