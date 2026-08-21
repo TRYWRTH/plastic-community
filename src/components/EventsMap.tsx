@@ -258,7 +258,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
 
   return (
     <div className="flex flex-col">
-      <div className="relative mx-auto h-[400px] w-full max-w-[560px] overflow-hidden rounded-[26px] bg-shell-deep">
+      <div className="relative h-[400px] w-full overflow-hidden rounded-[26px] bg-shell-deep lg:h-[480px]">
         <div ref={mapDivRef} className="absolute inset-0" />
 
         {mapError && (
@@ -359,7 +359,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
         )}
       </div>
 
-      <div className="mx-auto flex w-full max-w-[560px] gap-1.5 py-3.5">
+      <div className="flex w-full gap-1.5 py-3.5">
         {WHEN_STEPS.map((w) => {
           const active = when === w.value;
           return (
