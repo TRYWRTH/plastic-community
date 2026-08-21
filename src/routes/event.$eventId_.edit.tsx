@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendEventUpdateNotification } from "@/lib/notifications";
 import {
+  DESCRIPTION_MAX_LENGTH,
   EVENT_TYPES,
   PRICE_TYPES,
   type EventType,
@@ -651,10 +652,15 @@ function DescriptionField({ defaultValue }: { defaultValue: string }) {
   const [value, setValue] = useState(defaultValue);
   return (
     <>
-      <DescriptionEditor name="description" value={value} onChange={setValue} maxLength={2500} />
+      <DescriptionEditor
+        name="description"
+        value={value}
+        onChange={setValue}
+        maxLength={DESCRIPTION_MAX_LENGTH}
+      />
       <div className="flex items-center justify-end gap-2">
         <p className="font-mono text-[11px] text-muted-foreground sm:text-xs">
-          {value.length}/1500
+          {value.length}/{DESCRIPTION_MAX_LENGTH}
         </p>
       </div>
     </>
