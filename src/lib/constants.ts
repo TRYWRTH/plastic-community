@@ -9,6 +9,7 @@ import {
   IconTools,
   IconUsersGroup,
   IconGlassFull,
+  IconConfetti,
   IconDots,
   type Icon,
 } from "@tabler/icons-react";
@@ -31,6 +32,7 @@ export const EVENT_TYPES: { value: EventType; label: string; Icon: Icon }[] = [
   { value: "workshop", label: "Workshop", Icon: IconTools },
   { value: "community", label: "Community", Icon: IconUsersGroup },
   { value: "nightlife", label: "Nightlife", Icon: IconGlassFull },
+  { value: "dance", label: "Dance", Icon: IconConfetti },
   { value: "other", label: "Other", Icon: IconDots },
 ];
 

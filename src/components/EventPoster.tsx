@@ -12,6 +12,7 @@ const CATEGORY_TINTS: Record<EventType, string> = {
   workshop: "#7A0316",
   community: "#5A0210",
   nightlife: "#2A0206",
+  dance: "#960E20",
   other: "#4A020C",
 };
 

@@ -473,7 +473,7 @@ function EventDetail() {
 
       {event && validDate && (
         <div
-          className="fixed inset-x-0 bottom-[84px] z-20 grid grid-cols-[1fr_1fr_auto_auto] gap-2 px-4 pb-2 pt-6"
+          className="fixed inset-x-0 bottom-[118px] z-20 grid grid-cols-[1fr_1fr_auto_auto] gap-2 px-4 pb-2 pt-6"
           style={{ background: "linear-gradient(180deg, rgba(90,2,16,0), var(--background) 32%)" }}
         >
           <div className="col-span-4 mx-auto grid w-full max-w-[430px] grid-cols-[1fr_1fr_auto_auto] gap-2 lg:max-w-[560px]">
