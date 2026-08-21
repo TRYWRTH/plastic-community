@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/lib/use-auth";
 
 type NavTab = {
@@ -52,15 +53,21 @@ export function BottomNav() {
         {TABS.map((tab) => {
           const active = tab.isActive(pathname);
           const gated = tab.requiresAuth && !loading && !isAuthenticated;
+          const isAdd = tab.label === "ADD";
           return (
             <Link
               key={tab.label}
               to={gated ? "/login" : tab.to}
               search={gated ? { redirect: tab.to } : undefined}
-              className={`rounded-full px-1 py-[18px] text-center font-mono text-[11px] font-bold tracking-[0.14em] ${
-                active ? "bg-primary text-primary-foreground" : "bg-transparent text-dim"
+              className={`flex items-center justify-center gap-1 rounded-full px-1 py-[18px] text-center font-mono text-[11px] font-bold tracking-[0.14em] ${
+                isAdd
+                  ? "bg-hot text-shell-deep"
+                  : active
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-transparent text-dim"
               }`}
             >
+              {isAdd && <Plus className="h-3.5 w-3.5" strokeWidth={3} />}
               {tab.label}
             </Link>
           );
