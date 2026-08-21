@@ -353,11 +353,12 @@ function Home() {
                               )}
                             </span>
                             <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
-                              {format(d, "HH:mm")} · {districtLabel}
+                              {format(d, "HH:mm")} ·{" "}
+                              {e.is_secret ? "SECRET" : e.location_tba ? "TBA" : districtLabel}
                             </span>
                           </span>
                           <span className="shrink-0 font-mono text-[9px] tracking-[0.1em] text-link">
-                            {districtLabel}
+                            {e.is_secret ? "SECRET" : e.location_tba ? "TBA" : districtLabel}
                           </span>
                         </Link>
                       );

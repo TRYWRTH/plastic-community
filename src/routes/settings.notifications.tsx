@@ -79,7 +79,9 @@ function NotificationSettingsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("event_saves")
-        .select("id, notify, status, event:events(id, title, event_date, place)")
+        .select(
+          "id, notify, status, event:events(id, title, event_date, place, is_secret, location_tba)",
+        )
         .eq("user_id", user!.id);
       if (error) throw error;
       return (data ?? [])
@@ -240,7 +242,12 @@ function NotificationSettingsPage() {
                             {ev.title}
                           </h3>
                           <p className="mt-1 font-mono text-[11px] uppercase tracking-wide text-muted-foreground break-words">
-                            {format(d, "EEE, MMM d · HH:mm")} · {ev.place}
+                            {format(d, "EEE, MMM d · HH:mm")} ·{" "}
+                            {ev.is_secret
+                              ? "Secret location"
+                              : ev.location_tba
+                                ? "Location TBA"
+                                : ev.place}
                           </p>
                         </Link>
                         <Switch
