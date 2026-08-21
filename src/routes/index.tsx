@@ -293,36 +293,62 @@ function Home() {
 
                       if (e.edgeKind) {
                         const isOpen = e.edgeKind === "open";
+                        const saved = savedIds.has(e.id);
                         return (
                           <Link
                             key={`${day.key}-${e.id}-${e.edgeKind}`}
                             to="/event/$eventId"
                             params={{ eventId: e.id }}
-                            className="flex flex-col gap-2 rounded-[22px] bg-hot/[0.1] px-4 py-3.5 hover:bg-hot/[0.16]"
+                            className="flex items-center gap-3.5 rounded-[22px] bg-hot/[0.1] px-4 py-3.5 hover:bg-hot/[0.16]"
                           >
-                            <span
-                              className={`w-fit rounded font-mono text-[9px] font-bold tracking-[0.14em] ${
-                                isOpen ? "bg-foreground text-shell-deep" : "bg-hot text-shell-deep"
+                            <span className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center rounded-2xl bg-primary leading-[1.05] text-primary-foreground">
+                              <span className="font-brand text-base">{format(day.date, "dd")}</span>
+                              <span className="font-mono text-[8px] tracking-[0.1em] uppercase">
+                                {format(day.date, "MMM")}
+                              </span>
+                            </span>
+                            <span className="flex min-w-0 flex-1 flex-col gap-1">
+                              <span className="flex min-w-0 items-center gap-1.5">
+                                <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground">
+                                  {e.title}
+                                </span>
+                                <span
+                                  className={`shrink-0 rounded font-mono text-[8px] font-bold tracking-[0.12em] ${
+                                    isOpen
+                                      ? "bg-foreground text-shell-deep"
+                                      : "bg-hot text-shell-deep"
+                                  }`}
+                                  style={{ padding: "3px 6px" }}
+                                >
+                                  {isOpen
+                                    ? day.relLabel === "TONIGHT"
+                                      ? "OPENS TODAY"
+                                      : "OPENS"
+                                    : "LAST DAY"}
+                                </span>
+                              </span>
+                              <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
+                                {hoursRangeLabel(new Date(e.event_date), e.end_time)} ·{" "}
+                                {e.is_secret ? "SECRET" : e.location_tba ? "TBA" : districtLabel}
+                              </span>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(ev) => {
+                                ev.preventDefault();
+                                ev.stopPropagation();
+                                toggleSave(e.id);
+                              }}
+                              aria-pressed={saved}
+                              aria-label={saved ? "Unsave event" : "Save event"}
+                              className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border text-[13px] ${
+                                saved
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-transparent text-muted-2"
                               }`}
-                              style={{ padding: "5px 10px" }}
                             >
-                              {isOpen
-                                ? day.relLabel === "TONIGHT"
-                                  ? "OPENS TODAY"
-                                  : "OPENS"
-                                : "LAST DAY"}
-                            </span>
-                            <span className="flex min-w-0 items-baseline gap-1.5">
-                              <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground">
-                                {e.title}
-                              </span>
-                              <span className="shrink-0 font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
-                                {hoursRangeLabel(new Date(e.event_date), e.end_time)}
-                              </span>
-                            </span>
-                            <span className="font-mono text-[9px] tracking-[0.1em] text-link">
-                              {e.is_secret ? "SECRET" : e.location_tba ? "TBA" : districtLabel}
-                            </span>
+                              {saved ? "★" : "☆"}
+                            </button>
                           </Link>
                         );
                       }
