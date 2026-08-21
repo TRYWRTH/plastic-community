@@ -13,6 +13,16 @@
   }
 }
 
+@keyframes wrBlip {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 @theme inline {
   --radius-sm: 16px;
   --radius-md: 22px;

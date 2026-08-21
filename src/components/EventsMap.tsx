@@ -95,6 +95,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
   const [when, setWhen] = useState<WhenFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mapError, setMapError] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
 
   const mapDivRef = useRef<HTMLDivElement | null>(null);
@@ -207,7 +208,12 @@ export function EventsMap({ events }: { events: EventLike[] }) {
           },
         });
         map.addListener("zoom_changed", () => setZoomLevel(map.getZoom() ?? DEFAULT_ZOOM));
+        // Fires on clicks anywhere on the map that aren't a marker (marker
+        // clicks are a separate listener and don't bubble here) — clears
+        // the selected pin, same as tapping the same pin again.
+        map.addListener("click", () => setSelectedId(null));
         mapRef.current = map;
+        setMapReady(true);
       })
       .catch((err) => {
         console.error(err);
@@ -240,7 +246,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
       });
       return marker;
     });
-  }, [pins, selectedId]);
+  }, [pins, selectedId, mapReady]);
 
   // Unmount cleanup.
   useEffect(() => {

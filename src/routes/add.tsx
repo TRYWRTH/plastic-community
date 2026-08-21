@@ -249,9 +249,10 @@ function AddEvent() {
   const prevLabel = step === 1 ? "CANCEL" : "BACK";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <UnsavedChangesGuard when={dirty && !saving && !saved} />
-      <div className="mx-auto flex max-w-[430px] flex-col gap-4 px-5 pb-28 pt-2 lg:max-w-[560px]">
+      <RadarSweepBand />
+      <div className="mx-auto flex w-full max-w-[430px] flex-1 flex-col justify-center gap-4 px-5 py-6 lg:max-w-[560px] lg:justify-start lg:pt-10">
         <div className="flex flex-col gap-2.5">
           <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground">
             STEP {step} OF 3
@@ -523,25 +524,72 @@ function AddEvent() {
             </div>
           </div>
         )}
-
-        <div className="flex gap-2 pt-1">
-          <button
-            type="button"
-            onClick={prevStep}
-            className="shrink-0 rounded-full border border-border px-[18px] py-4 font-mono text-[10px] tracking-[0.14em] text-foreground"
-          >
-            {prevLabel}
-          </button>
-          <button
-            type="button"
-            onClick={nextStep}
-            disabled={saving}
-            className="flex-1 rounded-full bg-primary py-4 font-mono text-[10px] font-bold tracking-[0.16em] text-primary-foreground disabled:opacity-60"
-          >
-            {saving ? "…" : nextLabel}
-          </button>
-        </div>
       </div>
+
+      <div className="mx-auto flex w-full max-w-[430px] gap-2 px-5 pb-28 pt-1 lg:max-w-[560px]">
+        <button
+          type="button"
+          onClick={prevStep}
+          className="shrink-0 rounded-full border border-border px-[18px] py-4 font-mono text-[10px] tracking-[0.14em] text-foreground"
+        >
+          {prevLabel}
+        </button>
+        <button
+          type="button"
+          onClick={nextStep}
+          disabled={saving}
+          className="flex-1 rounded-full bg-primary py-4 font-mono text-[10px] font-bold tracking-[0.16em] text-primary-foreground disabled:opacity-60"
+        >
+          {saving ? "…" : nextLabel}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Decorative radar sweep matching the Radar tab's visual identity — rings
+    and a rotating blip sweep anchored just below the visible band. */
+function RadarSweepBand() {
+  return (
+    <div
+      className="relative h-40 shrink-0 overflow-hidden lg:h-48"
+      style={{ background: "radial-gradient(circle at 50% 118%, #7A0417 0%, #5A0210 62%)" }}
+    >
+      <span className="absolute left-1/2 bottom-[-160px] h-[320px] w-[320px] -ml-[160px] rounded-full border border-foreground/[0.14]" />
+      <span className="absolute left-1/2 bottom-[-108px] h-[216px] w-[216px] -ml-[108px] rounded-full border border-foreground/[0.12]" />
+      <span className="absolute left-1/2 bottom-[-56px] h-[112px] w-[112px] -ml-[56px] rounded-full border border-foreground/10" />
+      <span
+        className="absolute left-1/2 bottom-[-160px] h-[320px] w-[320px] -ml-[160px] rounded-full animate-[rdSweep_6s_linear_infinite]"
+        style={{
+          background:
+            "conic-gradient(from 0deg, rgba(255,59,48,0) 0deg, rgba(255,59,48,0) 292deg, rgba(255,59,48,0.42) 356deg, rgba(255,106,99,0.85) 360deg)",
+        }}
+      />
+      <span
+        className="absolute h-[7px] w-[7px] animate-[wrBlip_6s_ease-in-out_infinite] rounded-full bg-hot"
+        style={{ left: "32%", bottom: "38%", boxShadow: "0 0 12px rgba(255,106,99,0.9)" }}
+      />
+      <span
+        className="absolute h-[7px] w-[7px] animate-[wrBlip_6s_ease-in-out_infinite] rounded-full bg-hot"
+        style={{
+          left: "68%",
+          bottom: "22%",
+          animationDelay: "2s",
+          boxShadow: "0 0 12px rgba(255,106,99,0.9)",
+        }}
+      />
+      <span
+        className="absolute h-[7px] w-[7px] animate-[wrBlip_6s_ease-in-out_infinite] rounded-full bg-foreground"
+        style={{
+          left: "50%",
+          bottom: "62%",
+          animationDelay: "4s",
+          boxShadow: "0 0 12px rgba(247,231,228,0.7)",
+        }}
+      />
+      <span className="absolute left-5 top-4 font-mono text-[10px] font-bold tracking-[0.2em] text-link">
+        SCANNING
+      </span>
     </div>
   );
 }
