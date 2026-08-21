@@ -278,7 +278,6 @@ function AddEvent() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Basement noise set"
                 maxLength={120}
-                autoFocus
                 className="h-12 rounded-full border border-border bg-input px-4 text-[15px] text-foreground outline-none placeholder:text-dim"
               />
             </FieldLabel>
