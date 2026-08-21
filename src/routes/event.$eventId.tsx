@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { format } from "date-fns";
-import { ArrowLeft, MapPin, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, MapPin, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { SaveButtons } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
@@ -152,24 +152,6 @@ function EventDetail() {
         if (deduped.length >= 3) break;
       }
       return deduped;
-    },
-  });
-
-  const { data: upcomingOccurrences } = useQuery({
-    queryKey: ["events", "occurrences", event?.title, event?.created_by, eventId],
-    enabled: !!event?.title && !!event?.created_by,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("id,event_date")
-        .eq("title", event!.title)
-        .eq("created_by", event!.created_by)
-        .neq("id", eventId)
-        .gte("event_date", new Date().toISOString())
-        .order("event_date", { ascending: true })
-        .limit(4);
-      if (error) throw error;
-      return data ?? [];
     },
   });
 
@@ -400,31 +382,16 @@ function EventDetail() {
                 href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="flex items-start gap-2 rounded-2xl bg-foreground/[0.07] px-4 py-3 text-foreground hover:bg-foreground/[0.12]"
+                className="flex items-center gap-2.5 rounded-2xl border border-link/30 bg-link/[0.08] px-4 py-3 text-foreground transition-colors hover:bg-link/[0.14]"
               >
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-link" />
-                <span className="text-[13px] leading-snug underline-offset-2 hover:underline">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-link/20">
+                  <MapPin className="h-3.5 w-3.5 text-link" />
+                </span>
+                <span className="min-w-0 flex-1 text-[13px] font-medium leading-snug text-foreground underline decoration-link/40 underline-offset-2">
                   {stripNeighborhoodSuffix(event.place, districtLabel)}
                 </span>
+                <ExternalLink className="h-3.5 w-3.5 shrink-0 text-link" />
               </a>
-            )}
-
-            {upcomingOccurrences && upcomingOccurrences.length > 0 && (
-              <div className="font-mono text-[11px] tracking-[0.1em] text-muted-foreground">
-                <span className="text-link">↻ Also happening:</span>{" "}
-                {upcomingOccurrences.map((o, i) => (
-                  <span key={o.id}>
-                    {i > 0 && " · "}
-                    <Link
-                      to="/event/$eventId"
-                      params={{ eventId: o.id }}
-                      className="text-link underline underline-offset-2"
-                    >
-                      {format(new Date(o.event_date), "MMM d")}
-                    </Link>
-                  </span>
-                ))}
-              </div>
             )}
 
             {event.description && (
