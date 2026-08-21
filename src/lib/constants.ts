@@ -22,6 +22,8 @@ export type PriceType = Database["public"]["Enums"]["event_price_type"];
 // hidden temporarily — feature kept in place for later testing.
 export const NOTIFICATIONS_ENABLED = false;
 
+export const DESCRIPTION_MAX_LENGTH = 2500;
+
 export const EVENT_TYPES: { value: EventType; label: string; Icon: Icon }[] = [
   { value: "music", label: "Music", Icon: IconVinyl },
   { value: "theater", label: "Theater", Icon: IconMasksTheater },
