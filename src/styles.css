@@ -23,6 +23,49 @@
   }
 }
 
+/* Repeating "peek" hint: shakes a horizontal card row toward the next card
+   and back every few seconds, so a scrollable shelf reads as swipeable.
+   The shake itself only occupies the first ~18% of the loop — the rest is
+   a deliberate pause before it repeats. */
+@keyframes shelfPeek {
+  0%,
+  18%,
+  100% {
+    transform: translateX(0);
+  }
+  4% {
+    transform: translateX(-24px);
+  }
+  7% {
+    transform: translateX(-6px);
+  }
+  10% {
+    transform: translateX(-22px);
+  }
+  13% {
+    transform: translateX(-4px);
+  }
+  16% {
+    transform: translateX(-14px);
+  }
+}
+
+.shelf-peek {
+  animation: shelfPeek 5s ease-in-out 0.6s infinite;
+}
+
+@media (min-width: 1024px) {
+  .shelf-peek {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shelf-peek {
+    animation: none;
+  }
+}
+
 @theme inline {
   --radius-sm: 16px;
   --radius-md: 22px;

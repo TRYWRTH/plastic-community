@@ -37,9 +37,9 @@ async function fetchEvents() {
 }
 
 const WHEN_CHIPS: { value: TimeFilter; label: string }[] = [
-  { value: "all", label: "ALL DATES" },
+  { value: "all", label: "ALL" },
   { value: "tonight", label: "TONIGHT" },
-  { value: "weekend", label: "THIS WEEKEND" },
+  { value: "weekend", label: "WEEKEND" },
 ];
 
 function Home() {
@@ -180,7 +180,7 @@ function Home() {
         </div>
 
         {/* Filter bar: WHEN (segmented control) + WHERE (dropdown) */}
-        <div className="scrollbar-hide flex items-center gap-2.5 overflow-x-auto px-5 pb-4 lg:overflow-visible lg:px-9">
+        <div className="scrollbar-hide flex items-center gap-2 overflow-x-auto px-5 pb-4 lg:overflow-visible lg:gap-2.5 lg:px-9">
           <div className="flex shrink-0 items-center gap-0.5 rounded-full border border-border/[0.22] p-1">
             {WHEN_CHIPS.map((c) => {
               const active = timeFilter === c.value;
@@ -189,7 +189,7 @@ function Home() {
                   key={c.value}
                   type="button"
                   onClick={() => setTimeFilter(c.value)}
-                  className={`shrink-0 whitespace-nowrap rounded-full px-3 py-2 font-mono text-[10px] tracking-[0.1em] ${
+                  className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-2 font-mono text-[10px] tracking-[0.06em] ${
                     active ? "bg-hot text-shell-deep" : "bg-transparent text-muted-2"
                   }`}
                 >
@@ -205,7 +205,7 @@ function Home() {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-border/[0.22] px-[13px] py-[9px] font-mono text-[10px] tracking-[0.1em] text-muted-2"
+                className="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-border/[0.22] px-2.5 py-[9px] font-mono text-[10px] tracking-[0.06em] text-muted-2"
               >
                 {districtTriggerLabel}
                 <ChevronDown className="h-3 w-3" />
