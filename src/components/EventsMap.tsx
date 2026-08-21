@@ -207,6 +207,10 @@ export function EventsMap({ events }: { events: EventLike[] }) {
           },
         });
         map.addListener("zoom_changed", () => setZoomLevel(map.getZoom() ?? DEFAULT_ZOOM));
+        // Fires on clicks anywhere on the map that aren't a marker (marker
+        // clicks are a separate listener and don't bubble here) — clears
+        // the selected pin, same as tapping the same pin again.
+        map.addListener("click", () => setSelectedId(null));
         mapRef.current = map;
       })
       .catch((err) => {
