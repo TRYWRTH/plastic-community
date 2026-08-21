@@ -404,7 +404,7 @@ function AddEvent() {
               <DescriptionEditor
                 value={description}
                 onChange={setDescription}
-                maxLength={1500}
+                maxLength={2500}
                 placeholder="Doors 20:00. Cash only. instagram.com/…"
               />
             </FieldLabel>

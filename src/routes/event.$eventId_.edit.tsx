@@ -651,7 +651,7 @@ function DescriptionField({ defaultValue }: { defaultValue: string }) {
   const [value, setValue] = useState(defaultValue);
   return (
     <>
-      <DescriptionEditor name="description" value={value} onChange={setValue} maxLength={1500} />
+      <DescriptionEditor name="description" value={value} onChange={setValue} maxLength={2500} />
       <div className="flex items-center justify-end gap-2">
         <p className="font-mono text-[11px] text-muted-foreground sm:text-xs">
           {value.length}/1500

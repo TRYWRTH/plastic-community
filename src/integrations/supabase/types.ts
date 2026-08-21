@@ -249,6 +249,7 @@ export type Database = {
         | "workshop"
         | "community"
         | "nightlife"
+        | "dance"
         | "other";
       neighborhood:
         | "Mitte"
@@ -416,6 +417,7 @@ export const Constants = {
         "workshop",
         "community",
         "nightlife",
+        "dance",
         "other",
       ],
       neighborhood: [

@@ -328,6 +328,7 @@ function Home() {
                       }
 
                       const d = new Date(e.event_date);
+                      const saved = savedIds.has(e.id);
                       return (
                         <Link
                           key={`${day.key}-${e.id}`}
@@ -357,9 +358,23 @@ function Home() {
                               {e.is_secret ? "SECRET" : e.location_tba ? "TBA" : districtLabel}
                             </span>
                           </span>
-                          <span className="shrink-0 font-mono text-[9px] tracking-[0.1em] text-link">
-                            {e.is_secret ? "SECRET" : e.location_tba ? "TBA" : districtLabel}
-                          </span>
+                          <button
+                            type="button"
+                            onClick={(ev) => {
+                              ev.preventDefault();
+                              ev.stopPropagation();
+                              toggleSave(e.id);
+                            }}
+                            aria-pressed={saved}
+                            aria-label={saved ? "Unsave event" : "Save event"}
+                            className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border text-[13px] ${
+                              saved
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-transparent text-muted-2"
+                            }`}
+                          >
+                            {saved ? "★" : "☆"}
+                          </button>
                         </Link>
                       );
                     })}
