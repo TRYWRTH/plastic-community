@@ -12,6 +12,7 @@ import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { OnboardingOverlay, useOnboarding } from "@/components/OnboardingOverlay";
 import { BottomNav } from "@/components/BottomNav";
+import { Footer } from "@/components/Footer";
 
 import { supabase } from "@/integrations/supabase/client";
 import { refreshAuthSession } from "@/lib/use-auth";
@@ -286,6 +287,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <div className="pb-24">
         <Outlet />
+        <Footer />
       </div>
       <BottomNav />
       <OnboardingHost />
