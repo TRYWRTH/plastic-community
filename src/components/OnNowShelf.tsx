@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
 
 import {
   daysRemaining,
@@ -15,26 +14,6 @@ import { EventThumbPoster } from "@/components/EventPoster";
 const MAX_CARDS = 6;
 
 export function OnNowShelf({ runs, now }: { runs: ActiveRun[]; now: Date }) {
-  const scrollerRef = useRef<HTMLDivElement | null>(null);
-
-  // One-time "peek" nudge on mobile: briefly scrolls toward the next card
-  // and back, so the shelf reads as swipeable instead of a static block.
-  useEffect(() => {
-    if (runs.length < 2) return;
-    const el = scrollerRef.current;
-    if (!el) return;
-    const nudge = setTimeout(() => {
-      el.scrollTo({ left: 48, behavior: "smooth" });
-    }, 600);
-    const settle = setTimeout(() => {
-      el.scrollTo({ left: 0, behavior: "smooth" });
-    }, 1300);
-    return () => {
-      clearTimeout(nudge);
-      clearTimeout(settle);
-    };
-  }, [runs.length]);
-
   if (runs.length === 0) return null;
 
   const shown = runs.slice(0, MAX_CARDS);
@@ -52,8 +31,12 @@ export function OnNowShelf({ runs, now }: { runs: ActiveRun[]; now: Date }) {
       </div>
 
       <div className="relative">
-        <div ref={scrollerRef} className="scrollbar-hide overflow-x-auto lg:overflow-visible">
-          <div className="flex snap-x snap-mandatory gap-2.5 lg:grid lg:snap-none lg:grid-cols-3 lg:gap-3.5">
+        <div className="scrollbar-hide overflow-x-auto lg:overflow-visible">
+          <div
+            className={`flex snap-x snap-mandatory gap-2.5 lg:grid lg:snap-none lg:grid-cols-3 lg:gap-3.5 ${
+              shown.length > 1 ? "shelf-peek" : ""
+            }`}
+          >
             {shown.map(({ event, start, end, totalDays }) => {
               const pct = runProgressPct(now, start, end);
               const cardImage = resolveCardImage(event);
