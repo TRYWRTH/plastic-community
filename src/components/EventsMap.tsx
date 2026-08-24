@@ -80,6 +80,35 @@ const MAP_STYLE: google.maps.MapTypeStyle[] = [
 // against the dark map, regardless of the dot's own fill color.
 const MARKER_RING_COLOR = "#FF6A63";
 
+// Persists the last selection + viewport across unmounts within this tab's
+// session (e.g. navigating to an event's details and back), so returning to
+// Radar picks up where the user left off instead of resetting to the
+// default Berlin view.
+const RADAR_MAP_STATE_KEY = "radar-map-state";
+
+type StoredMapState = {
+  selectedId: string | null;
+  center: { lat: number; lng: number } | null;
+  zoom: number | null;
+};
+
+function loadMapState(): StoredMapState | null {
+  try {
+    const raw = sessionStorage.getItem(RADAR_MAP_STATE_KEY);
+    return raw ? (JSON.parse(raw) as StoredMapState) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveMapState(state: StoredMapState): void {
+  try {
+    sessionStorage.setItem(RADAR_MAP_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // sessionStorage may be unavailable (e.g. private browsing) — not critical
+  }
+}
+
 /**
  * Small circular marker icon rendered as an inline SVG data URI — a coral
  * glow ring behind a solid dot. When `pulse` is set (selected marker), an
@@ -122,7 +151,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
   const { user, isAuthenticated } = useAuth();
   const qc = useQueryClient();
   const [when, setWhen] = useState<WhenFilter>("all");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => loadMapState()?.selectedId ?? null);
   const [mapError, setMapError] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
@@ -238,15 +267,17 @@ export function EventsMap({ events }: { events: EventLike[] }) {
     });
   };
 
-  // Create the map once.
+  // Create the map once, resuming the last saved viewport if this tab
+  // already had one (e.g. the user is coming back from an event's details).
   useEffect(() => {
     let cancelled = false;
+    const stored = loadMapState();
     loadGoogleMapsCore()
       .then(() => {
         if (cancelled || !mapDivRef.current || mapRef.current) return;
         const map = new google.maps.Map(mapDivRef.current, {
-          center: BERLIN_CENTER,
-          zoom: DEFAULT_ZOOM,
+          center: stored?.center ?? BERLIN_CENTER,
+          zoom: stored?.zoom ?? DEFAULT_ZOOM,
           minZoom: MIN_ZOOM,
           maxZoom: MAX_ZOOM,
           styles: MAP_STYLE,
@@ -263,6 +294,18 @@ export function EventsMap({ events }: { events: EventLike[] }) {
         // clicks are a separate listener and don't bubble here) — clears
         // the selected pin, same as tapping the same pin again.
         map.addListener("click", () => setSelectedId(null));
+        // Persist the viewport whenever it settles (pan/zoom end), keeping
+        // whatever selection was last saved — selection changes are
+        // persisted separately, below.
+        map.addListener("idle", () => {
+          const c = map.getCenter();
+          if (!c) return;
+          saveMapState({
+            selectedId: loadMapState()?.selectedId ?? null,
+            center: { lat: c.lat(), lng: c.lng() },
+            zoom: map.getZoom() ?? DEFAULT_ZOOM,
+          });
+        });
         mapRef.current = map;
         setMapReady(true);
       })
@@ -303,6 +346,17 @@ export function EventsMap({ events }: { events: EventLike[] }) {
       return marker;
     });
   }, [pins, selectedId, mapReady]);
+
+  // Persist selection changes so returning to Radar restores the same pin.
+  useEffect(() => {
+    const map = mapRef.current;
+    const c = map?.getCenter();
+    saveMapState({
+      selectedId,
+      center: c ? { lat: c.lat(), lng: c.lng() } : (loadMapState()?.center ?? null),
+      zoom: map?.getZoom() ?? loadMapState()?.zoom ?? null,
+    });
+  }, [selectedId]);
 
   // Unmount cleanup.
   useEffect(() => {

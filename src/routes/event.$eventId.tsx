@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -93,6 +93,7 @@ function EventDetail() {
   const { eventId } = Route.useParams();
   const id = extractIdFromSlug(eventId);
   const navigate = useNavigate();
+  const router = useRouter();
   const { user } = useAuth();
   const isAdmin = !!user && user.id === import.meta.env.VITE_ADMIN_USER_ID;
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -188,6 +189,34 @@ function EventDetail() {
     navigate({ to: "/" });
   };
 
+  /**
+   * Prefer real browser history over a hardcoded redirect, so BACK returns
+   * to wherever the user actually came from (Home, Radar map, a saved-event
+   * list, …) with that page's own state (scroll position, map viewport)
+   * intact. Only fall back to a fresh navigation when there's no previous
+   * entry in this tab's session — e.g. the event was opened directly via a
+   * shared link — in which case we route to Radar if that's where the
+   * (same-origin) referrer points, otherwise Home.
+   */
+  const goBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.history.back();
+      return;
+    }
+    let fallback: "/" | "/radar" = "/";
+    try {
+      if (typeof document !== "undefined" && document.referrer) {
+        const referrerUrl = new URL(document.referrer);
+        if (referrerUrl.origin === window.location.origin && referrerUrl.pathname.startsWith("/radar")) {
+          fallback = "/radar";
+        }
+      }
+    } catch {
+      // Malformed/inaccessible referrer — fall through to Home.
+    }
+    navigate({ to: fallback });
+  };
+
   const isRecurring =
     !!event && ((event.repeats && event.repeats !== "none") || (seriesSiblingCount ?? 0) > 0);
   const isCreator = !!event && (user?.id === event.created_by || isAdmin);
@@ -216,12 +245,13 @@ function EventDetail() {
 
       <div className="mx-auto max-w-[430px] px-5 pb-28 pt-2 lg:max-w-[560px]">
         <div className="flex items-center justify-between gap-2">
-          <Link
-            to="/"
+          <button
+            type="button"
+            onClick={goBack}
             className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-[14px] font-mono text-[10px] tracking-[0.14em] text-foreground"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> BACK
-          </Link>
+          </button>
           {isCreator && event && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
