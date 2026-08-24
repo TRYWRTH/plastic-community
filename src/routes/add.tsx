@@ -7,6 +7,7 @@ import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
 import { DescriptionEditor } from "@/components/DescriptionEditor";
 import { QrScanButton } from "@/components/QrScanButton";
 import { PlaceAutocompleteInput } from "@/components/PlaceAutocompleteInput";
+import { BrandLogo } from "@/components/BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { sendNewEventNotification } from "@/lib/notifications";
@@ -610,6 +611,7 @@ function RadarSweepBand() {
       <span className="absolute left-5 top-4 font-mono text-[10px] font-bold tracking-[0.2em] text-link">
         SCANNING
       </span>
+      <BrandLogo className="absolute right-5 top-4 text-sm" />
     </div>
   );
 }

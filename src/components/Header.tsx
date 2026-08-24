@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/BrandLogo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,17 +39,7 @@ export function Header() {
   return (
     <header className="bg-background">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-3 sm:px-4">
-        <Link to="/" className="flex min-w-0 items-baseline gap-2">
-          <span className="sr-only">Whisper Ring</span>
-          {pathname !== "/" && (
-            <span
-              aria-hidden="true"
-              className="truncate font-brand text-xl uppercase leading-none text-foreground hover:text-primary sm:text-2xl"
-            >
-              Whisper Ring
-            </span>
-          )}
-        </Link>
+        <BrandLogo className="min-w-0 truncate text-xl sm:text-2xl" />
 
         <nav className="flex items-center gap-1 sm:gap-2">
           <Button

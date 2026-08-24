@@ -19,6 +19,7 @@ import { SaveButtons, PILL, PILL_INACTIVE } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import { ShareButton } from "@/components/ShareButton";
 import { BackButton } from "@/components/BackButton";
+import { BrandLogo } from "@/components/BrandLogo";
 import { useEventSaveCounts } from "@/lib/use-event-save-counts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
@@ -253,7 +254,10 @@ function EventDetail() {
 
       <div className="mx-auto max-w-[430px] px-5 pb-28 pt-2 lg:max-w-[560px]">
         <div className="flex items-center justify-between gap-2">
-          <BackButton onClick={goBack} />
+          <div className="flex min-w-0 items-center gap-2.5">
+            <BackButton onClick={goBack} />
+            <BrandLogo className="truncate text-sm" />
+          </div>
           {isCreator && event && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
