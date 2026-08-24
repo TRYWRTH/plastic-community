@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -51,6 +51,7 @@ const LOCATION_MODES: { value: LocationMode; label: string; hint: string }[] = [
 function AddEvent() {
   const { isAuthenticated, user, loading } = useAuth();
   const navigate = useNavigate();
+  const isSubmittedRef = useRef(false);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -218,6 +219,8 @@ function AddEvent() {
       url: eventUrl,
     });
 
+    // Mark as submitted before navigating to prevent guard from blocking
+    isSubmittedRef.current = true;
     navigate({ to: "/event/$eventId", params: { eventId: slug } });
   };
 
@@ -268,7 +271,7 @@ function AddEvent() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <UnsavedChangesGuard when={dirty && !saving && !saved} />
+      <UnsavedChangesGuard when={dirty && !saving && !saved && !isSubmittedRef.current} />
       <RadarSweepBand />
       <div className="mx-auto flex w-full max-w-[430px] flex-col gap-4 px-5 pb-6 pt-8 lg:max-w-[560px]">
         <div className="flex flex-col gap-2.5">

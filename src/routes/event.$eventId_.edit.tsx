@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -134,6 +134,7 @@ function EditEventForm({
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const isSubmittedRef = useRef(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [link, setLink] = useState(event.link ?? "");
@@ -378,6 +379,8 @@ function EditEventForm({
     toast.success("Event saved successfully");
     await queryClient.invalidateQueries({ queryKey: ["event-edit", eventId] });
     await queryClient.invalidateQueries({ queryKey: ["events", eventId] });
+    // Mark as submitted before navigating to prevent guard from blocking
+    isSubmittedRef.current = true;
     navigate({ to: "/event/$eventId", params: { eventId: slug } });
   };
 
@@ -385,7 +388,7 @@ function EditEventForm({
     <div className="min-h-screen">
       <Header />
       <main className="mx-auto max-w-xl px-3 py-2 sm:px-4 sm:py-6">
-        <UnsavedChangesGuard when={dirty && !saving && !saved} />
+        <UnsavedChangesGuard when={dirty && !saving && !saved && !isSubmittedRef.current} />
         <Link
           to="/event/$eventId"
           params={{ eventId: createEventSlug(event.title, eventId) }}
