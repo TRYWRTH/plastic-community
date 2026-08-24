@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { format, subDays } from "date-fns";
 import { ArrowLeft } from "lucide-react";
 import { EventsMap } from "@/components/EventsMap";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,14 +9,19 @@ export const Route = createFileRoute("/radar")({
   component: RadarPage,
 });
 
+const RADAR_EVENT_COLUMNS =
+  "id, title, place, event_date, end_date, neighborhood, lat, lng, is_secret, location_tba";
+
 async function fetchUpcomingEvents() {
-  // No event_date >= now filter here: a multi-day event that started in the
-  // past but is still running (end_date in the future) needs to stay
-  // eligible — EventsMap does the actual relevance filtering client-side,
-  // same as Home.
+  // A one-day-back cutoff (not a strict event_date >= now filter) keeps a
+  // multi-day event that started in the past but is still running (end_date
+  // in the future) eligible — EventsMap does the actual relevance filtering
+  // client-side, same as Home.
+  const cutoff = format(subDays(new Date(), 1), "yyyy-MM-dd");
   const { data, error } = await supabase
     .from("events")
-    .select("*")
+    .select(RADAR_EVENT_COLUMNS)
+    .or(`event_date.gte.${cutoff},end_date.gte.${cutoff}`)
     .order("event_date", { ascending: true });
   if (error) throw error;
   return data;

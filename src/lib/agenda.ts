@@ -10,7 +10,26 @@ import {
 import type { Database } from "@/integrations/supabase/types";
 import type { Neighborhood } from "@/lib/constants";
 
-type EventRow = Database["public"]["Tables"]["events"]["Row"];
+// Matches EVENT_LIST_COLUMNS in src/routes/index.tsx — the trimmed set of
+// columns the home/radar agenda actually needs, not the full events row.
+export type EventRow = Pick<
+  Database["public"]["Tables"]["events"]["Row"],
+  | "id"
+  | "created_by"
+  | "title"
+  | "description"
+  | "place"
+  | "neighborhood"
+  | "event_date"
+  | "end_date"
+  | "end_time"
+  | "event_type"
+  | "is_secret"
+  | "location_tba"
+  | "image_url"
+  | "link_preview_image_url"
+  | "link_preview_site_name"
+>;
 
 export type TimeFilter = "all" | "tonight" | "weekend";
 
