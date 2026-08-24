@@ -1,5 +1,16 @@
 {
   "rewrites": [
+    {
+      "source": "/event/:eventId",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Facebot|Twitterbot|TelegramBot|WhatsApp|Slackbot|LinkedInBot|Discordbot|Pinterest|redditbot|SkypeUriPreview|Googlebot|Applebot|vkShare|W3C_Validator|Iframely|Embedly|Nuzzel|Outbrain|SocialFlow|Quora Link Preview).*"
+        }
+      ],
+      "destination": "/api/og-event?eventId=:eventId"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

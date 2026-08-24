@@ -44,13 +44,18 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+const SITE_ORIGIN = "https://plastic-community.vercel.app";
+const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}/icons/icon-512.png`;
+
 export const Route = createFileRoute("/event/$eventId")({
   component: EventDetail,
   loader: async ({ params }) => {
     const id = extractIdFromSlug(params.eventId);
     const { data } = await supabase
       .from("events")
-      .select("id,title,place,neighborhood,event_date,description")
+      .select(
+        "id,title,place,neighborhood,event_date,description,image_url,link_preview_image_url,link_preview_site_name",
+      )
       .eq("id", id)
       .maybeSingle();
     return { event: data };
@@ -60,29 +65,33 @@ export const Route = createFileRoute("/event/$eventId")({
     if (!ev) {
       return { meta: [{ title: "Event — Whisper Ring by Plastic Productions" }] };
     }
-    const when = ev.event_date ? format(new Date(ev.event_date), "EEE, MMM d · HH:mm") : "";
     const title = `${ev.title} — Whisper Ring by Plastic Productions`;
 
-    const desc = [
-      [ev.place, ev.neighborhood].filter(Boolean).join(", "),
-      when,
-      ev.description ?? "",
-    ]
-      .filter(Boolean)
-      .join(" · ")
-      .slice(0, 200);
-    const url = `https://plastic-community.vercel.app/event/${params.eventId}`;
+    // "Tue 25 Aug at 18:30 • Neukölln" — date, time, and district only, so
+    // the preview stays short and legible in a chat bubble.
+    const d = new Date(ev.event_date);
+    const when = !isNaN(d.getTime()) ? format(d, "EEE d MMM 'at' HH:mm") : "";
+    const districtLabel = ev.neighborhood ? neighborhoodMeta(ev.neighborhood).label : "";
+    const desc = [when, districtLabel].filter(Boolean).join(" • ").slice(0, 200);
+
+    const cardImage = resolveCardImage(ev);
+    const rawImageUrl = cardImage?.url ?? DEFAULT_OG_IMAGE;
+    const imageUrl = rawImageUrl.startsWith("http") ? rawImageUrl : `${SITE_ORIGIN}${rawImageUrl}`;
+
+    const url = `${SITE_ORIGIN}/event/${params.eventId}`;
     return {
       meta: [
         { title },
         { name: "description", content: desc },
         { property: "og:title", content: ev.title },
         { property: "og:description", content: desc },
+        { property: "og:image", content: imageUrl },
         { property: "og:type", content: "event" },
         { property: "og:url", content: url },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: ev.title },
         { name: "twitter:description", content: desc },
+        { name: "twitter:image", content: imageUrl },
       ],
       links: [{ rel: "canonical", href: url }],
     };
