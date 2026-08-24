@@ -128,9 +128,53 @@ type MicrolinkResponse = {
     title?: string | null;
     description?: string | null;
     image?: { url?: string } | null;
+    screenshot?: { url?: string } | null;
     publisher?: string | null;
   };
 };
+
+const SCREENSHOT_TIMEOUT_MS = 20_000; // Microlink renders the page headlessly; slower than a plain unfurl.
+
+/** Asks Microlink for a full-page screenshot instead of an og:image, for sites that don't publish one. */
+async function screenshotViaMicrolink(
+  url: URL,
+): Promise<{ bytes: Uint8Array; contentType: string } | null> {
+  const apiUrl = `https://api.microlink.io/?url=${encodeURIComponent(url.toString())}&screenshot=true&meta=false`;
+  const page = await fetchCapped(
+    apiUrl,
+    2_000_000,
+    { accept: "application/json" },
+    SCREENSHOT_TIMEOUT_MS,
+  );
+  if (!page.ok || !page.bytes) {
+    console.error("[unfurl-link-preview] microlink screenshot request failed", {
+      status: page.status,
+      ok: page.ok,
+    });
+    return null;
+  }
+
+  let json: MicrolinkResponse;
+  try {
+    json = JSON.parse(new TextDecoder().decode(page.bytes));
+  } catch {
+    return null;
+  }
+  const screenshotUrl = json.data?.screenshot?.url;
+  if (json.status !== "success" || !screenshotUrl) {
+    console.error("[unfurl-link-preview] microlink screenshot returned no image", json.status);
+    return null;
+  }
+
+  const img = await fetchCapped(
+    screenshotUrl,
+    IMAGE_SIZE_CAP,
+    { "user-agent": UA },
+    IMAGE_FETCH_TIMEOUT_MS,
+  );
+  if (!img.bytes || !img.contentType?.startsWith("image/")) return null;
+  return { bytes: img.bytes, contentType: img.contentType! };
+}
 
 async function unfurl(rawUrl: string): Promise<PreviewResult> {
   const url = normaliseUrl(rawUrl);
@@ -166,17 +210,26 @@ async function unfurl(rawUrl: string): Promise<PreviewResult> {
   const { title, description, publisher, image } = json.data;
   const siteName = publisher ?? url.hostname.replace(/^www\./, "");
 
-  if (!image?.url) {
-    return { status: "no_image", title, description, siteName };
+  let img: { bytes: Uint8Array; contentType: string } | null = null;
+  if (image?.url) {
+    const fetched = await fetchCapped(
+      image.url,
+      IMAGE_SIZE_CAP,
+      { "user-agent": UA },
+      IMAGE_FETCH_TIMEOUT_MS,
+    );
+    if (fetched.bytes && fetched.contentType?.startsWith("image/")) {
+      img = { bytes: fetched.bytes, contentType: fetched.contentType! };
+    }
   }
 
-  const img = await fetchCapped(
-    image.url,
-    IMAGE_SIZE_CAP,
-    { "user-agent": UA },
-    IMAGE_FETCH_TIMEOUT_MS,
-  );
-  if (!img.bytes || !img.contentType?.startsWith("image/")) {
+  // No og:image (or it failed to fetch) — fall back to a screenshot of the
+  // page itself rather than leaving it on the generated poster.
+  if (!img) {
+    img = await screenshotViaMicrolink(url);
+  }
+
+  if (!img) {
     return { status: "no_image", title, description, siteName };
   }
 
@@ -186,7 +239,7 @@ async function unfurl(rawUrl: string): Promise<PreviewResult> {
     description,
     siteName,
     imageBytes: img.bytes,
-    imageContentType: img.contentType ?? "image/jpeg",
+    imageContentType: img.contentType,
   };
 }
 
