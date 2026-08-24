@@ -10,11 +10,10 @@ import { NOTIFICATIONS_ENABLED } from "@/lib/constants";
 type SaveStatus = "going" | "interested";
 type SaveRow = { id: string; status: SaveStatus; notify: boolean } | null;
 
-const SEGMENT = "flex-1 py-[15px] text-center font-mono text-[10px] tracking-[0.14em]";
-const SEGMENT_ACTIVE = "bg-primary text-primary-foreground";
-const SEGMENT_INACTIVE = "bg-transparent text-foreground";
-const NOTIFY_PILL =
-  "w-full rounded-full border border-border px-2 py-[15px] text-center font-mono text-[10px] tracking-[0.14em]";
+const PILL =
+  "flex items-center justify-center gap-1.5 rounded-full border px-2 py-[15px] text-center font-mono text-[11px] font-bold tracking-[0.1em]";
+const PILL_ACTIVE = "border-primary bg-primary text-primary-foreground";
+const PILL_INACTIVE = "border-border bg-transparent text-foreground";
 
 export function SaveButtons({ eventId }: { eventId: string }) {
   const { user, isAuthenticated, loading } = useAuth();
@@ -174,23 +173,14 @@ export function SaveButtons({ eventId }: { eventId: string }) {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex overflow-hidden rounded-full border border-border">
-        <Link
-          to="/login"
-          search={{ redirect: pathname }}
-          className={`${SEGMENT} ${SEGMENT_INACTIVE}`}
-        >
-          GOING
+      <>
+        <Link to="/login" search={{ redirect: pathname }} className={`${PILL} ${PILL_INACTIVE}`}>
+          ✓ Going
         </Link>
-        <div className="w-px bg-border" />
-        <Link
-          to="/login"
-          search={{ redirect: pathname }}
-          className={`${SEGMENT} ${SEGMENT_INACTIVE}`}
-        >
-          INTERESTED
+        <Link to="/login" search={{ redirect: pathname }} className={`${PILL} ${PILL_INACTIVE}`}>
+          ⭐ Interested
         </Link>
-      </div>
+      </>
     );
   }
 
@@ -198,37 +188,34 @@ export function SaveButtons({ eventId }: { eventId: string }) {
   const notify = save?.notify ?? true;
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex overflow-hidden rounded-full border border-border">
-        <button
-          type="button"
-          onClick={() => mutate.mutate(current === "going" ? null : "going")}
-          disabled={mutate.isPending}
-          className={`${SEGMENT} ${current === "going" ? SEGMENT_ACTIVE : SEGMENT_INACTIVE}`}
-        >
-          GOING
-        </button>
-        <div className="w-px bg-border" />
-        <button
-          type="button"
-          onClick={() => mutate.mutate(current === "interested" ? null : "interested")}
-          disabled={mutate.isPending}
-          className={`${SEGMENT} ${current === "interested" ? SEGMENT_ACTIVE : SEGMENT_INACTIVE}`}
-        >
-          INTERESTED
-        </button>
-      </div>
+    <>
+      <button
+        type="button"
+        onClick={() => mutate.mutate(current === "going" ? null : "going")}
+        disabled={mutate.isPending}
+        className={`${PILL} ${current === "going" ? PILL_ACTIVE : PILL_INACTIVE}`}
+      >
+        ✓ Going
+      </button>
+      <button
+        type="button"
+        onClick={() => mutate.mutate(current === "interested" ? null : "interested")}
+        disabled={mutate.isPending}
+        className={`${PILL} ${current === "interested" ? PILL_ACTIVE : PILL_INACTIVE}`}
+      >
+        ⭐ Interested
+      </button>
       {NOTIFICATIONS_ENABLED && current && (
         <button
           type="button"
           onClick={onNotifyClick}
           disabled={toggleNotify.isPending}
           aria-pressed={notify}
-          className={`${NOTIFY_PILL} ${notify ? SEGMENT_ACTIVE : SEGMENT_INACTIVE}`}
+          className={`col-span-2 ${PILL} ${notify ? PILL_ACTIVE : PILL_INACTIVE}`}
         >
-          {notify ? "NOTIFICATIONS ON" : "NOTIFY ME"}
+          {notify ? "Notifications on" : "Notify me"}
         </button>
       )}
-    </div>
+    </>
   );
 }

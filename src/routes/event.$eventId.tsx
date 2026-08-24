@@ -5,15 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { format } from "date-fns";
-import {
-  ArrowLeft,
-  ExternalLink,
-  MapPin,
-  MoreVertical,
-  Pencil,
-  Share2,
-  Trash2,
-} from "lucide-react";
+import { ArrowLeft, ExternalLink, MapPin, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { SaveButtons } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
@@ -384,28 +376,35 @@ function EventDetail() {
             </div>
 
             {/* Action buttons, inline in the flow right below the info card */}
-            <div className="grid grid-cols-3 gap-2">
-              <SaveButtons eventId={event.id} />
-              <AddToCalendarButton
-                title={event.title}
-                start={event.event_date}
-                location={[event.place, districtLabel].filter(Boolean).join(", ")}
-                description={event.description ?? undefined}
-                uid={`${event.id}@whisper-ring`}
-                className="flex items-center justify-center gap-1.5 rounded-full border border-border px-3 py-[15px] font-mono text-[10px] font-bold tracking-[0.14em] text-foreground"
-              >
-                + CAL
-              </AddToCalendarButton>
-              <ShareButton
-                url={
-                  typeof window !== "undefined"
-                    ? window.location.href
-                    : `https://plastic-community.vercel.app/event/${event.id}`
-                }
-                className="flex items-center justify-center gap-1.5 rounded-full border border-border px-3 py-[15px] font-mono text-[10px] font-bold tracking-[0.14em] text-foreground"
-              >
-                <Share2 className="h-3.5 w-3.5" /> SHARE
-              </ShareButton>
+            <div className="flex flex-col gap-2">
+              {/* Row 1: RSVP */}
+              <div className="grid grid-cols-2 gap-2">
+                <SaveButtons eventId={event.id} />
+              </div>
+
+              {/* Row 2: utility actions, secondary/outlined styling */}
+              <div className="grid grid-cols-2 gap-2">
+                <AddToCalendarButton
+                  title={event.title}
+                  start={event.event_date}
+                  location={[event.place, districtLabel].filter(Boolean).join(", ")}
+                  description={event.description ?? undefined}
+                  uid={`${event.id}@whisper-ring`}
+                  className="flex items-center justify-center gap-1.5 rounded-full border border-border px-3 py-[13px] font-mono text-[10px] tracking-[0.1em] text-foreground"
+                >
+                  📅 Add to Calendar
+                </AddToCalendarButton>
+                <ShareButton
+                  url={
+                    typeof window !== "undefined"
+                      ? window.location.href
+                      : `https://plastic-community.vercel.app/event/${event.id}`
+                  }
+                  className="flex items-center justify-center gap-1.5 rounded-full border border-border px-3 py-[13px] font-mono text-[10px] tracking-[0.1em] text-foreground"
+                >
+                  🔗 Share Event
+                </ShareButton>
+              </div>
             </div>
 
             {event.description && (
