@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 import { ChevronDown } from "lucide-react";
 
 import { useAuth } from "@/lib/use-auth";
@@ -27,10 +27,18 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
+const EVENT_LIST_COLUMNS =
+  "id, created_by, title, description, place, neighborhood, event_date, end_date, end_time, event_type, is_secret, location_tba, image_url, link_preview_image_url, link_preview_site_name";
+
 async function fetchEvents() {
+  // One day of slack so an event that's still running (or just starting
+  // tonight) near a timezone boundary never gets cut off server-side; the
+  // rest of the past/future filtering happens client-side in agenda.ts.
+  const cutoff = format(subDays(new Date(), 1), "yyyy-MM-dd");
   const { data, error } = await supabase
     .from("events")
-    .select("*")
+    .select(EVENT_LIST_COLUMNS)
+    .or(`event_date.gte.${cutoff},end_date.gte.${cutoff}`)
     .order("event_date", { ascending: true });
   if (error) throw error;
   return data;
