@@ -10,7 +10,8 @@ import { NOTIFICATIONS_ENABLED } from "@/lib/constants";
 type SaveStatus = "going" | "interested";
 type SaveRow = { id: string; status: SaveStatus; notify: boolean } | null;
 
-const SEGMENT = "flex-1 py-2.5 text-center font-mono text-[10px] font-bold tracking-[0.06em]";
+const SEGMENT =
+  "flex-1 px-1 py-2.5 text-center font-mono text-[10px] font-bold tracking-[0.06em]";
 const SEGMENT_ACTIVE = "bg-primary text-primary-foreground";
 const SEGMENT_INACTIVE = "bg-transparent text-foreground";
 const NOTIFY_PILL =
@@ -188,7 +189,7 @@ export function SaveButtons({ eventId }: { eventId: string }) {
           search={{ redirect: pathname }}
           className={`${SEGMENT} ${SEGMENT_INACTIVE}`}
         >
-          ⭐ Int
+          ⭐ Interested
         </Link>
       </div>
     );
@@ -215,7 +216,7 @@ export function SaveButtons({ eventId }: { eventId: string }) {
           disabled={mutate.isPending}
           className={`${SEGMENT} ${current === "interested" ? SEGMENT_ACTIVE : SEGMENT_INACTIVE}`}
         >
-          ⭐ Int
+          ⭐ Interested
         </button>
       </div>
       {NOTIFICATIONS_ENABLED && current && (
