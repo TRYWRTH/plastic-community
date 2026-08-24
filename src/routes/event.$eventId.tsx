@@ -25,6 +25,7 @@ import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta, priceTypeMeta } from "@/lib/constants";
 import { resolveCardImage } from "@/lib/event-card-image";
 import { cleanPlace } from "@/lib/clean-place";
+import { extractIdFromSlug } from "@/lib/slug";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,10 +46,11 @@ import {
 export const Route = createFileRoute("/event/$eventId")({
   component: EventDetail,
   loader: async ({ params }) => {
+    const id = extractIdFromSlug(params.eventId);
     const { data } = await supabase
       .from("events")
       .select("id,title,place,neighborhood,event_date,description")
-      .eq("id", params.eventId)
+      .eq("id", id)
       .maybeSingle();
     return { event: data };
   },

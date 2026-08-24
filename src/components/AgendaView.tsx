@@ -5,6 +5,7 @@ import { hoursRangeLabel } from "@/lib/agenda";
 import { eventTypeMeta } from "@/lib/constants";
 import { resolveCardImage } from "@/lib/event-card-image";
 import { EventThumbPoster } from "@/components/EventPoster";
+import { createEventSlug } from "@/lib/slug";
 
 export function AgendaView({
   days,
@@ -66,7 +67,7 @@ export function AgendaView({
                     <Link
                       key={`${day.key}-${e.id}-${e.edgeKind}`}
                       to="/event/$eventId"
-                      params={{ eventId: e.id }}
+                      params={{ eventId: createEventSlug(e.title, e.id) }}
                       className="grid grid-cols-[74px_108px_1fr_116px_108px_40px] items-center gap-4 border-b border-foreground/[0.07] bg-hot/[0.07] py-4 pl-6 pr-9 outline-none last:border-b-0 hover:bg-hot/[0.13] focus-visible:ring-2 focus-visible:ring-hot"
                     >
                       <span
@@ -115,7 +116,7 @@ export function AgendaView({
 
                 const d = new Date(e.event_date);
                 const cardImage = resolveCardImage(e);
-                const open = () => navigate({ to: "/event/$eventId", params: { eventId: e.id } });
+                const open = () => navigate({ to: "/event/$eventId", params: { eventId: createEventSlug(e.title, e.id) } });
                 return (
                   <div
                     key={`${day.key}-${e.id}`}

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import type { Neighborhood } from "@/lib/constants";
 import { loadGoogleMapsCore } from "@/lib/google-places";
+import { createEventSlug } from "@/lib/slug";
 
 type EventLike = {
   id: string;
@@ -335,7 +336,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
           <div className="absolute inset-x-3 bottom-3">
             <Link
               to="/event/$eventId"
-              params={{ eventId: peek.id }}
+              params={{ eventId: createEventSlug(peek.title, peek.id) }}
               className="flex items-center gap-3.5 rounded-[22px] bg-primary p-3.5 text-primary-foreground"
             >
               <span className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center rounded-2xl bg-shell-deep leading-[1.05] text-foreground">
@@ -412,7 +413,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
               </span>
               <Link
                 to="/event/$eventId"
-                params={{ eventId: e.id }}
+                params={{ eventId: createEventSlug(e.title, e.id) }}
                 className="flex min-w-0 flex-col gap-1"
               >
                 <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground">

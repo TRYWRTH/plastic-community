@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import type { Database } from "@/integrations/supabase/types";
+import { createEventSlug } from "@/lib/slug";
 
 type EventRow = Database["public"]["Tables"]["events"]["Row"];
 
@@ -183,7 +184,7 @@ function MePage() {
                 <Link
                   key={event.id}
                   to="/event/$eventId"
-                  params={{ eventId: event.id }}
+                  params={{ eventId: createEventSlug(event.title, event.id) }}
                   className="flex items-center gap-3.5 rounded-[22px] bg-foreground/[0.07] px-4 py-3.5"
                 >
                   <span className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-2xl bg-primary leading-[1.05] text-primary-foreground">
@@ -224,7 +225,7 @@ function MePage() {
                     <Link
                       key={event.id}
                       to="/event/$eventId"
-                      params={{ eventId: event.id }}
+                      params={{ eventId: createEventSlug(event.title, event.id) }}
                       className="flex items-center gap-3.5 rounded-[22px] bg-foreground/[0.07] px-4 py-3.5"
                     >
                       <span className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-2xl bg-hot leading-[1.05] text-shell-deep">

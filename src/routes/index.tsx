@@ -16,6 +16,7 @@ import {
 } from "@/lib/agenda";
 import { AgendaView } from "@/components/AgendaView";
 import { OnNowShelf } from "@/components/OnNowShelf";
+import { createEventSlug } from "@/lib/slug";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -306,7 +307,7 @@ function Home() {
                           <Link
                             key={`${day.key}-${e.id}-${e.edgeKind}`}
                             to="/event/$eventId"
-                            params={{ eventId: e.id }}
+                            params={{ eventId: createEventSlug(e.title, e.id) }}
                             className="flex items-center gap-3.5 rounded-[22px] bg-hot/[0.1] px-4 py-3.5 hover:bg-hot/[0.16]"
                           >
                             <span className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center rounded-2xl bg-primary leading-[1.05] text-primary-foreground">

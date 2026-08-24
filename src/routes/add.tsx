@@ -24,6 +24,7 @@ import { cleanPlace } from "@/lib/clean-place";
 import { geocodeAddress } from "@/lib/geocode";
 import { nearestBerlinDistrict } from "@/lib/district-from-coords";
 import { triggerLinkPreviewUnfurl } from "@/lib/link-preview";
+import { createEventSlug } from "@/lib/slug";
 
 export const Route = createFileRoute("/add")({
   component: AddEvent,
@@ -194,14 +195,15 @@ function AddEvent() {
     }
 
     // Fire-and-forget push broadcast to all subscribers (client-side OneSignal call)
-    const eventUrl = `${window.location.origin}/event/${data.id}`;
+    const slug = createEventSlug(data.title, data.id);
+    const eventUrl = `${window.location.origin}/event/${slug}`;
     void sendNewEventNotification({
       title: "New event posted",
       message: `${title.trim()} — ${place.trim()}, ${neighborhood}`,
       url: eventUrl,
     });
 
-    navigate({ to: "/event/$eventId", params: { eventId: data.id } });
+    navigate({ to: "/event/$eventId", params: { eventId: slug } });
   };
 
   const nextStep = () => {

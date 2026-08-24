@@ -10,6 +10,7 @@ import {
 } from "@/lib/agenda";
 import { resolveCardImage } from "@/lib/event-card-image";
 import { EventThumbPoster } from "@/components/EventPoster";
+import { createEventSlug } from "@/lib/slug";
 
 const MAX_CARDS = 6;
 
@@ -45,7 +46,7 @@ export function OnNowShelf({ runs, now }: { runs: ActiveRun[]; now: Date }) {
                 <Link
                   key={event.id}
                   to="/event/$eventId"
-                  params={{ eventId: event.id }}
+                  params={{ eventId: createEventSlug(event.title, event.id) }}
                   className="grid w-[73vw] flex-none snap-start grid-cols-[64px_1fr] gap-3.5 rounded-2xl border border-foreground/[0.16] bg-foreground/[0.04] p-3.5 transition-colors hover:bg-foreground/[0.09] lg:w-auto"
                 >
                   <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-[11px]">

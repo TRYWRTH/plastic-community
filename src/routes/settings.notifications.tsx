@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { MagicLinkDialog } from "@/components/MagicLinkDialog";
 import { getPushOptedIn, setPushOptIn } from "@/lib/onesignal";
+import { createEventSlug } from "@/lib/slug";
 import {
   Select,
   SelectContent,
@@ -235,7 +236,7 @@ function NotificationSettingsPage() {
                       >
                         <Link
                           to="/event/$eventId"
-                          params={{ eventId: ev.id }}
+                          params={{ eventId: createEventSlug(ev.title, ev.id) }}
                           className="min-w-0 flex-1"
                         >
                           <h3 className="font-brand text-base uppercase text-foreground break-words sm:text-lg">

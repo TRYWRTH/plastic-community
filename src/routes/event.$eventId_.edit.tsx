@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 
 import { cleanPlace } from "@/lib/clean-place";
 import { geocodeAddress } from "@/lib/geocode";
+import { createEventSlug, extractIdFromSlug } from "@/lib/slug";
 import { nearestBerlinDistrict } from "@/lib/district-from-coords";
 import { triggerLinkPreviewUnfurl } from "@/lib/link-preview";
 
@@ -57,15 +58,16 @@ export const Route = createFileRoute("/event/$eventId_/edit")({
 
 function EditEvent() {
   const { eventId } = Route.useParams();
+  const id = extractIdFromSlug(eventId);
   const { user, loading: authLoading } = useAuth();
 
   const { data: event, isLoading } = useQuery({
-    queryKey: ["event-edit", eventId],
+    queryKey: ["event-edit", id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
         .select("*")
-        .eq("id", eventId)
+        .eq("id", id)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -109,7 +111,7 @@ function EditEvent() {
             Only the creator can edit this event.
           </p>
           <Button asChild className="mt-6">
-            <Link to="/event/$eventId" params={{ eventId }}>
+            <Link to="/event/$eventId" params={{ eventId: createEventSlug(event.title, event.id) }}>
               Back to event
             </Link>
           </Button>
@@ -118,7 +120,7 @@ function EditEvent() {
     );
   }
 
-  return <EditEventForm event={event} eventId={eventId} userId={user.id} />;
+  return <EditEventForm event={event} eventId={id} userId={user.id} />;
 }
 
 function EditEventForm({
@@ -360,10 +362,11 @@ function EditEventForm({
     const { data: saves } = await supabase
       .from("event_saves")
       .select("user_id")
-      .eq("event_id", eventId)
+      .eq("event_id", id)
       .eq("notify", true);
-    const externalUserIds = (saves ?? []).map((s) => s.user_id).filter((id) => id !== userId);
-    const eventUrl = `${window.location.origin}/event/${eventId}`;
+    const externalUserIds = (saves ?? []).map((s) => s.user_id).filter((uid) => uid !== userId);
+    const slug = createEventSlug(nextTitle, id);
+    const eventUrl = `${window.location.origin}/event/${slug}`;
     void sendEventUpdateNotification({
       title: "Event updated",
       message: `${nextTitle} — ${nextPlace}, ${nextNeighborhood}`,
@@ -371,7 +374,7 @@ function EditEventForm({
       externalUserIds,
     });
 
-    navigate({ to: "/event/$eventId", params: { eventId } });
+    navigate({ to: "/event/$eventId", params: { eventId: slug } });
   };
 
   return (
@@ -381,7 +384,7 @@ function EditEventForm({
         <UnsavedChangesGuard when={dirty && !saving && !saved} />
         <Link
           to="/event/$eventId"
-          params={{ eventId }}
+          params={{ eventId: createEventSlug(event.title, eventId) }}
           className="inline-flex h-11 items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-widest text-foreground hover:text-primary"
         >
           <ArrowLeft className="h-4 w-4" /> Back
@@ -606,7 +609,7 @@ function EditEventForm({
 
           <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:items-center">
             <Button type="button" variant="ghost" asChild size="sm" className="w-full sm:w-auto">
-              <Link to="/event/$eventId" params={{ eventId }}>
+              <Link to="/event/$eventId" params={{ eventId: createEventSlug(event.title, eventId) }}>
                 Cancel
               </Link>
             </Button>
