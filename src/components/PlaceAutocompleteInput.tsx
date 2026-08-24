@@ -3,9 +3,7 @@ import { X } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { loadGooglePlaces } from "@/lib/google-places";
-import { cleanPlace } from "@/lib/clean-place";
-import { GERMAN_STATES, BERLIN_DISTRICTS } from "@/lib/constants";
-import { nearestBerlinDistrict } from "@/lib/district-from-coords";
+import { BERLIN_DISTRICTS } from "@/lib/constants";
 
 export type PlaceResult = {
   name: string;
@@ -23,90 +21,9 @@ type Props = {
   maxLength?: number;
 };
 
-// Berlin's 12 official districts — match Google Places address components.
-const NEIGHBORHOOD_MAP: Record<string, string> = {
-  mitte: "Mitte",
-  "bezirk mitte": "Mitte",
-  "friedrichshain-kreuzberg": "Friedrichshain-Kreuzberg",
-  "bezirk friedrichshain-kreuzberg": "Friedrichshain-Kreuzberg",
-  friedrichshain: "Friedrichshain-Kreuzberg",
-  kreuzberg: "Friedrichshain-Kreuzberg",
-  pankow: "Pankow",
-  "bezirk pankow": "Pankow",
-  "prenzlauer berg": "Pankow",
-  "charlottenburg-wilmersdorf": "Charlottenburg-Wilmersdorf",
-  "bezirk charlottenburg-wilmersdorf": "Charlottenburg-Wilmersdorf",
-  charlottenburg: "Charlottenburg-Wilmersdorf",
-  wilmersdorf: "Charlottenburg-Wilmersdorf",
-  spandau: "Spandau",
-  "bezirk spandau": "Spandau",
-  "steglitz-zehlendorf": "Steglitz-Zehlendorf",
-  "bezirk steglitz-zehlendorf": "Steglitz-Zehlendorf",
-  steglitz: "Steglitz-Zehlendorf",
-  zehlendorf: "Steglitz-Zehlendorf",
-  "tempelhof-schöneberg": "Tempelhof-Schöneberg",
-  "tempelhof-schoneberg": "Tempelhof-Schöneberg",
-  "bezirk tempelhof-schöneberg": "Tempelhof-Schöneberg",
-  "bezirk tempelhof-schoneberg": "Tempelhof-Schöneberg",
-  tempelhof: "Tempelhof-Schöneberg",
-  schöneberg: "Tempelhof-Schöneberg",
-  schoneberg: "Tempelhof-Schöneberg",
-  neukölln: "Neukölln",
-  neukolln: "Neukölln",
-  "bezirk neukölln": "Neukölln",
-  "bezirk neukolln": "Neukölln",
-  "treptow-köpenick": "Treptow-Köpenick",
-  "treptow-kopenick": "Treptow-Köpenick",
-  "bezirk treptow-köpenick": "Treptow-Köpenick",
-  "bezirk treptow-kopenick": "Treptow-Köpenick",
-  treptow: "Treptow-Köpenick",
-  köpenick: "Treptow-Köpenick",
-  kopenick: "Treptow-Köpenick",
-  "marzahn-hellersdorf": "Marzahn-Hellersdorf",
-  "bezirk marzahn-hellersdorf": "Marzahn-Hellersdorf",
-  marzahn: "Marzahn-Hellersdorf",
-  hellersdorf: "Marzahn-Hellersdorf",
-  lichtenberg: "Lichtenberg",
-  "bezirk lichtenberg": "Lichtenberg",
-  reinickendorf: "Reinickendorf",
-  "bezirk reinickendorf": "Reinickendorf",
-};
-
 // Only nag once per session — every mount of this component would otherwise
 // re-fire the same cached rejection from loadGooglePlaces().
 let hasWarnedAboutLoadFailure = false;
-
-// Normalize for substring comparison: lowercase, strip punctuation/whitespace.
-function normalize(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9äöüß]/g, "");
-}
-
-// Decide if displayName adds new info beyond formatted_address.
-// Google often returns place.name === street + number for plain addresses,
-// which then gets concatenated and duplicated. Avoid that by also checking
-// place.types — address-like types should never prepend the name.
-function shouldPrependName(
-  displayName: string,
-  address: string,
-  types: string[] | undefined,
-): boolean {
-  if (!displayName || !address) return false;
-  const addrTypes = new Set([
-    "street_address",
-    "route",
-    "premise",
-    "subpremise",
-    "postal_code",
-    "geocode",
-    "plus_code",
-    "intersection",
-  ]);
-  if (types && types.length > 0 && types.every((t) => addrTypes.has(t))) {
-    return false;
-  }
-  if (normalize(address).includes(normalize(displayName))) return false;
-  return true;
-}
 
 export function PlaceAutocompleteInput({
   value,
@@ -157,97 +74,38 @@ export function PlaceAutocompleteInput({
         listener = ac.addListener("place_changed", () => {
           const place = ac.getPlace();
           if (!place) return;
-          const displayName: string = place.name || "";
-          const address: string = place.formatted_address || "";
-          const types: string[] | undefined = place.types;
-          const rawName = address
-            ? shouldPrependName(displayName, address, types)
-              ? `${displayName}, ${address}`
-              : address
-            : displayName;
-          const name = cleanPlace(rawName);
+
+          // Use Google's exact formatted address or name
+          const address: string = place.formatted_address || place.name || "";
 
           const loc = place.geometry?.location;
           const lat = loc ? loc.lat() : null;
           const lng = loc ? loc.lng() : null;
 
+          // Extract borough/district directly from Google's address components
           let detectedNeighborhood: string | null = null;
           const components: google.maps.GeocoderAddressComponent[] = place.address_components || [];
 
-          // Check if the place is in Berlin by looking for "Berlin" in address components.
-          const isInBerlin =
-            components.some((c) => {
-              const name = (c.long_name || "").toLowerCase();
-              return (
-                name === "berlin" &&
-                (c.types?.includes("locality") ||
-                  c.types?.includes("administrative_area_level_1") ||
-                  c.types?.includes("political"))
-              );
-            }) ||
-            address.toLowerCase().includes(", berlin") ||
-            address.toLowerCase().startsWith("berlin");
+          // Look for Google's sublocality (borough/district) component
+          const subComponent = components.find(
+            (c) =>
+              c.types?.includes("sublocality_level_1") ||
+              c.types?.includes("administrative_area_level_3"),
+          );
 
-          if (isInBerlin) {
-            // Most reliable: Google's own borough/sublocality component.
-            const subComponent = components.find(
-              (c) =>
-                c.types?.includes("sublocality_level_1") ||
-                c.types?.includes("administrative_area_level_3"),
+          if (subComponent) {
+            const districtName = subComponent.long_name;
+            // Normalize Berlin district names to match our constants
+            const match = BERLIN_DISTRICTS.find(
+              (d) => d.label.toLowerCase() === districtName.toLowerCase(),
             );
-            if (subComponent) {
-              const match = BERLIN_DISTRICTS.find(
-                (d) => d.label.toLowerCase() === subComponent.long_name.toLowerCase(),
-              );
-              if (match) detectedNeighborhood = match.value;
-            }
-
-            // Next: real coordinates, matched to the nearest Bezirk centroid —
-            // far more reliable than guessing from street-name keywords.
-            if (!detectedNeighborhood && lat != null && lng != null) {
-              detectedNeighborhood = nearestBerlinDistrict(lat, lng);
-            }
-
-            // Last resort: street-name keyword matching.
-            if (!detectedNeighborhood) {
-              for (const component of components) {
-                const longName = (component.long_name || "").toLowerCase();
-                if (NEIGHBORHOOD_MAP[longName]) {
-                  detectedNeighborhood = NEIGHBORHOOD_MAP[longName];
-                  break;
-                }
-              }
-              if (!detectedNeighborhood) {
-                const addressLower = address.toLowerCase();
-                for (const [key, val] of Object.entries(NEIGHBORHOOD_MAP)) {
-                  if (addressLower.includes(key)) {
-                    detectedNeighborhood = val;
-                    break;
-                  }
-                }
-              }
-            }
-          } else {
-            // Extract the German state (administrative_area_level_1) for non-Berlin addresses.
-            const stateComponent = components.find((c) =>
-              c.types?.includes("administrative_area_level_1"),
-            );
-            const stateName = stateComponent?.long_name ?? null;
-            if (stateName) {
-              const matched = GERMAN_STATES.find(
-                (s) => s.label.toLowerCase() === stateName.toLowerCase(),
-              );
-              detectedNeighborhood = matched ? matched.value : "Brandenburg";
-            } else {
-              detectedNeighborhood = "Brandenburg";
-            }
+            detectedNeighborhood = match ? match.value : districtName;
           }
 
-          const finalName = detectedNeighborhood ? `${name} · ${detectedNeighborhood}` : name;
-          if (finalName && inputRef.current) inputRef.current.value = finalName;
-          if (finalName) onChangeRef.current(finalName);
+          if (address && inputRef.current) inputRef.current.value = address;
+          if (address) onChangeRef.current(address);
           onPlaceSelectedRef.current({
-            name: finalName,
+            name: address,
             lat,
             lng,
             neighborhood: detectedNeighborhood,
