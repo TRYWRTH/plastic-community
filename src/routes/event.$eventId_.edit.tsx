@@ -362,10 +362,10 @@ function EditEventForm({
     const { data: saves } = await supabase
       .from("event_saves")
       .select("user_id")
-      .eq("event_id", id)
+      .eq("event_id", eventId)
       .eq("notify", true);
     const externalUserIds = (saves ?? []).map((s) => s.user_id).filter((uid) => uid !== userId);
-    const slug = createEventSlug(nextTitle, id);
+    const slug = createEventSlug(nextTitle, eventId);
     const eventUrl = `${window.location.origin}/event/${slug}`;
     void sendEventUpdateNotification({
       title: "Event updated",
@@ -374,6 +374,10 @@ function EditEventForm({
       externalUserIds,
     });
 
+    setSaved(false);
+    toast.success("Event saved successfully");
+    await queryClient.invalidateQueries({ queryKey: ["event-edit", eventId] });
+    await queryClient.invalidateQueries({ queryKey: ["events", eventId] });
     navigate({ to: "/event/$eventId", params: { eventId: slug } });
   };
 

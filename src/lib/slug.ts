@@ -21,8 +21,6 @@ export function createEventSlug(title: string, id: string): string {
  * E.g., "be249f6c-f2ba-43dc-bbc8-bb1fa1dccbe1" -> "be249f6c-f2ba-43dc-bbc8-bb1fa1dccbe1"
  */
 export function extractIdFromSlug(slugOrId: string): string {
-  // UUID v4 format: 8-4-4-4-12 hex digits with hyphens
-  const uuidRegex = /([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i;
-  const match = slugOrId.match(uuidRegex);
-  return match ? match[1] : slugOrId;
+  const match = slugOrId.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+  return match ? match[0] : slugOrId;
 }

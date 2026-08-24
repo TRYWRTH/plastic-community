@@ -25,7 +25,7 @@ import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta, priceTypeMeta } from "@/lib/constants";
 import { resolveCardImage } from "@/lib/event-card-image";
 import { cleanPlace } from "@/lib/clean-place";
-import { extractIdFromSlug } from "@/lib/slug";
+import { extractIdFromSlug, createEventSlug } from "@/lib/slug";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -90,6 +90,7 @@ export const Route = createFileRoute("/event/$eventId")({
 
 function EventDetail() {
   const { eventId } = Route.useParams();
+  const id = extractIdFromSlug(eventId);
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = !!user && user.id === import.meta.env.VITE_ADMIN_USER_ID;
@@ -100,7 +101,7 @@ function EventDetail() {
   useEffect(() => {
     try {
       const flag = sessionStorage.getItem("event-just-saved");
-      if (flag && flag === eventId) {
+      if (flag && flag === id) {
         sessionStorage.removeItem("event-just-saved");
         setSavedBannerVisible(true);
         const hide = setTimeout(() => setSavedBannerVisible(false), 2200);
@@ -109,22 +110,22 @@ function EventDetail() {
     } catch {
       // sessionStorage may be unavailable (e.g. private browsing) — not critical
     }
-  }, [eventId]);
+  }, [id]);
 
   const { data: event, isLoading } = useQuery({
-    queryKey: ["events", eventId],
+    queryKey: ["events", id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
         .select("*")
-        .eq("id", eventId)
+        .eq("id", id)
         .maybeSingle();
       if (error) throw error;
       return data;
     },
   });
 
-  const { data: counts } = useEventSaveCounts(eventId);
+  const { data: counts } = useEventSaveCounts(id);
 
   const { data: creator } = useQuery({
     queryKey: ["profile", event?.created_by],
@@ -144,7 +145,7 @@ function EventDetail() {
   // (repeats != 'none') or it is a copy that has siblings sharing the same
   // title + created_by (copies are stored with repeats='none').
   const { data: seriesSiblingCount } = useQuery({
-    queryKey: ["events", "series-check", event?.title, event?.created_by, eventId],
+    queryKey: ["events", "series-check", event?.title, event?.created_by, id],
     enabled: !!event?.title && !!event?.created_by && !(event?.repeats && event.repeats !== "none"),
     queryFn: async () => {
       const { count, error } = await supabase
@@ -152,7 +153,7 @@ function EventDetail() {
         .select("id", { count: "exact", head: true })
         .eq("title", event!.title)
         .eq("created_by", event!.created_by)
-        .neq("id", eventId);
+        .neq("id", id);
       if (error) throw error;
       return count ?? 0;
     },
@@ -160,7 +161,7 @@ function EventDetail() {
 
   const remove = async () => {
     setDeleting(true);
-    const { error } = await supabase.from("events").delete().eq("id", eventId);
+    const { error } = await supabase.from("events").delete().eq("id", id);
     setDeleting(false);
     if (error) return toast.error(error.message);
     setConfirmDeleteOpen(false);
@@ -232,7 +233,7 @@ function EventDetail() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link to="/event/$eventId/edit" params={{ eventId: event.id }}>
+                  <Link to="/event/$eventId/edit" params={{ eventId: createEventSlug(event.title, event.id) }}>
                     <Pencil className="h-4 w-4" /> Edit event
                   </Link>
                 </DropdownMenuItem>
