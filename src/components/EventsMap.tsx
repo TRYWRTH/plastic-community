@@ -151,7 +151,9 @@ export function EventsMap({ events }: { events: EventLike[] }) {
   const { user, isAuthenticated } = useAuth();
   const qc = useQueryClient();
   const [when, setWhen] = useState<WhenFilter>("all");
-  const [selectedId, setSelectedId] = useState<string | null>(() => loadMapState()?.selectedId ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(
+    () => loadMapState()?.selectedId ?? null,
+  );
   const [mapError, setMapError] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
@@ -247,10 +249,12 @@ export function EventsMap({ events }: { events: EventLike[] }) {
   const peek = near.find((e) => e.id === selectedId) ?? null;
 
   /**
-   * Select an event (from a marker click or a list row), smoothly pan/zoom
-   * the map to its coordinates when available, and scroll the map into
-   * view so the overlay detail card is visible. Selecting the already-
-   * selected event toggles it off, mirroring "tap the pin again to close".
+   * Select an event (from a marker click or a list row) and smoothly
+   * pan/zoom the map to its coordinates when available. The map is pinned
+   * at the top of the view (fixed height, always visible), so selecting
+   * from the list never scrolls the list or the page — only the map's own
+   * viewport moves. Selecting the already-selected event toggles it off,
+   * mirroring "tap the pin again to close".
    */
   const selectEvent = (id: string, coords?: { lat: number | null; lng: number | null }) => {
     setSelectedId((cur) => {
@@ -261,7 +265,6 @@ export function EventsMap({ events }: { events: EventLike[] }) {
           map.panTo({ lat: coords.lat, lng: coords.lng });
           if ((map.getZoom() ?? DEFAULT_ZOOM) < 14) map.setZoom(14);
         }
-        mapWrapperRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
       return next;
     });
@@ -373,10 +376,10 @@ export function EventsMap({ events }: { events: EventLike[] }) {
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <div
         ref={mapWrapperRef}
-        className="relative h-[400px] w-full overflow-hidden rounded-[26px] bg-shell-deep lg:h-[480px]"
+        className="relative sticky top-0 h-[40vh] w-full shrink-0 overflow-hidden rounded-[26px] bg-shell-deep lg:h-[50vh]"
       >
         <div ref={mapDivRef} className="absolute inset-0" />
 
@@ -482,78 +485,80 @@ export function EventsMap({ events }: { events: EventLike[] }) {
         )}
       </div>
 
-      <div className="flex w-full gap-1.5 py-3.5">
-        {WHEN_STEPS.map((w) => {
-          const active = when === w.value;
-          return (
-            <button
-              key={w.value}
-              type="button"
-              onClick={() => setWhen(w.value)}
-              className={`flex-1 rounded-full border border-border py-[11px] font-mono text-[10px] tracking-[0.12em] ${
-                active ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-2"
-              }`}
-            >
-              {w.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-x-8">
-        {near.length === 0 ? (
-          <div className="flex flex-col items-start gap-3 py-6">
-            <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground">
-              NOTHING IN THIS VIEW
-            </span>
-            <button
-              type="button"
-              onClick={() => setWhen("all")}
-              className="rounded-full bg-primary px-4 py-[11px] font-mono text-[10px] tracking-[0.14em] text-primary-foreground"
-            >
-              SHOW ALL BERLIN
-            </button>
-          </div>
-        ) : (
-          near.map((e) => {
-            const isSelected = e.id === selectedId;
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="flex w-full gap-1.5 py-3.5">
+          {WHEN_STEPS.map((w) => {
+            const active = when === w.value;
             return (
-              <div
-                key={e.id}
-                className={`grid grid-cols-[26px_1fr_auto] items-center gap-3 border-t border-border/[0.16] py-3.5 ${
-                  isSelected ? "bg-primary/[0.06]" : ""
+              <button
+                key={w.value}
+                type="button"
+                onClick={() => setWhen(w.value)}
+                className={`flex-1 rounded-full border border-border py-[11px] font-mono text-[10px] tracking-[0.12em] ${
+                  active ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-2"
                 }`}
               >
-                <span
-                  className={`font-brand text-[15px] ${
-                    isSameDay(new Date(e.event_date), new Date()) ? "text-hot" : "text-muted-2"
+                {w.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-col pb-28 lg:grid lg:grid-cols-2 lg:gap-x-8">
+          {near.length === 0 ? (
+            <div className="flex flex-col items-start gap-3 py-6">
+              <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground">
+                NOTHING IN THIS VIEW
+              </span>
+              <button
+                type="button"
+                onClick={() => setWhen("all")}
+                className="rounded-full bg-primary px-4 py-[11px] font-mono text-[10px] tracking-[0.14em] text-primary-foreground"
+              >
+                SHOW ALL BERLIN
+              </button>
+            </div>
+          ) : (
+            near.map((e) => {
+              const isSelected = e.id === selectedId;
+              return (
+                <div
+                  key={e.id}
+                  className={`grid grid-cols-[26px_1fr_auto] items-center gap-3 border-t border-border/[0.16] py-3.5 ${
+                    isSelected ? "bg-primary/[0.06]" : ""
                   }`}
                 >
-                  {e.pinNo}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => selectEvent(e.id, { lat: e.lat, lng: e.lng })}
-                  aria-pressed={isSelected}
-                  className="flex min-w-0 flex-col gap-1 text-left"
-                >
-                  <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground">
-                    {e.title}
+                  <span
+                    className={`font-brand text-[15px] ${
+                      isSameDay(new Date(e.event_date), new Date()) ? "text-hot" : "text-muted-2"
+                    }`}
+                  >
+                    {e.pinNo}
                   </span>
-                  <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
-                    {format(new Date(e.event_date), "EEE d MMM")} ·{" "}
-                    {shortDistrictLabel(e.neighborhood as string).toUpperCase()}
-                  </span>
-                </button>
-                <SaveDot
-                  saved={savedIds.has(e.id)}
-                  isAuthenticated={isAuthenticated}
-                  onToggle={() => toggleSave(e.id)}
-                />
-              </div>
-            );
-          })
-        )}
+                  <button
+                    type="button"
+                    onClick={() => selectEvent(e.id, { lat: e.lat, lng: e.lng })}
+                    aria-pressed={isSelected}
+                    className="flex min-w-0 flex-col gap-1 text-left"
+                  >
+                    <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground">
+                      {e.title}
+                    </span>
+                    <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
+                      {format(new Date(e.event_date), "EEE d MMM")} ·{" "}
+                      {shortDistrictLabel(e.neighborhood as string).toUpperCase()}
+                    </span>
+                  </button>
+                  <SaveDot
+                    saved={savedIds.has(e.id)}
+                    isAuthenticated={isAuthenticated}
+                    onToggle={() => toggleSave(e.id)}
+                  />
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );
