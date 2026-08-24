@@ -388,7 +388,7 @@ function EditEventForm({
     <div className="min-h-screen">
       <Header />
       <main className="mx-auto max-w-xl px-3 py-2 sm:px-4 sm:py-6">
-        <UnsavedChangesGuard when={dirty && !saving && !saved && !isSubmittedRef.current} />
+        <UnsavedChangesGuard when={dirty && !saving && !saved} isSubmittedRef={isSubmittedRef} />
         <Link
           to="/event/$eventId"
           params={{ eventId: createEventSlug(event.title, eventId) }}

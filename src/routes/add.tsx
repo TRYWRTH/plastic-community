@@ -271,7 +271,7 @@ function AddEvent() {
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <UnsavedChangesGuard when={dirty && !saving && !saved && !isSubmittedRef.current} />
+      <UnsavedChangesGuard when={dirty && !saving && !saved} isSubmittedRef={isSubmittedRef} />
       <RadarSweepBand />
       <div className="mx-auto flex w-full max-w-[430px] flex-col gap-4 px-5 pb-6 pt-8 lg:max-w-[560px]">
         <div className="flex flex-col gap-2.5">
