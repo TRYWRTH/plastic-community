@@ -4,9 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { cleanDescription } from "@/lib/clean-description";
-import { ArrowLeft } from "lucide-react";
 
-import { Header } from "@/components/Header";
+import { BackButton } from "@/components/BackButton";
 import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
 import { DescriptionEditor } from "@/components/DescriptionEditor";
 import { QrScanButton } from "@/components/QrScanButton";
@@ -60,15 +59,12 @@ function EditEvent() {
   const { eventId } = Route.useParams();
   const id = extractIdFromSlug(eventId);
   const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
 
   const { data: event, isLoading } = useQuery({
     queryKey: ["event-edit", id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
+      const { data, error } = await supabase.from("events").select("*").eq("id", id).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -79,10 +75,10 @@ function EditEvent() {
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen">
-        <Header />
-        <div className="mx-auto max-w-xl px-4 py-12 text-center text-muted-foreground">
-          Loading…
-        </div>
+        <main className="mx-auto max-w-xl px-3 py-2 sm:px-4 sm:py-6">
+          <BackButton onClick={() => navigate({ to: "/event/$eventId", params: { eventId } })} />
+          <div className="px-1 py-12 text-center text-muted-foreground">Loading…</div>
+        </main>
       </div>
     );
   }
@@ -90,9 +86,9 @@ function EditEvent() {
   if (!event) {
     return (
       <div className="min-h-screen">
-        <Header />
-        <main className="mx-auto max-w-xl px-4 py-12 text-center">
-          <h1 className="font-brand text-3xl uppercase">Event not found</h1>
+        <main className="mx-auto max-w-xl px-3 py-2 text-center sm:px-4 sm:py-6">
+          <BackButton onClick={() => navigate({ to: "/" })} />
+          <h1 className="mt-8 font-brand text-3xl uppercase">Event not found</h1>
           <Button asChild className="mt-6">
             <Link to="/">Back to events</Link>
           </Button>
@@ -104,9 +100,16 @@ function EditEvent() {
   if (!user || (user.id !== event.created_by && user.id !== import.meta.env.VITE_ADMIN_USER_ID)) {
     return (
       <div className="min-h-screen">
-        <Header />
-        <main className="mx-auto max-w-xl px-4 py-12 text-center">
-          <h1 className="font-brand text-3xl uppercase">Not allowed</h1>
+        <main className="mx-auto max-w-xl px-3 py-2 text-center sm:px-4 sm:py-6">
+          <BackButton
+            onClick={() =>
+              navigate({
+                to: "/event/$eventId",
+                params: { eventId: createEventSlug(event.title, event.id) },
+              })
+            }
+          />
+          <h1 className="mt-8 font-brand text-3xl uppercase">Not allowed</h1>
           <p className="mt-2 font-mono text-xs uppercase tracking-wide text-muted-foreground">
             Only the creator can edit this event.
           </p>
@@ -386,16 +389,16 @@ function EditEventForm({
 
   return (
     <div className="min-h-screen">
-      <Header />
       <main className="mx-auto max-w-xl px-3 py-2 sm:px-4 sm:py-6">
         <UnsavedChangesGuard when={dirty && !saving && !saved} isSubmittedRef={isSubmittedRef} />
-        <Link
-          to="/event/$eventId"
-          params={{ eventId: createEventSlug(event.title, eventId) }}
-          className="inline-flex h-11 items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-widest text-foreground hover:text-primary"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back
-        </Link>
+        <BackButton
+          onClick={() =>
+            navigate({
+              to: "/event/$eventId",
+              params: { eventId: createEventSlug(event.title, eventId) },
+            })
+          }
+        />
 
         <h1 className="mt-1 font-display text-xl font-bold sm:text-3xl">Edit event</h1>
         <p className="mt-0.5 text-xs text-muted-foreground sm:text-base">
@@ -616,7 +619,10 @@ function EditEventForm({
 
           <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:items-center">
             <Button type="button" variant="ghost" asChild size="sm" className="w-full sm:w-auto">
-              <Link to="/event/$eventId" params={{ eventId: createEventSlug(event.title, eventId) }}>
+              <Link
+                to="/event/$eventId"
+                params={{ eventId: createEventSlug(event.title, eventId) }}
+              >
                 Cancel
               </Link>
             </Button>

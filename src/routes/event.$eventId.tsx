@@ -6,7 +6,6 @@ import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { format } from "date-fns";
 import {
-  ArrowLeft,
   CalendarPlus,
   ExternalLink,
   MapPin,
@@ -19,6 +18,7 @@ import { toast } from "sonner";
 import { SaveButtons, PILL, PILL_INACTIVE } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import { ShareButton } from "@/components/ShareButton";
+import { BackButton } from "@/components/BackButton";
 import { useEventSaveCounts } from "@/lib/use-event-save-counts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
@@ -117,11 +117,7 @@ function EventDetail() {
   const { data: event, isLoading } = useQuery({
     queryKey: ["events", id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
+      const { data, error } = await supabase.from("events").select("*").eq("id", id).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -207,7 +203,10 @@ function EventDetail() {
     try {
       if (typeof document !== "undefined" && document.referrer) {
         const referrerUrl = new URL(document.referrer);
-        if (referrerUrl.origin === window.location.origin && referrerUrl.pathname.startsWith("/radar")) {
+        if (
+          referrerUrl.origin === window.location.origin &&
+          referrerUrl.pathname.startsWith("/radar")
+        ) {
           fallback = "/radar";
         }
       }
@@ -245,13 +244,7 @@ function EventDetail() {
 
       <div className="mx-auto max-w-[430px] px-5 pb-28 pt-2 lg:max-w-[560px]">
         <div className="flex items-center justify-between gap-2">
-          <button
-            type="button"
-            onClick={goBack}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-[14px] font-mono text-[10px] tracking-[0.14em] text-foreground"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" /> BACK
-          </button>
+          <BackButton onClick={goBack} />
           {isCreator && event && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -264,7 +257,10 @@ function EventDetail() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
-                  <Link to="/event/$eventId/edit" params={{ eventId: createEventSlug(event.title, event.id) }}>
+                  <Link
+                    to="/event/$eventId/edit"
+                    params={{ eventId: createEventSlug(event.title, event.id) }}
+                  >
                     <Pencil className="h-4 w-4" /> Edit event
                   </Link>
                 </DropdownMenuItem>

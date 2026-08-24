@@ -10,6 +10,7 @@ import { loadGoogleMapsCore } from "@/lib/google-places";
 import { createEventSlug } from "@/lib/slug";
 import { cleanPlace } from "@/lib/clean-place";
 import { shortDistrictLabel } from "@/lib/clean-district";
+import { decodeHtmlEntities } from "@/lib/decode-html-entities";
 import { resolveCardImage } from "@/lib/event-card-image";
 import { EventThumbPoster } from "@/components/EventPoster";
 
@@ -397,7 +398,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
     <div className="flex h-full min-h-0 flex-col">
       <div
         ref={mapWrapperRef}
-        className="relative sticky top-0 h-[40vh] w-full shrink-0 overflow-hidden rounded-[26px] bg-shell-deep lg:h-[50vh]"
+        className="relative sticky top-0 z-10 h-[40vh] w-full shrink-0 overflow-hidden rounded-[26px] bg-shell-deep lg:h-[50vh]"
       >
         <div ref={mapDivRef} className="absolute inset-0" />
 
@@ -503,7 +504,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="relative z-0 min-h-0 flex-1 overflow-y-auto">
         <div className="flex w-full gap-1.5 py-3.5">
           {WHEN_STEPS.map((w) => {
             const active = when === w.value;
@@ -628,7 +629,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
                       </span>
                       {e.description && (
                         <span className="truncate text-[13px] text-muted-foreground">
-                          {e.description}
+                          {decodeHtmlEntities(e.description)}
                         </span>
                       )}
                     </button>

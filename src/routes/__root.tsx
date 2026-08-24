@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -149,6 +150,12 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  // Radar manages its own locked-viewport-height layout with an
+  // independently scrolling event list (see routes/radar.tsx) — the global
+  // footer would sit just past its fixed height, forcing the whole page to
+  // scroll and visually collide with the floating bottom nav pill.
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isRadar = pathname === "/radar";
 
   useEffect(() => {
     setMounted(true);
@@ -285,9 +292,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="pb-24">
+      <div className={isRadar ? "" : "pb-24"}>
         <Outlet />
-        <Footer />
+        {!isRadar && <Footer />}
       </div>
       <BottomNav />
       <OnboardingHost />

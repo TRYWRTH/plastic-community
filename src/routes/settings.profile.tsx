@@ -3,11 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import { FeedbackButton } from "@/components/FeedbackButton";
+import { BackButton } from "@/components/BackButton";
 import type { Database } from "@/integrations/supabase/types";
 import { createEventSlug } from "@/lib/slug";
 import { shortDistrictLabel } from "@/lib/clean-district";
@@ -135,12 +135,7 @@ function MePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex max-w-[430px] flex-col gap-5 px-5 pb-28 pt-5 lg:max-w-[640px]">
-        <Link
-          to="/"
-          className="inline-flex h-9 w-fit items-center gap-1.5 rounded-full border border-border px-[14px] font-mono text-[10px] tracking-[0.14em] text-foreground"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> BACK
-        </Link>
+        <BackButton onClick={() => navigate({ to: "/" })} />
 
         <div className="flex items-center gap-3.5">
           <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[24px] bg-primary font-brand text-[22px] text-primary-foreground">

@@ -1,8 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format, subDays } from "date-fns";
-import { ArrowLeft } from "lucide-react";
 import { EventsMap } from "@/components/EventsMap";
+import { BackButton } from "@/components/BackButton";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/radar")({
@@ -29,6 +29,7 @@ async function fetchUpcomingEvents() {
 }
 
 function RadarPage() {
+  const navigate = useNavigate();
   const { data: events = [] } = useQuery({
     queryKey: ["events", "radar"],
     queryFn: fetchUpcomingEvents,
@@ -37,12 +38,7 @@ function RadarPage() {
   return (
     <div className="flex h-[calc(100vh-theme(spacing.16))] flex-col overflow-hidden bg-background pt-4">
       <div className="mx-auto flex min-h-0 w-full flex-1 flex-col px-4 lg:max-w-3xl lg:px-8">
-        <Link
-          to="/"
-          className="mb-3 inline-flex h-9 shrink-0 items-center gap-1.5 self-start rounded-full border border-border px-[14px] font-mono text-[10px] tracking-[0.14em] text-foreground"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> BACK
-        </Link>
+        <BackButton onClick={() => navigate({ to: "/" })} className="mb-3" />
         <div className="mx-auto flex min-h-0 w-full max-w-[430px] flex-1 flex-col lg:max-w-none">
           <EventsMap events={events} />
         </div>
