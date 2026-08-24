@@ -182,7 +182,6 @@ function EventDetail() {
   const d = event ? new Date(event.event_date) : null;
   const validDate = d && !isNaN(d.getTime()) ? d : null;
   const districtLabel = event ? neighborhoodMeta(event.neighborhood).label : "";
-  const districtShort = event ? districtLabel.split("-")[0].toUpperCase() : "";
   const totalSaved = (counts?.going_count ?? 0) + (counts?.interested_count ?? 0);
   const addedByLabel = creator?.username ? `@${creator.username}` : "a member";
   const savedByLabel = `${totalSaved} ${totalSaved === 1 ? "person" : "people"}`;
@@ -300,24 +299,21 @@ function EventDetail() {
                     <span className="font-brand text-xl text-link">
                       {format(validDate, "HH:mm")}
                     </span>
-                    <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground">
-                      {districtShort}
-                    </span>
                     {isRecurring && (
                       <span className="font-mono text-[9px] tracking-[0.1em] text-muted-foreground">
                         ↻ {String(event.repeats).toUpperCase()}
                       </span>
                     )}
                   </span>
+                  <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground">
+                    SAVED BY {savedByLabel}
+                  </span>
                 </span>
               </div>
 
               <div className="flex flex-wrap gap-1.5 font-mono text-[10px] tracking-[0.12em]">
-                <span className="rounded-full bg-primary px-[11px] py-[5px] text-primary-foreground">
-                  {eventTypeMeta(event.event_type).label.toUpperCase()}
-                </span>
                 <span className="rounded-full border border-border px-[11px] py-[5px] text-muted-2">
-                  {districtLabel}
+                  {eventTypeMeta(event.event_type).label.toUpperCase()}
                 </span>
                 {event.price_type === "paid" && event.ticket_url && (
                   <a
@@ -367,28 +363,9 @@ function EventDetail() {
                     <MapPin className="h-3.5 w-3.5 text-link" />
                   </span>
                   <span className="min-w-0 flex-1 text-[13px] font-medium leading-snug text-foreground underline decoration-link/40 underline-offset-2">
-                    {stripNeighborhoodSuffix(event.place, districtLabel)}
+                    {cleanPlace(event.place)}
                   </span>
                   <ExternalLink className="h-3.5 w-3.5 shrink-0 text-link" />
-                </a>
-              )}
-
-              {event.link && isImageUrl(event.link) && (
-                <img
-                  src={event.link}
-                  alt={event.title}
-                  className="w-full rounded-2xl object-cover"
-                  loading="lazy"
-                />
-              )}
-              {event.link && !isImageUrl(event.link) && (
-                <a
-                  href={event.link}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="inline-flex w-fit items-center gap-1.5 self-start rounded-full border border-border px-[13px] py-2 font-mono text-[10px] tracking-[0.12em] text-link"
-                >
-                  ↗ {linkLabel(event.link)}
                 </a>
               )}
             </div>
@@ -425,11 +402,30 @@ function EventDetail() {
               </p>
             )}
 
-            {/* Subtle footer: added by / saved by */}
-            <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-border/60 pt-3 font-mono text-[9px] tracking-[0.14em] text-muted-foreground">
-              {isAdmin && <span>ADDED BY {addedByLabel}</span>}
-              <span>SAVED BY {savedByLabel}</span>
-            </div>
+            {event.link && isImageUrl(event.link) && (
+              <img
+                src={event.link}
+                alt={event.title}
+                className="w-full rounded-2xl object-cover"
+                loading="lazy"
+              />
+            )}
+            {event.link && !isImageUrl(event.link) && (
+              <a
+                href={event.link}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="inline-flex w-fit items-center gap-1.5 self-start rounded-full border border-border px-[13px] py-2 font-mono text-[10px] tracking-[0.12em] text-link"
+              >
+                ↗ {linkLabel(event.link)}
+              </a>
+            )}
+
+            {isAdmin && (
+              <div className="border-t border-border/60 pt-3 font-mono text-[9px] tracking-[0.14em] text-muted-foreground">
+                ADDED BY {addedByLabel}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -493,12 +489,6 @@ function EventDetail() {
       </AlertDialog>
     </div>
   );
-}
-
-function stripNeighborhoodSuffix(place: string, neighborhood: string) {
-  const cleaned = cleanPlace(place);
-  const suffix = ` · ${neighborhood}`;
-  return cleaned.endsWith(suffix) ? cleaned.slice(0, -suffix.length) : cleaned;
 }
 
 /** Short label for the source-link chip, e.g. "instagram.com" -> "INSTAGRAM.COM". */
