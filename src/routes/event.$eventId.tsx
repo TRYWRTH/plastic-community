@@ -376,35 +376,28 @@ function EventDetail() {
             </div>
 
             {/* Action buttons, inline in the flow right below the info card */}
-            <div className="flex flex-col gap-2">
-              {/* Row 1: RSVP */}
-              <div className="grid grid-cols-2 gap-2">
-                <SaveButtons eventId={event.id} />
-              </div>
-
-              {/* Row 2: utility actions, secondary/outlined styling */}
-              <div className="grid grid-cols-2 gap-2">
-                <AddToCalendarButton
-                  title={event.title}
-                  start={event.event_date}
-                  location={[event.place, districtLabel].filter(Boolean).join(", ")}
-                  description={event.description ?? undefined}
-                  uid={`${event.id}@whisper-ring`}
-                  className="flex items-center justify-center gap-1.5 rounded-full border border-border px-3 py-[13px] font-mono text-[10px] tracking-[0.1em] text-foreground"
-                >
-                  📅 Add to Calendar
-                </AddToCalendarButton>
-                <ShareButton
-                  url={
-                    typeof window !== "undefined"
-                      ? window.location.href
-                      : `https://plastic-community.vercel.app/event/${event.id}`
-                  }
-                  className="flex items-center justify-center gap-1.5 rounded-full border border-border px-3 py-[13px] font-mono text-[10px] tracking-[0.1em] text-foreground"
-                >
-                  🔗 Share Event
-                </ShareButton>
-              </div>
+            <div className="flex items-stretch gap-2">
+              <SaveButtons eventId={event.id} />
+              <AddToCalendarButton
+                title={event.title}
+                start={event.event_date}
+                location={[event.place, districtLabel].filter(Boolean).join(", ")}
+                description={event.description ?? undefined}
+                uid={`${event.id}@whisper-ring`}
+                className="flex flex-1 items-center justify-center gap-1 rounded-full border border-border px-2 py-2.5 font-mono text-[10px] tracking-[0.06em] text-foreground"
+              >
+                📅 Add to Cal
+              </AddToCalendarButton>
+              <ShareButton
+                url={
+                  typeof window !== "undefined"
+                    ? window.location.href
+                    : `https://plastic-community.vercel.app/event/${event.id}`
+                }
+                className="flex flex-1 items-center justify-center gap-1 rounded-full border border-border px-2 py-2.5 font-mono text-[10px] tracking-[0.06em] text-foreground"
+              >
+                🔗 Share
+              </ShareButton>
             </div>
 
             {event.description && (
