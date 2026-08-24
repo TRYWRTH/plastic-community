@@ -8,6 +8,8 @@ import { useAuth } from "@/lib/use-auth";
 import type { Neighborhood } from "@/lib/constants";
 import { loadGoogleMapsCore } from "@/lib/google-places";
 import { createEventSlug } from "@/lib/slug";
+import { cleanPlace } from "@/lib/clean-place";
+import { shortDistrictLabel } from "@/lib/clean-district";
 
 type EventLike = {
   id: string;
@@ -352,7 +354,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
                   {peek.title}
                 </span>
                 <span className="truncate font-mono text-[10px] tracking-[0.08em] opacity-70">
-                  {format(new Date(peek.event_date), "EEE d MMM")} · {peek.place}
+                  {format(new Date(peek.event_date), "EEE d MMM")} · {cleanPlace(peek.place)}
                 </span>
               </span>
               <SaveDot
@@ -421,7 +423,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
                 </span>
                 <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
                   {format(new Date(e.event_date), "EEE d MMM")} ·{" "}
-                  {(e.neighborhood as string).split("-")[0].toUpperCase()}
+                  {shortDistrictLabel(e.neighborhood as string).toUpperCase()}
                 </span>
               </Link>
               <SaveDot

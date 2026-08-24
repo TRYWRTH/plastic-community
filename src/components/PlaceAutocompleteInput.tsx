@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { loadGooglePlaces } from "@/lib/google-places";
 import { BERLIN_DISTRICTS } from "@/lib/constants";
+import { cleanDistrictName } from "@/lib/clean-district";
 
 export type PlaceResult = {
   name: string;
@@ -75,8 +76,10 @@ export function PlaceAutocompleteInput({
           const place = ac.getPlace();
           if (!place) return;
 
-          // Use Google's exact formatted address or name
-          const address: string = place.formatted_address || place.name || "";
+          // Use Google's formatted address or name, with administrative
+          // noise (postal codes, "Bezirk", trailing ", Berlin") stripped
+          // for display — the underlying place selection logic is untouched.
+          const address: string = cleanDistrictName(place.formatted_address || place.name || "");
 
           const loc = place.geometry?.location;
           const lat = loc ? loc.lat() : null;

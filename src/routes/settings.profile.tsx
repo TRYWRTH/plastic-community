@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/use-auth";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import type { Database } from "@/integrations/supabase/types";
 import { createEventSlug } from "@/lib/slug";
+import { shortDistrictLabel } from "@/lib/clean-district";
 
 type EventRow = Database["public"]["Tables"]["events"]["Row"];
 
@@ -198,7 +199,7 @@ function MePage() {
                       {event.title}
                     </span>
                     <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
-                      {format(d, "HH:mm")} · {(event.neighborhood as string).split("-")[0]}
+                      {format(d, "HH:mm")} · {shortDistrictLabel(event.neighborhood as string)}
                     </span>
                   </span>
                   <span className="shrink-0 font-mono text-[11px] text-muted-foreground">→</span>
@@ -246,7 +247,7 @@ function MePage() {
                           )}
                         </span>
                         <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
-                          {format(d, "HH:mm")} · {(event.neighborhood as string).split("-")[0]}
+                          {format(d, "HH:mm")} · {shortDistrictLabel(event.neighborhood as string)}
                         </span>
                       </span>
                       <span className="shrink-0 font-mono text-[10px] tracking-[0.1em] text-muted-foreground">

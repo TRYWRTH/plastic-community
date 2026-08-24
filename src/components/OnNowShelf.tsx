@@ -11,6 +11,7 @@ import {
 import { resolveCardImage } from "@/lib/event-card-image";
 import { EventThumbPoster } from "@/components/EventPoster";
 import { createEventSlug } from "@/lib/slug";
+import { shortDistrictLabel } from "@/lib/clean-district";
 
 const MAX_CARDS = 6;
 
@@ -72,7 +73,7 @@ export function OnNowShelf({ runs, now }: { runs: ActiveRun[]; now: Date }) {
                         ? "SECRET"
                         : event.location_tba
                           ? "TBA"
-                          : (event.neighborhood as string).split("-")[0].toUpperCase()}
+                          : shortDistrictLabel(event.neighborhood as string).toUpperCase()}
                     </div>
                     <div className="h-[3px] w-full overflow-hidden rounded-full bg-foreground/[0.16]">
                       <div className="h-full rounded-full bg-hot" style={{ width: `${pct}%` }} />

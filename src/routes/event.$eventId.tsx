@@ -25,6 +25,7 @@ import { useAuth } from "@/lib/use-auth";
 import { eventTypeMeta, neighborhoodMeta, priceTypeMeta } from "@/lib/constants";
 import { resolveCardImage } from "@/lib/event-card-image";
 import { cleanPlace } from "@/lib/clean-place";
+import { shortDistrictLabel } from "@/lib/clean-district";
 import { extractIdFromSlug, createEventSlug } from "@/lib/slug";
 import {
   DropdownMenu,
@@ -193,7 +194,7 @@ function EventDetail() {
 
   const d = event ? new Date(event.event_date) : null;
   const validDate = d && !isNaN(d.getTime()) ? d : null;
-  const districtLabel = event ? neighborhoodMeta(event.neighborhood).label : "";
+  const districtLabel = event ? shortDistrictLabel(neighborhoodMeta(event.neighborhood).label) : "";
   const cleanedPlace = event ? cleanPlace(event.place) : "";
   const locationDisplay =
     districtLabel && !cleanedPlace.toLowerCase().includes(districtLabel.toLowerCase())

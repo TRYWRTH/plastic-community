@@ -6,6 +6,8 @@ import { eventTypeMeta } from "@/lib/constants";
 import { resolveCardImage } from "@/lib/event-card-image";
 import { EventThumbPoster } from "@/components/EventPoster";
 import { createEventSlug } from "@/lib/slug";
+import { cleanPlace } from "@/lib/clean-place";
+import { shortDistrictLabel } from "@/lib/clean-district";
 
 export function AgendaView({
   days,
@@ -57,7 +59,7 @@ export function AgendaView({
 
             <div className="flex flex-col">
               {day.items.map((e) => {
-                const districtLabel = (e.neighborhood as string).split("-")[0].toUpperCase();
+                const districtLabel = shortDistrictLabel(e.neighborhood as string).toUpperCase();
                 const category = eventTypeMeta(e.event_type);
                 const saved = savedIds.has(e.id);
 
@@ -166,7 +168,7 @@ export function AgendaView({
                           ? "Secret location"
                           : e.location_tba
                             ? "Location TBA"
-                            : e.place}
+                            : cleanPlace(e.place)}
                       </span>
                     </span>
 

@@ -7,6 +7,7 @@ import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { BERLIN_DISTRICTS, type Neighborhood } from "@/lib/constants";
+import { shortDistrictLabel } from "@/lib/clean-district";
 import {
   buildAgendaDays,
   getActiveRuns,
@@ -107,9 +108,9 @@ function Home() {
   const districtTriggerLabel =
     district === "all"
       ? "DISTRICTS"
-      : (BERLIN_DISTRICTS.find((d) => d.value === district)?.label ?? district)
-          .split("-")[0]
-          .toUpperCase();
+      : shortDistrictLabel(
+          BERLIN_DISTRICTS.find((d) => d.value === district)?.label ?? district,
+        ).toUpperCase();
 
   const days = useMemo(
     () => buildAgendaDays(events, { district, search, timeFilter }),
@@ -298,7 +299,7 @@ function Home() {
                   </div>
                   <div className="flex flex-col gap-2">
                     {day.items.map((e) => {
-                      const districtLabel = (e.neighborhood as string).split("-")[0].toUpperCase();
+                      const districtLabel = shortDistrictLabel(e.neighborhood as string).toUpperCase();
 
                       if (e.edgeKind) {
                         const isOpen = e.edgeKind === "open";
