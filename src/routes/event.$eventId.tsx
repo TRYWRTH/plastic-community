@@ -129,32 +129,6 @@ function EventDetail() {
     },
   });
 
-  const { data: nearby } = useQuery({
-    queryKey: ["events", "nearby", event?.neighborhood, eventId],
-    enabled: !!event?.neighborhood,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("id,title,event_date,event_type,created_by,neighborhood")
-        .eq("neighborhood", event!.neighborhood)
-        .neq("id", eventId)
-        .gte("event_date", new Date().toISOString())
-        .order("event_date", { ascending: true })
-        .limit(30);
-      if (error) throw error;
-      const seen = new Set<string>();
-      const deduped: typeof data = [];
-      for (const e of data ?? []) {
-        const key = `${e.created_by}::${e.title}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        deduped.push(e);
-        if (deduped.length >= 3) break;
-      }
-      return deduped;
-    },
-  });
-
   // True if this event belongs to a recurring series — either it is the root
   // (repeats != 'none') or it is a copy that has siblings sharing the same
   // title + created_by (copies are stored with repeats='none').
@@ -304,95 +278,146 @@ function EventDetail() {
                 </div>
               );
             })()}
-            <div className="flex items-center gap-3.5">
-              <span className="flex h-[70px] w-[70px] shrink-0 flex-col items-center justify-center rounded-[24px] bg-primary leading-[1.05] text-primary-foreground">
-                <span className="font-brand text-[26px]">{format(validDate, "dd")}</span>
-                <span className="font-mono text-[9px] tracking-[0.1em] uppercase">
-                  {format(validDate, "MMM")}
-                </span>
-              </span>
-              <span className="flex min-w-0 flex-col gap-1.5">
-                <span className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground">
-                  {format(validDate, "EEEE, MMM d")}
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="font-brand text-xl text-link">{format(validDate, "HH:mm")}</span>
-                  <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground">
-                    {districtShort}
-                  </span>
-                  {isRecurring && (
-                    <span className="font-mono text-[9px] tracking-[0.1em] text-muted-foreground">
-                      ↻ {String(event.repeats).toUpperCase()}
-                    </span>
-                  )}
-                </span>
-              </span>
-            </div>
 
             <h1 className="font-brand text-[34px] uppercase leading-[1.04] tracking-[0.01em] text-foreground">
               {event.title}
             </h1>
 
-            <div className="flex flex-wrap gap-1.5 font-mono text-[10px] tracking-[0.12em]">
-              <span className="rounded-full bg-primary px-[11px] py-[5px] text-primary-foreground">
-                {eventTypeMeta(event.event_type).label.toUpperCase()}
-              </span>
-              <span className="rounded-full border border-border px-[11px] py-[5px] text-muted-2">
-                {districtLabel}
-              </span>
-              {event.price_type === "paid" && event.ticket_url && (
+            {/* Unified info card: date/time, tags, location, external link */}
+            <div className="flex flex-col gap-3.5 rounded-[22px] bg-foreground/[0.05] p-4">
+              <div className="flex items-center gap-3.5">
+                <span className="flex h-[70px] w-[70px] shrink-0 flex-col items-center justify-center rounded-[24px] bg-primary leading-[1.05] text-primary-foreground">
+                  <span className="font-brand text-[26px]">{format(validDate, "dd")}</span>
+                  <span className="font-mono text-[9px] tracking-[0.1em] uppercase">
+                    {format(validDate, "MMM")}
+                  </span>
+                </span>
+                <span className="flex min-w-0 flex-col gap-1.5">
+                  <span className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground">
+                    {format(validDate, "EEEE, MMM d")}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="font-brand text-xl text-link">
+                      {format(validDate, "HH:mm")}
+                    </span>
+                    <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground">
+                      {districtShort}
+                    </span>
+                    {isRecurring && (
+                      <span className="font-mono text-[9px] tracking-[0.1em] text-muted-foreground">
+                        ↻ {String(event.repeats).toUpperCase()}
+                      </span>
+                    )}
+                  </span>
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 font-mono text-[10px] tracking-[0.12em]">
+                <span className="rounded-full bg-primary px-[11px] py-[5px] text-primary-foreground">
+                  {eventTypeMeta(event.event_type).label.toUpperCase()}
+                </span>
+                <span className="rounded-full border border-border px-[11px] py-[5px] text-muted-2">
+                  {districtLabel}
+                </span>
+                {event.price_type === "paid" && event.ticket_url && (
+                  <a
+                    href={event.ticket_url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="rounded-full bg-hot px-[11px] py-[5px] text-shell-deep"
+                  >
+                    {priceTypeMeta(event.price_type).label.toUpperCase()} ↗
+                  </a>
+                )}
+                {event.price_type && !(event.price_type === "paid" && event.ticket_url) && (
+                  <span
+                    className={`rounded-full border px-[11px] py-[5px] ${
+                      event.price_type === "paid"
+                        ? "border-hot text-hot"
+                        : "border-border text-muted-2"
+                    }`}
+                  >
+                    {priceTypeMeta(event.price_type).label.toUpperCase()}
+                  </span>
+                )}
+              </div>
+
+              {event.is_secret ? (
+                <div className="flex items-start gap-2 rounded-2xl bg-foreground/[0.07] px-4 py-3 text-muted-foreground">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span className="text-[13px] leading-snug">
+                    Secret location — contact the organiser
+                  </span>
+                </div>
+              ) : event.location_tba ? (
+                <div className="flex items-start gap-2 rounded-2xl bg-foreground/[0.07] px-4 py-3 text-muted-foreground">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span className="text-[13px] leading-snug">
+                    Location to be announced — check back closer to the date
+                  </span>
+                </div>
+              ) : (
                 <a
-                  href={event.ticket_url}
+                  href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="rounded-full bg-hot px-[11px] py-[5px] text-shell-deep"
+                  className="flex items-center gap-2.5 rounded-2xl border border-link/30 bg-link/[0.08] px-4 py-3 text-foreground transition-colors hover:bg-link/[0.14]"
                 >
-                  {priceTypeMeta(event.price_type).label.toUpperCase()} ↗
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-link/20">
+                    <MapPin className="h-3.5 w-3.5 text-link" />
+                  </span>
+                  <span className="min-w-0 flex-1 text-[13px] font-medium leading-snug text-foreground underline decoration-link/40 underline-offset-2">
+                    {stripNeighborhoodSuffix(event.place, districtLabel)}
+                  </span>
+                  <ExternalLink className="h-3.5 w-3.5 shrink-0 text-link" />
                 </a>
               )}
-              {event.price_type && !(event.price_type === "paid" && event.ticket_url) && (
-                <span
-                  className={`rounded-full border px-[11px] py-[5px] ${
-                    event.price_type === "paid"
-                      ? "border-hot text-hot"
-                      : "border-border text-muted-2"
-                  }`}
+
+              {event.link && isImageUrl(event.link) && (
+                <img
+                  src={event.link}
+                  alt={event.title}
+                  className="w-full rounded-2xl object-cover"
+                  loading="lazy"
+                />
+              )}
+              {event.link && !isImageUrl(event.link) && (
+                <a
+                  href={event.link}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex w-fit items-center gap-1.5 self-start rounded-full border border-border px-[13px] py-2 font-mono text-[10px] tracking-[0.12em] text-link"
                 >
-                  {priceTypeMeta(event.price_type).label.toUpperCase()}
-                </span>
+                  ↗ {linkLabel(event.link)}
+                </a>
               )}
             </div>
 
-            {event.is_secret ? (
-              <div className="flex items-start gap-2 rounded-2xl bg-foreground/[0.07] px-4 py-3 text-muted-foreground">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                <span className="text-[13px] leading-snug">
-                  Secret location — contact the organiser
-                </span>
-              </div>
-            ) : event.location_tba ? (
-              <div className="flex items-start gap-2 rounded-2xl bg-foreground/[0.07] px-4 py-3 text-muted-foreground">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                <span className="text-[13px] leading-snug">
-                  Location to be announced — check back closer to the date
-                </span>
-              </div>
-            ) : (
-              <a
-                href={`https://maps.google.com/?q=${encodeURIComponent(cleanPlace(event.place))}`}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="flex items-center gap-2.5 rounded-2xl border border-link/30 bg-link/[0.08] px-4 py-3 text-foreground transition-colors hover:bg-link/[0.14]"
+            {/* Action buttons, inline in the flow right below the info card */}
+            <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-2">
+              <SaveButtons eventId={event.id} />
+              <AddToCalendarButton
+                title={event.title}
+                start={event.event_date}
+                location={[event.place, districtLabel].filter(Boolean).join(", ")}
+                description={event.description ?? undefined}
+                uid={`${event.id}@whisper-ring`}
+                className="rounded-full bg-primary px-3 py-[15px] font-mono text-[10px] font-bold tracking-[0.14em] text-primary-foreground"
               >
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-link/20">
-                  <MapPin className="h-3.5 w-3.5 text-link" />
-                </span>
-                <span className="min-w-0 flex-1 text-[13px] font-medium leading-snug text-foreground underline decoration-link/40 underline-offset-2">
-                  {stripNeighborhoodSuffix(event.place, districtLabel)}
-                </span>
-                <ExternalLink className="h-3.5 w-3.5 shrink-0 text-link" />
-              </a>
-            )}
+                + CAL
+              </AddToCalendarButton>
+              <ShareButton
+                title={event.title}
+                url={
+                  typeof window !== "undefined"
+                    ? window.location.href
+                    : `https://plastic-community.vercel.app/event/${event.id}`
+                }
+                className="rounded-full border border-border px-4 py-[15px] font-mono text-[11px] text-foreground"
+              >
+                ↗
+              </ShareButton>
+            </div>
 
             {event.description && (
               <p className="text-[15px] leading-[1.6] text-body">
@@ -400,108 +425,14 @@ function EventDetail() {
               </p>
             )}
 
-            <div className="grid grid-cols-[80px_1fr] gap-x-3 gap-y-2.5 font-mono text-[11px] text-foreground">
-              {isAdmin && (
-                <>
-                  <span className="pt-0.5 text-[9px] tracking-[0.16em] text-muted-foreground">
-                    ADDED BY
-                  </span>
-                  <span>{addedByLabel}</span>
-                </>
-              )}
-              <span className="pt-0.5 text-[9px] tracking-[0.16em] text-muted-foreground">
-                SAVED BY
-              </span>
-              <span>{savedByLabel}</span>
+            {/* Subtle footer: added by / saved by */}
+            <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-border/60 pt-3 font-mono text-[9px] tracking-[0.14em] text-muted-foreground">
+              {isAdmin && <span>ADDED BY {addedByLabel}</span>}
+              <span>SAVED BY {savedByLabel}</span>
             </div>
-
-            {event.link && isImageUrl(event.link) && (
-              <img
-                src={event.link}
-                alt={event.title}
-                className="w-full rounded-2xl object-cover"
-                loading="lazy"
-              />
-            )}
-            {event.link && !isImageUrl(event.link) && (
-              <a
-                href={event.link}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="inline-flex w-fit items-center gap-1.5 self-start rounded-full border border-border px-[13px] py-2 font-mono text-[10px] tracking-[0.12em] text-link"
-              >
-                ↗ {linkLabel(event.link)}
-              </a>
-            )}
-
-            {nearby && nearby.length > 0 && (
-              <section className="mt-4 flex flex-col gap-2">
-                <span className="font-mono text-[10px] font-bold tracking-[0.18em] text-link">
-                  MORE IN {districtShort}
-                </span>
-                {nearby.map((e) => {
-                  const nd = new Date(e.event_date);
-                  return (
-                    <Link
-                      key={e.id}
-                      to="/event/$eventId"
-                      params={{ eventId: e.id }}
-                      className="flex items-center gap-3.5 rounded-[22px] bg-foreground/[0.07] px-4 py-3.5 hover:bg-foreground/[0.12]"
-                    >
-                      <span className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center rounded-2xl bg-primary leading-[1.05] text-primary-foreground">
-                        <span className="font-brand text-base">{format(nd, "dd")}</span>
-                        <span className="font-mono text-[8px] tracking-[0.1em] uppercase">
-                          {format(nd, "MMM")}
-                        </span>
-                      </span>
-                      <span className="flex min-w-0 flex-1 flex-col gap-1">
-                        <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground">
-                          {e.title}
-                        </span>
-                        <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
-                          {format(nd, "HH:mm")} · {districtShort}
-                        </span>
-                      </span>
-                    </Link>
-                  );
-                })}
-              </section>
-            )}
           </div>
         )}
       </div>
-
-      {event && validDate && (
-        <div
-          className="fixed inset-x-0 bottom-[118px] z-20 grid grid-cols-[1fr_1fr_auto_auto] gap-2 px-4 pb-2 pt-6"
-          style={{ background: "linear-gradient(180deg, rgba(90,2,16,0), var(--background) 32%)" }}
-        >
-          <div className="col-span-4 mx-auto grid w-full max-w-[430px] grid-cols-[1fr_1fr_auto_auto] gap-2 lg:max-w-[560px]">
-            <SaveButtons eventId={event.id} />
-            <AddToCalendarButton
-              title={event.title}
-              start={event.event_date}
-              location={[event.place, districtLabel].filter(Boolean).join(", ")}
-              description={event.description ?? undefined}
-              uid={`${event.id}@whisper-ring`}
-              className="rounded-full bg-primary px-3 py-[15px] font-mono text-[10px] font-bold tracking-[0.14em] text-primary-foreground"
-            >
-              + CAL
-            </AddToCalendarButton>
-            <ShareButton
-              title={event.title}
-              url={
-                typeof window !== "undefined"
-                  ? window.location.href
-                  : `https://plastic-community.vercel.app/event/${event.id}`
-              }
-              className="rounded-full border border-border px-4 py-[15px] font-mono text-[11px] text-foreground"
-            >
-              ↗
-            </ShareButton>
-          </div>
-        </div>
-      )}
 
       <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
         <AlertDialogContent>
