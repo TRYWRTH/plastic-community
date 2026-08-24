@@ -182,6 +182,11 @@ function EventDetail() {
   const d = event ? new Date(event.event_date) : null;
   const validDate = d && !isNaN(d.getTime()) ? d : null;
   const districtLabel = event ? neighborhoodMeta(event.neighborhood).label : "";
+  const cleanedPlace = event ? cleanPlace(event.place) : "";
+  const locationDisplay =
+    districtLabel && !cleanedPlace.toLowerCase().includes(districtLabel.toLowerCase())
+      ? `${cleanedPlace} · ${districtLabel}`
+      : cleanedPlace;
   const totalSaved = (counts?.going_count ?? 0) + (counts?.interested_count ?? 0);
   const addedByLabel = creator?.username ? `@${creator.username}` : "a member";
   const savedByLabel = `${totalSaved} ${totalSaved === 1 ? "person" : "people"}`;
@@ -363,7 +368,7 @@ function EventDetail() {
                     <MapPin className="h-3.5 w-3.5 text-link" />
                   </span>
                   <span className="min-w-0 flex-1 text-[13px] font-medium leading-snug text-foreground underline decoration-link/40 underline-offset-2">
-                    {cleanPlace(event.place)}
+                    {locationDisplay}
                   </span>
                   <ExternalLink className="h-3.5 w-3.5 shrink-0 text-link" />
                 </a>
