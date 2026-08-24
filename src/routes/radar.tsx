@@ -10,7 +10,8 @@ export const Route = createFileRoute("/radar")({
 });
 
 const RADAR_EVENT_COLUMNS =
-  "id, title, place, event_date, end_date, neighborhood, lat, lng, is_secret, location_tba";
+  "id, title, place, event_date, end_date, neighborhood, lat, lng, is_secret, location_tba, " +
+  "event_type, description, image_url, link_preview_image_url, link_preview_site_name";
 
 async function fetchUpcomingEvents() {
   // A one-day-back cutoff (not a strict event_date >= now filter) keeps a

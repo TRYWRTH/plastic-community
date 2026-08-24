@@ -5,11 +5,13 @@ import { format, isBefore, isSameDay, startOfDay } from "date-fns";
 import { ChevronRight, Minus, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
-import type { Neighborhood } from "@/lib/constants";
+import type { EventType, Neighborhood } from "@/lib/constants";
 import { loadGoogleMapsCore } from "@/lib/google-places";
 import { createEventSlug } from "@/lib/slug";
 import { cleanPlace } from "@/lib/clean-place";
 import { shortDistrictLabel } from "@/lib/clean-district";
+import { resolveCardImage } from "@/lib/event-card-image";
+import { EventThumbPoster } from "@/components/EventPoster";
 
 type EventLike = {
   id: string;
@@ -22,6 +24,11 @@ type EventLike = {
   lng: number | null;
   is_secret: boolean;
   location_tba: boolean;
+  event_type: EventType;
+  description: string | null;
+  image_url: string | null;
+  link_preview_image_url: string | null;
+  link_preview_site_name: string | null;
 };
 
 /** Inclusive end instant: the event's own end_date, or its start if it's a single-day event. */
@@ -154,6 +161,10 @@ export function EventsMap({ events }: { events: EventLike[] }) {
   const [selectedId, setSelectedId] = useState<string | null>(
     () => loadMapState()?.selectedId ?? null,
   );
+  // Hover state (desktop rows <-> map markers) — kept separate from the
+  // clicked/tapped selection so a fleeting hover never opens the overlay
+  // detail card, but still lets the marker and row highlight sync live.
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [mapError, setMapError] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
@@ -247,6 +258,9 @@ export function EventsMap({ events }: { events: EventLike[] }) {
   }, [events, when]);
 
   const peek = near.find((e) => e.id === selectedId) ?? null;
+  // What the map marker (and, on desktop, the list row) should visually
+  // highlight — a hover takes priority over the clicked/tapped selection.
+  const activeId = hoveredId ?? selectedId;
 
   /**
    * Select an event (from a marker click or a list row) and smoothly
@@ -321,7 +335,9 @@ export function EventsMap({ events }: { events: EventLike[] }) {
     };
   }, []);
 
-  // Keep markers in sync with the filtered pin list (and selection state).
+  // Keep markers in sync with the filtered pin list (and hover/selection
+  // state) — hovering or clicking a desktop row highlights its marker here,
+  // and hovering/clicking a marker highlights its row via setHoveredId below.
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -329,26 +345,28 @@ export function EventsMap({ events }: { events: EventLike[] }) {
     for (const m of markersRef.current) m.setMap(null);
     markersRef.current = pins.map((p) => {
       const isTonight = isSameDay(new Date(p.event_date), new Date());
-      const selected = p.id === selectedId;
+      const active = p.id === activeId;
       const dotColor = isTonight ? "#FF6A63" : "#F7E7E4";
       const marker = new google.maps.Marker({
         position: { lat: p.lat as number, lng: p.lng as number },
         map,
         icon: pinIcon({
           dotColor,
-          dotSize: selected ? 20 : isTonight ? 13 : 10,
-          haloSize: selected ? 10 : isTonight ? 6 : 5,
-          pulse: selected,
+          dotSize: active ? 20 : isTonight ? 13 : 10,
+          haloSize: active ? 10 : isTonight ? 6 : 5,
+          pulse: active,
         }),
         title: p.title,
-        zIndex: selected ? 999 : isTonight ? 500 : 1,
+        zIndex: active ? 999 : isTonight ? 500 : 1,
       });
       marker.addListener("click", () => {
         selectEvent(p.id, { lat: p.lat, lng: p.lng });
       });
+      marker.addListener("mouseover", () => setHoveredId(p.id));
+      marker.addListener("mouseout", () => setHoveredId((cur) => (cur === p.id ? null : cur)));
       return marker;
     });
-  }, [pins, selectedId, mapReady]);
+  }, [pins, activeId, mapReady]);
 
   // Persist selection changes so returning to Radar restores the same pin.
   useEffect(() => {
@@ -504,7 +522,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
           })}
         </div>
 
-        <div className="flex flex-col pb-28 lg:grid lg:grid-cols-2 lg:gap-x-8">
+        <div className="mx-auto flex w-full flex-col gap-2 pb-28 md:max-w-4xl md:gap-2.5">
           {near.length === 0 ? (
             <div className="flex flex-col items-start gap-3 py-6">
               <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground">
@@ -521,39 +539,115 @@ export function EventsMap({ events }: { events: EventLike[] }) {
           ) : (
             near.map((e) => {
               const isSelected = e.id === selectedId;
+              const isActive = e.id === activeId;
+              const cardImage = resolveCardImage(e);
+              const eventUrl = {
+                to: "/event/$eventId" as const,
+                params: { eventId: createEventSlug(e.title, e.id) },
+              };
               return (
-                <div
-                  key={e.id}
-                  className={`grid grid-cols-[26px_1fr_auto] items-center gap-3 border-t border-border/[0.16] py-3.5 ${
-                    isSelected ? "bg-primary/[0.06]" : ""
-                  }`}
-                >
-                  <span
-                    className={`font-brand text-[15px] ${
-                      isSameDay(new Date(e.event_date), new Date()) ? "text-hot" : "text-muted-2"
+                <div key={e.id}>
+                  {/* Mobile: compact single-line row. */}
+                  <div
+                    className={`grid grid-cols-[26px_1fr_auto] items-center gap-3 border-t border-border/[0.16] py-3.5 md:hidden ${
+                      isSelected ? "bg-primary/[0.06]" : ""
                     }`}
                   >
-                    {e.pinNo}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => selectEvent(e.id, { lat: e.lat, lng: e.lng })}
-                    aria-pressed={isSelected}
-                    className="flex min-w-0 flex-col gap-1 text-left"
+                    <span
+                      className={`font-brand text-[15px] ${
+                        isSameDay(new Date(e.event_date), new Date()) ? "text-hot" : "text-muted-2"
+                      }`}
+                    >
+                      {e.pinNo}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => selectEvent(e.id, { lat: e.lat, lng: e.lng })}
+                      aria-pressed={isSelected}
+                      className="flex min-w-0 flex-col gap-1 text-left"
+                    >
+                      <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground">
+                        {e.title}
+                      </span>
+                      <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
+                        {format(new Date(e.event_date), "EEE d MMM")} ·{" "}
+                        {shortDistrictLabel(e.neighborhood as string).toUpperCase()}
+                      </span>
+                    </button>
+                    <SaveDot
+                      saved={savedIds.has(e.id)}
+                      isAuthenticated={isAuthenticated}
+                      onToggle={() => toggleSave(e.id)}
+                    />
+                  </div>
+
+                  {/* Desktop (>=768px): rich horizontal row — thumbnail, title/date/district/
+                      description, save + view-details. Hover or click syncs the map marker. */}
+                  <div
+                    onMouseEnter={() => setHoveredId(e.id)}
+                    onMouseLeave={() => setHoveredId((cur) => (cur === e.id ? null : cur))}
+                    className={`hidden items-center gap-4 rounded-2xl border p-3.5 transition-colors md:flex ${
+                      isActive
+                        ? "border-primary bg-primary/[0.08]"
+                        : "border-border/[0.16] bg-transparent hover:bg-foreground/[0.04]"
+                    }`}
                   >
-                    <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground">
-                      {e.title}
-                    </span>
-                    <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
-                      {format(new Date(e.event_date), "EEE d MMM")} ·{" "}
-                      {shortDistrictLabel(e.neighborhood as string).toUpperCase()}
-                    </span>
-                  </button>
-                  <SaveDot
-                    saved={savedIds.has(e.id)}
-                    isAuthenticated={isAuthenticated}
-                    onToggle={() => toggleSave(e.id)}
-                  />
+                    <button
+                      type="button"
+                      onClick={() => selectEvent(e.id, { lat: e.lat, lng: e.lng })}
+                      aria-pressed={isSelected}
+                      className="relative h-20 w-28 shrink-0 overflow-hidden rounded-xl"
+                    >
+                      {cardImage ? (
+                        <img
+                          src={cardImage.url}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                      ) : (
+                        <EventThumbPoster eventType={e.event_type} className="h-full w-full" />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => selectEvent(e.id, { lat: e.lat, lng: e.lng })}
+                      aria-pressed={isSelected}
+                      className="flex min-w-0 flex-1 flex-col gap-1 text-left"
+                    >
+                      <span className="truncate text-[17px] font-semibold tracking-[-0.01em] text-foreground">
+                        {e.title}
+                      </span>
+                      <span className="font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
+                        {format(new Date(e.event_date), "EEE d MMM · HH:mm")}
+                      </span>
+                      <span className="inline-flex w-fit rounded-full border border-border px-[9px] py-[3px] font-mono text-[9px] tracking-[0.1em] text-muted-2">
+                        {shortDistrictLabel(e.neighborhood as string).toUpperCase()}
+                      </span>
+                      {e.description && (
+                        <span className="truncate text-[13px] text-muted-foreground">
+                          {e.description}
+                        </span>
+                      )}
+                    </button>
+
+                    <div className="flex shrink-0 items-center gap-2">
+                      <SaveDot
+                        saved={savedIds.has(e.id)}
+                        isAuthenticated={isAuthenticated}
+                        onToggle={() => toggleSave(e.id)}
+                      />
+                      <Link
+                        {...eventUrl}
+                        aria-label="View event details"
+                        className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border text-foreground"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               );
             })
