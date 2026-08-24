@@ -114,25 +114,20 @@ function AddEvent() {
     locationMode !== "public";
 
   const publish = async () => {
-    setSaved(true);
     if (!user) {
-      setSaved(false);
       return;
     }
     const parsedDate = new Date(`${eventDay}T${eventTime}`);
     if (Number.isNaN(parsedDate.getTime())) {
-      setSaved(false);
       toast.error("Please choose a valid date and time.");
       return;
     }
     if (multiDay) {
       if (!endDay) {
-        setSaved(false);
         toast.error("Please pick an end date.");
         return;
       }
       if (endDateError) {
-        setSaved(false);
         toast.error(endDateError);
         return;
       }
@@ -179,15 +174,35 @@ function AddEvent() {
       })
       .select("id")
       .single();
+
     if (error) {
       setSaving(false);
-      setSaved(false);
       toast.error(error.message);
       return;
     }
 
     const extraCount = await createRecurringInstances(basePayload, parsedDate, repeats);
+
+    // Clear form state before navigating away
+    setTitle("");
+    setPlace("");
+    setCoords({ lat: null, lng: null });
+    setNeighborhoodFromPlace(false);
+    setEventType("music");
+    setEventDay(format(new Date(Date.now() + 86400000), "yyyy-MM-dd"));
+    setEventTime("20:00");
+    setMultiDay(false);
+    setEndDay("");
+    setEndTime("");
+    setLink("");
+    setPriceType(null);
+    setTicketUrl("");
+    setDescription("");
+    setRepeats("none");
+    setLocationMode("public");
+
     setSaving(false);
+    setSaved(false);
     toast.success(extraCount > 0 ? `EVENT PUBLISHED (+${extraCount} repeats)` : "EVENT PUBLISHED");
 
     if (link.trim()) {
@@ -195,7 +210,7 @@ function AddEvent() {
     }
 
     // Fire-and-forget push broadcast to all subscribers (client-side OneSignal call)
-    const slug = createEventSlug(data.title, data.id);
+    const slug = createEventSlug(title.trim(), data.id);
     const eventUrl = `${window.location.origin}/event/${slug}`;
     void sendNewEventNotification({
       title: "New event posted",
