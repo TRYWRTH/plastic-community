@@ -398,7 +398,8 @@ function EventDetail() {
                 className={`${PILL} ${PILL_INACTIVE}`}
               >
                 <CalendarPlus className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">Add to Calendar</span>
+                <span className="truncate sm:hidden">+ Calendar</span>
+                <span className="truncate hidden sm:inline">Add to Calendar</span>
               </AddToCalendarButton>
               <ShareButton
                 url={
