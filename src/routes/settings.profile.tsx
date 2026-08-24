@@ -109,9 +109,8 @@ function MePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("event_saves")
-        .select("status, event:events(event_date)")
-        .eq("user_id", user!.id)
-        .eq("status", "going");
+        .select("event:events(event_date)")
+        .eq("user_id", user!.id);
       if (error) throw error;
       const now = new Date();
       return (data ?? []).filter((r) => r.event && new Date(r.event.event_date) < now).length;

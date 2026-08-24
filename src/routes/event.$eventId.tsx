@@ -183,7 +183,12 @@ function EventDetail() {
   const validDate = d && !isNaN(d.getTime()) ? d : null;
   const districtLabel = event ? neighborhoodMeta(event.neighborhood).label : "";
   const districtShort = event ? districtLabel.split("-")[0].toUpperCase() : "";
-  const totalSaved = (counts?.going_count ?? 0) + (counts?.interested_count ?? 0);
+  const cleanedPlace = event ? cleanPlace(event.place) : "";
+  const locationDisplay =
+    districtLabel && !cleanedPlace.toLowerCase().includes(districtLabel.toLowerCase())
+      ? `${cleanedPlace} · ${districtLabel}`
+      : cleanedPlace;
+  const totalSaved = counts?.saved_count ?? 0;
   const addedByLabel = creator?.username ? `@${creator.username}` : "a member";
   const savedByLabel = `${totalSaved} ${totalSaved === 1 ? "person" : "people"}`;
 
