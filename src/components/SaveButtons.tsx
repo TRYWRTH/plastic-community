@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Link, useRouterState } from "@tanstack/react-router";
+import { Bookmark } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
@@ -10,10 +11,10 @@ import { NOTIFICATIONS_ENABLED } from "@/lib/constants";
 type SaveStatus = "going" | "interested";
 type SaveRow = { id: string; status: SaveStatus; notify: boolean } | null;
 
-const SEGMENT =
-  "flex-1 px-1 py-2.5 text-center font-mono text-[10px] font-bold tracking-[0.06em]";
-const SEGMENT_ACTIVE = "bg-primary text-primary-foreground";
-const SEGMENT_INACTIVE = "bg-transparent text-foreground";
+export const PILL =
+  "flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full border px-2 py-3 font-mono text-[9px] font-bold uppercase tracking-[0.06em]";
+export const PILL_ACTIVE = "border-primary bg-primary text-primary-foreground";
+export const PILL_INACTIVE = "border-border bg-transparent text-foreground";
 const NOTIFY_PILL =
   "w-full rounded-full border border-border px-2 py-2 text-center font-mono text-[10px] tracking-[0.06em]";
 
@@ -175,57 +176,35 @@ export function SaveButtons({ eventId }: { eventId: string }) {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-1 overflow-hidden rounded-full border border-border">
-        <Link
-          to="/login"
-          search={{ redirect: pathname }}
-          className={`${SEGMENT} ${SEGMENT_INACTIVE}`}
-        >
-          ✓ Going
-        </Link>
-        <div className="w-px bg-border" />
-        <Link
-          to="/login"
-          search={{ redirect: pathname }}
-          className={`${SEGMENT} ${SEGMENT_INACTIVE}`}
-        >
-          ⭐ Interested
-        </Link>
-      </div>
+      <Link to="/login" search={{ redirect: pathname }} className={`${PILL} ${PILL_INACTIVE}`}>
+        <Bookmark className="h-3.5 w-3.5 shrink-0" />
+        <span className="truncate">Interested</span>
+      </Link>
     );
   }
 
   const current = save?.status as SaveStatus | undefined;
+  const isSaved = !!current;
   const notify = save?.notify ?? true;
 
   return (
-    <div className="flex flex-1 flex-col gap-1.5">
-      <div className="flex overflow-hidden rounded-full border border-border">
-        <button
-          type="button"
-          onClick={() => mutate.mutate(current === "going" ? null : "going")}
-          disabled={mutate.isPending}
-          className={`${SEGMENT} ${current === "going" ? SEGMENT_ACTIVE : SEGMENT_INACTIVE}`}
-        >
-          ✓ Going
-        </button>
-        <div className="w-px bg-border" />
-        <button
-          type="button"
-          onClick={() => mutate.mutate(current === "interested" ? null : "interested")}
-          disabled={mutate.isPending}
-          className={`${SEGMENT} ${current === "interested" ? SEGMENT_ACTIVE : SEGMENT_INACTIVE}`}
-        >
-          ⭐ Interested
-        </button>
-      </div>
-      {NOTIFICATIONS_ENABLED && current && (
+    <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+      <button
+        type="button"
+        onClick={() => mutate.mutate(isSaved ? null : "interested")}
+        disabled={mutate.isPending}
+        className={`${PILL} ${isSaved ? PILL_ACTIVE : PILL_INACTIVE}`}
+      >
+        <Bookmark className="h-3.5 w-3.5 shrink-0" fill={isSaved ? "currentColor" : "none"} />
+        <span className="truncate">{isSaved ? "Saved" : "Interested"}</span>
+      </button>
+      {NOTIFICATIONS_ENABLED && isSaved && (
         <button
           type="button"
           onClick={onNotifyClick}
           disabled={toggleNotify.isPending}
           aria-pressed={notify}
-          className={`${NOTIFY_PILL} ${notify ? SEGMENT_ACTIVE : SEGMENT_INACTIVE}`}
+          className={`${NOTIFY_PILL} ${notify ? PILL_ACTIVE : PILL_INACTIVE}`}
         >
           {notify ? "Notifications on" : "Notify me"}
         </button>

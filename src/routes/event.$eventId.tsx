@@ -5,9 +5,18 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import { format } from "date-fns";
-import { ArrowLeft, ExternalLink, MapPin, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarPlus,
+  ExternalLink,
+  MapPin,
+  MoreVertical,
+  Pencil,
+  Share2,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
-import { SaveButtons } from "@/components/SaveButtons";
+import { SaveButtons, PILL, PILL_INACTIVE } from "@/components/SaveButtons";
 import { AddToCalendarButton } from "@/components/AddToCalendarButton";
 import { ShareButton } from "@/components/ShareButton";
 import { useEventSaveCounts } from "@/lib/use-event-save-counts";
@@ -375,32 +384,31 @@ function EventDetail() {
               )}
             </div>
 
-            {/* Action buttons: two joined pill containers, RSVP + utilities, equal halves */}
-            <div className="flex items-stretch gap-2">
+            {/* Action buttons: 3 equal-width pills */}
+            <div className="grid grid-cols-3 gap-2">
               <SaveButtons eventId={event.id} />
-              <div className="flex flex-1 overflow-hidden rounded-full border border-border">
-                <AddToCalendarButton
-                  title={event.title}
-                  start={event.event_date}
-                  location={[event.place, districtLabel].filter(Boolean).join(", ")}
-                  description={event.description ?? undefined}
-                  uid={`${event.id}@whisper-ring`}
-                  className="flex-1 px-1 py-2.5 text-center font-mono text-[10px] tracking-[0.06em] text-foreground"
-                >
-                  📅 Add to Cal
-                </AddToCalendarButton>
-                <div className="w-px bg-border" />
-                <ShareButton
-                  url={
-                    typeof window !== "undefined"
-                      ? window.location.href
-                      : `https://plastic-community.vercel.app/event/${event.id}`
-                  }
-                  className="flex-1 px-1 py-2.5 text-center font-mono text-[10px] tracking-[0.06em] text-foreground"
-                >
-                  🔗 Share
-                </ShareButton>
-              </div>
+              <AddToCalendarButton
+                title={event.title}
+                start={event.event_date}
+                location={[event.place, districtLabel].filter(Boolean).join(", ")}
+                description={event.description ?? undefined}
+                uid={`${event.id}@whisper-ring`}
+                className={`${PILL} ${PILL_INACTIVE}`}
+              >
+                <CalendarPlus className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">Add to Calendar</span>
+              </AddToCalendarButton>
+              <ShareButton
+                url={
+                  typeof window !== "undefined"
+                    ? window.location.href
+                    : `https://plastic-community.vercel.app/event/${event.id}`
+                }
+                className={`${PILL} ${PILL_INACTIVE}`}
+              >
+                <Share2 className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">Share</span>
+              </ShareButton>
             </div>
 
             {event.description && (
