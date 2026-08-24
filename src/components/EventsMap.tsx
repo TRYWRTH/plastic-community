@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, isBefore, isSameDay, startOfDay } from "date-fns";
-import { Minus, Plus } from "lucide-react";
+import { ChevronRight, Minus, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/use-auth";
 import type { Neighborhood } from "@/lib/constants";
@@ -76,14 +76,40 @@ const MAP_STYLE: google.maps.MapTypeStyle[] = [
   { featureType: "road.local", elementType: "geometry", stylers: [{ color: "#6b1119" }] },
 ];
 
-/** Small circular marker icon rendered as an inline SVG data URI — a soft halo behind a solid dot. */
-function pinIcon(color: string, dotSize: number, halo: number): google.maps.Icon {
-  const total = dotSize + halo * 2;
+// Coral/peach brand accent — used as the marker's glow ring so dots pop
+// against the dark map, regardless of the dot's own fill color.
+const MARKER_RING_COLOR = "#FF6A63";
+
+/**
+ * Small circular marker icon rendered as an inline SVG data URI — a coral
+ * glow ring behind a solid dot. When `pulse` is set (selected marker), an
+ * animated ring expands and fades outward via SMIL, giving the selected pin
+ * a prominent, unmistakable highlight.
+ */
+function pinIcon(opts: {
+  dotColor: string;
+  ringColor?: string;
+  dotSize: number;
+  haloSize: number;
+  pulse?: boolean;
+}): google.maps.Icon {
+  const { dotColor, ringColor = MARKER_RING_COLOR, dotSize, haloSize, pulse } = opts;
+  const pulseReach = pulse ? dotSize / 2 + 16 : 0;
+  const ringMax = Math.max(dotSize / 2 + haloSize, pulseReach);
+  const total = (ringMax + 4) * 2;
   const c = total / 2;
+  const pulseRing = pulse
+    ? `<circle cx="${c}" cy="${c}" r="${dotSize / 2}" fill="none" stroke="${ringColor}" stroke-width="2.5" opacity="0.9">` +
+      `<animate attributeName="r" values="${dotSize / 2};${pulseReach};${dotSize / 2}" dur="1.6s" repeatCount="indefinite" />` +
+      `<animate attributeName="opacity" values="0.9;0;0.9" dur="1.6s" repeatCount="indefinite" />` +
+      `</circle>`
+    : "";
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" width="${total}" height="${total}">` +
-    `<circle cx="${c}" cy="${c}" r="${dotSize / 2 + halo}" fill="${color}" opacity="0.18"/>` +
-    `<circle cx="${c}" cy="${c}" r="${dotSize / 2}" fill="${color}"/>` +
+    `<circle cx="${c}" cy="${c}" r="${dotSize / 2 + haloSize}" fill="${ringColor}" opacity="0.28"/>` +
+    pulseRing +
+    `<circle cx="${c}" cy="${c}" r="${dotSize / 2}" fill="${dotColor}"/>` +
+    `<circle cx="${c}" cy="${c}" r="${dotSize / 2}" fill="none" stroke="${ringColor}" stroke-width="1.5"/>` +
     `</svg>`;
   return {
     url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
@@ -101,6 +127,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
   const [mapReady, setMapReady] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
 
+  const mapWrapperRef = useRef<HTMLDivElement | null>(null);
   const mapDivRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
@@ -190,6 +217,27 @@ export function EventsMap({ events }: { events: EventLike[] }) {
 
   const peek = near.find((e) => e.id === selectedId) ?? null;
 
+  /**
+   * Select an event (from a marker click or a list row), smoothly pan/zoom
+   * the map to its coordinates when available, and scroll the map into
+   * view so the overlay detail card is visible. Selecting the already-
+   * selected event toggles it off, mirroring "tap the pin again to close".
+   */
+  const selectEvent = (id: string, coords?: { lat: number | null; lng: number | null }) => {
+    setSelectedId((cur) => {
+      const next = cur === id ? null : id;
+      if (next) {
+        const map = mapRef.current;
+        if (map && coords && typeof coords.lat === "number" && typeof coords.lng === "number") {
+          map.panTo({ lat: coords.lat, lng: coords.lng });
+          if ((map.getZoom() ?? DEFAULT_ZOOM) < 14) map.setZoom(14);
+        }
+        mapWrapperRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      return next;
+    });
+  };
+
   // Create the map once.
   useEffect(() => {
     let cancelled = false;
@@ -236,16 +284,21 @@ export function EventsMap({ events }: { events: EventLike[] }) {
     markersRef.current = pins.map((p) => {
       const isTonight = isSameDay(new Date(p.event_date), new Date());
       const selected = p.id === selectedId;
-      const color = selected ? "#F7E7E4" : isTonight ? "#FF6A63" : "rgba(247,231,228,0.85)";
+      const dotColor = isTonight ? "#FF6A63" : "#F7E7E4";
       const marker = new google.maps.Marker({
         position: { lat: p.lat as number, lng: p.lng as number },
         map,
-        icon: pinIcon(color, selected ? 16 : isTonight ? 13 : 10, selected ? 9 : 5),
+        icon: pinIcon({
+          dotColor,
+          dotSize: selected ? 20 : isTonight ? 13 : 10,
+          haloSize: selected ? 10 : isTonight ? 6 : 5,
+          pulse: selected,
+        }),
         title: p.title,
         zIndex: selected ? 999 : isTonight ? 500 : 1,
       });
       marker.addListener("click", () => {
-        setSelectedId((cur) => (cur === p.id ? null : p.id));
+        selectEvent(p.id, { lat: p.lat, lng: p.lng });
       });
       return marker;
     });
@@ -267,7 +320,10 @@ export function EventsMap({ events }: { events: EventLike[] }) {
 
   return (
     <div className="flex flex-col">
-      <div className="relative h-[400px] w-full overflow-hidden rounded-[26px] bg-shell-deep lg:h-[480px]">
+      <div
+        ref={mapWrapperRef}
+        className="relative h-[400px] w-full overflow-hidden rounded-[26px] bg-shell-deep lg:h-[480px]"
+      >
         <div ref={mapDivRef} className="absolute inset-0" />
 
         {mapError && (
@@ -310,7 +366,7 @@ export function EventsMap({ events }: { events: EventLike[] }) {
         </div>
 
         <span className="pointer-events-none absolute left-4 top-3 font-mono text-[9px] tracking-[0.14em] text-dim">
-          {peek ? "TAP THE PIN AGAIN TO CLOSE" : "TAP A PIN"}
+          {peek ? "TAP THE CARD FOR DETAILS" : "TAP A PIN OR EVENT"}
         </span>
 
         <div className="absolute right-3 top-3 flex flex-col overflow-hidden rounded-full border border-foreground/[0.16] bg-shell-deep/80">
@@ -363,6 +419,10 @@ export function EventsMap({ events }: { events: EventLike[] }) {
                 onToggle={() => toggleSave(peek.id)}
                 inverted
               />
+              <ChevronRight
+                className="h-4 w-4 shrink-0 opacity-70"
+                aria-label="View event details"
+              />
             </Link>
           </div>
         )}
@@ -401,38 +461,44 @@ export function EventsMap({ events }: { events: EventLike[] }) {
             </button>
           </div>
         ) : (
-          near.map((e) => (
-            <div
-              key={e.id}
-              className="grid grid-cols-[26px_1fr_auto] items-center gap-3 border-t border-border/[0.16] py-3.5"
-            >
-              <span
-                className={`font-brand text-[15px] ${
-                  isSameDay(new Date(e.event_date), new Date()) ? "text-hot" : "text-muted-2"
+          near.map((e) => {
+            const isSelected = e.id === selectedId;
+            return (
+              <div
+                key={e.id}
+                className={`grid grid-cols-[26px_1fr_auto] items-center gap-3 border-t border-border/[0.16] py-3.5 ${
+                  isSelected ? "bg-primary/[0.06]" : ""
                 }`}
               >
-                {e.pinNo}
-              </span>
-              <Link
-                to="/event/$eventId"
-                params={{ eventId: createEventSlug(e.title, e.id) }}
-                className="flex min-w-0 flex-col gap-1"
-              >
-                <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground">
-                  {e.title}
+                <span
+                  className={`font-brand text-[15px] ${
+                    isSameDay(new Date(e.event_date), new Date()) ? "text-hot" : "text-muted-2"
+                  }`}
+                >
+                  {e.pinNo}
                 </span>
-                <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
-                  {format(new Date(e.event_date), "EEE d MMM")} ·{" "}
-                  {shortDistrictLabel(e.neighborhood as string).toUpperCase()}
-                </span>
-              </Link>
-              <SaveDot
-                saved={savedIds.has(e.id)}
-                isAuthenticated={isAuthenticated}
-                onToggle={() => toggleSave(e.id)}
-              />
-            </div>
-          ))
+                <button
+                  type="button"
+                  onClick={() => selectEvent(e.id, { lat: e.lat, lng: e.lng })}
+                  aria-pressed={isSelected}
+                  className="flex min-w-0 flex-col gap-1 text-left"
+                >
+                  <span className="truncate text-[16px] font-medium tracking-[-0.01em] text-foreground">
+                    {e.title}
+                  </span>
+                  <span className="truncate font-mono text-[10px] tracking-[0.1em] text-muted-foreground">
+                    {format(new Date(e.event_date), "EEE d MMM")} ·{" "}
+                    {shortDistrictLabel(e.neighborhood as string).toUpperCase()}
+                  </span>
+                </button>
+                <SaveDot
+                  saved={savedIds.has(e.id)}
+                  isAuthenticated={isAuthenticated}
+                  onToggle={() => toggleSave(e.id)}
+                />
+              </div>
+            );
+          })
         )}
       </div>
     </div>
