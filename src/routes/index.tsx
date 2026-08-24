@@ -89,7 +89,7 @@ function Home() {
       await supabase
         .from("event_saves")
         .upsert(
-          { event_id: eventId, user_id: user.id, status: "going" },
+          { event_id: eventId, user_id: user.id, status: "interested" },
           { onConflict: "event_id,user_id" },
         );
     }

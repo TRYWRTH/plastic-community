@@ -196,7 +196,7 @@ function EventDetail() {
     districtLabel && !cleanedPlace.toLowerCase().includes(districtLabel.toLowerCase())
       ? `${cleanedPlace} · ${districtLabel}`
       : cleanedPlace;
-  const totalSaved = (counts?.going_count ?? 0) + (counts?.interested_count ?? 0);
+  const totalSaved = counts?.saved_count ?? 0;
   const addedByLabel = creator?.username ? `@${creator.username}` : "a member";
   const savedByLabel = `${totalSaved} ${totalSaved === 1 ? "person" : "people"}`;
 
