@@ -47,7 +47,9 @@ export function BottomNav() {
     >
       <div className="grid w-full max-w-[456px] grid-cols-3 gap-1.5 rounded-full bg-shell-deep p-2">
         {TABS.map((tab) => {
-          const active = tab.isActive(pathname);
+          // HOME stays styled like ME (transparent/dim) even when active, so
+          // the two non-ADD tabs always look consistent with each other.
+          const active = tab.label !== "HOME" && tab.isActive(pathname);
           const gated = tab.requiresAuth && !loading && !isAuthenticated;
           const isAdd = tab.label === "ADD";
           return (
