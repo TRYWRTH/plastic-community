@@ -197,33 +197,17 @@ function EventDetail() {
 
   /**
    * Prefer real browser history over a hardcoded redirect, so BACK returns
-   * to wherever the user actually came from (Home, Radar map, a saved-event
-   * list, …) with that page's own state (scroll position, map viewport)
-   * intact. Only fall back to a fresh navigation when there's no previous
-   * entry in this tab's session — e.g. the event was opened directly via a
-   * shared link — in which case we route to Radar if that's where the
-   * (same-origin) referrer points, otherwise Home.
+   * to wherever the user actually came from (Home, a saved-event list, …)
+   * with that page's own state (scroll position) intact. Only fall back to
+   * a fresh navigation to Home when there's no previous entry in this tab's
+   * session — e.g. the event was opened directly via a shared link.
    */
   const goBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.history.back();
       return;
     }
-    let fallback: "/" | "/radar" = "/";
-    try {
-      if (typeof document !== "undefined" && document.referrer) {
-        const referrerUrl = new URL(document.referrer);
-        if (
-          referrerUrl.origin === window.location.origin &&
-          referrerUrl.pathname.startsWith("/radar")
-        ) {
-          fallback = "/radar";
-        }
-      }
-    } catch {
-      // Malformed/inaccessible referrer — fall through to Home.
-    }
-    navigate({ to: fallback });
+    navigate({ to: "/" });
   };
 
   const isRecurring =

@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { cleanPlace } from "@/lib/clean-place";
-import { geocodeAddress } from "@/lib/geocode";
+import { geocodeAddress } from "@/lib/photon-geocode";
 import { createEventSlug, extractIdFromSlug } from "@/lib/slug";
 import { nearestBerlinDistrict } from "@/lib/district-from-coords";
 import { triggerLinkPreviewUnfurl } from "@/lib/link-preview";
@@ -146,11 +146,10 @@ function EditEventForm({
   const [ticketUrl, setTicketUrl] = useState(event.ticket_url ?? "");
 
   const [neighborhood, setNeighborhood] = useState<Neighborhood>(event.neighborhood);
-  // True once a Places suggestion has set `neighborhood` from Google's own
-  // sublocality data during this edit — far more accurate than the
-  // nearest-centroid guess, so it should win over that at save time. Stays
-  // false (and the existing neighborhood is left alone) when the place
-  // isn't touched in this edit.
+  // True once a place suggestion has already resolved `neighborhood` via
+  // coordinates during this edit (see onPlaceSelected below) — wins over
+  // save time. Stays false (existing neighborhood left alone) when the
+  // place isn't touched in this edit.
   const [neighborhoodFromPlace, setNeighborhoodFromPlace] = useState(false);
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
     lat: event.lat,
@@ -249,10 +248,9 @@ function EditEventForm({
       const geo = await geocodeAddress(`${nextPlace}, ${nextNeighborhood}, Berlin`);
       if (geo) finalCoords = geo;
     }
-    // Google's own sublocality data (set via onPlaceSelected) is far more
-    // accurate than nearest-centroid matching, especially near a district
-    // border — only fall back to the coordinate guess when the place was
-    // retyped by hand and never resolved through Places Autocomplete.
+    // Reuse the district already resolved when a suggestion was picked
+    // (onPlaceSelected); only re-derive it here from final coordinates when
+    // the place was retyped by hand and never resolved through autocomplete.
     const resolvedNeighborhood = neighborhoodFromPlace
       ? nextNeighborhood
       : ((finalCoords.lat != null && finalCoords.lng != null

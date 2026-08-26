@@ -22,7 +22,7 @@ import {
 } from "@/lib/constants";
 import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
 import { cleanPlace } from "@/lib/clean-place";
-import { geocodeAddress } from "@/lib/geocode";
+import { geocodeAddress } from "@/lib/photon-geocode";
 import { nearestBerlinDistrict } from "@/lib/district-from-coords";
 import { triggerLinkPreviewUnfurl } from "@/lib/link-preview";
 import { createEventSlug } from "@/lib/slug";
@@ -68,9 +68,9 @@ function AddEvent() {
     lng: null,
   });
   const [neighborhood, setNeighborhood] = useState<Neighborhood>("Mitte");
-  // True once a Places suggestion has set `neighborhood` from Google's own
-  // sublocality data — that's far more accurate than the nearest-centroid
-  // guess, so it should never be overridden by it at submit time.
+  // True once a place suggestion has already resolved `neighborhood` via
+  // coordinates (see onPlaceSelected below) — keeps that resolved value at
+  // submit time instead of re-deriving it from whatever coords end up final.
   const [neighborhoodFromPlace, setNeighborhoodFromPlace] = useState(false);
   const [eventType, setEventType] = useState<EventType>("music");
   const [eventDay, setEventDay] = useState(format(new Date(Date.now() + 86400000), "yyyy-MM-dd"));
@@ -140,10 +140,9 @@ function AddEvent() {
       const geo = await geocodeAddress(`${place.trim()}, ${neighborhood}, Berlin`);
       if (geo) finalCoords = geo;
     }
-    // Google's own sublocality data (set via onPlaceSelected) is far more
-    // accurate than nearest-centroid matching, especially near a district
-    // border — only fall back to the coordinate guess when the place was
-    // typed by hand and never resolved through Places Autocomplete.
+    // Reuse the district already resolved when a suggestion was picked
+    // (onPlaceSelected); only re-derive it here from final coordinates when
+    // the place was typed by hand and never resolved through autocomplete.
     const resolvedNeighborhood = neighborhoodFromPlace
       ? neighborhood
       : ((finalCoords.lat != null && finalCoords.lng != null

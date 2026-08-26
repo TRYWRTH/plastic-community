@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
-import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { loadGooglePlaces } from "@/lib/google-places";
-import { BERLIN_DISTRICTS } from "@/lib/constants";
-import { cleanDistrictName } from "@/lib/clean-district";
+import { usePhotonAutocomplete, type PhotonSuggestion } from "@/lib/use-photon-autocomplete";
 
 export type PlaceResult = {
   name: string;
@@ -22,10 +19,6 @@ type Props = {
   maxLength?: number;
 };
 
-// Only nag once per session — every mount of this component would otherwise
-// re-fire the same cached rejection from loadGooglePlaces().
-let hasWarnedAboutLoadFailure = false;
-
 export function PlaceAutocompleteInput({
   value,
   onChange,
@@ -35,119 +28,58 @@ export function PlaceAutocompleteInput({
   maxLength,
 }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
-  const onPlaceSelectedRef = useRef(onPlaceSelected);
-  onPlaceSelectedRef.current = onPlaceSelected;
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // "selected" = show read-only multi-line view; otherwise show typing input.
+  // "selected" = show read-only view; otherwise show the typing input with
+  // its suggestions dropdown.
   const [selected, setSelected] = useState<boolean>(() => Boolean(value));
+  const [query, setQuery] = useState(value);
+  const [open, setOpen] = useState(false);
+
+  const { suggestions, loading, error } = usePhotonAutocomplete(open ? query : "");
 
   useEffect(() => {
-    if (selected) return;
-    let cancelled = false;
-    let listener: google.maps.MapsEventListener | null = null;
-
-    loadGooglePlaces()
-      .then(() => {
-        if (cancelled || !inputRef.current) return;
-        const places = window.google?.maps?.places;
-        if (!places?.Autocomplete) {
-          console.error("google.maps.places.Autocomplete is not available");
-          return;
-        }
-
-        // Bias towards Berlin + Brandenburg region (soft bias, not a hard restriction).
-        // strictBounds is omitted so results outside the box are still returned.
-        const brandenburgBounds = new window.google.maps.LatLngBounds(
-          { lat: 51.36, lng: 11.27 }, // SW corner of Brandenburg
-          { lat: 53.56, lng: 14.77 }, // NE corner of Brandenburg
-        );
-        const ac = new places.Autocomplete(inputRef.current, {
-          fields: ["name", "formatted_address", "geometry", "address_components", "types"],
-          componentRestrictions: { country: "de" },
-          types: ["establishment", "geocode"],
-          bounds: brandenburgBounds,
-        });
-        autocompleteRef.current = ac;
-
-        listener = ac.addListener("place_changed", () => {
-          const place = ac.getPlace();
-          if (!place) return;
-
-          // Use Google's formatted address or name, with administrative
-          // noise (postal codes, "Bezirk", trailing ", Berlin") stripped
-          // for display — the underlying place selection logic is untouched.
-          const address: string = cleanDistrictName(place.formatted_address || place.name || "");
-
-          const loc = place.geometry?.location;
-          const lat = loc ? loc.lat() : null;
-          const lng = loc ? loc.lng() : null;
-
-          // Extract borough/district directly from Google's address components
-          let detectedNeighborhood: string | null = null;
-          const components: google.maps.GeocoderAddressComponent[] = place.address_components || [];
-
-          // Look for Google's sublocality (borough/district) component
-          const subComponent = components.find(
-            (c) =>
-              c.types?.includes("sublocality_level_1") ||
-              c.types?.includes("administrative_area_level_3"),
-          );
-
-          if (subComponent) {
-            const districtName = subComponent.long_name;
-            // Normalize Berlin district names to match our constants
-            const match = BERLIN_DISTRICTS.find(
-              (d) => d.label.toLowerCase() === districtName.toLowerCase(),
-            );
-            detectedNeighborhood = match ? match.value : districtName;
-          }
-
-          if (address && inputRef.current) inputRef.current.value = address;
-          if (address) onChangeRef.current(address);
-          onPlaceSelectedRef.current({
-            name: address,
-            lat,
-            lng,
-            neighborhood: detectedNeighborhood,
-          });
-
-          setSelected(true);
-          inputRef.current?.blur();
-          (document.activeElement as HTMLElement | null)?.blur?.();
-        });
-      })
-      .catch((err) => {
-        console.error(err);
-        if (!hasWarnedAboutLoadFailure) {
-          hasWarnedAboutLoadFailure = true;
-          toast.error("Address search isn't available — type the address manually.");
-        }
-      });
-
-    return () => {
-      cancelled = true;
-      if (listener && window.google?.maps?.event) {
-        window.google.maps.event.removeListener(listener);
-      }
-      if (autocompleteRef.current && window.google?.maps?.event) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
-      }
-      autocompleteRef.current = null;
-    };
-  }, [selected]);
-
-  useEffect(() => {
-    if (!selected && inputRef.current && inputRef.current.value !== value) {
-      inputRef.current.value = value ?? "";
-    }
+    if (!selected && query !== value) setQuery(value);
+    // Only resync from the parent's `value` when we're not actively typing —
+    // re-running this on every `query` change would fight the user's input.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, selected]);
+
+  // Close the dropdown on outside click.
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const selectSuggestion = (s: PhotonSuggestion) => {
+    onChange(s.label);
+    setQuery(s.label);
+    onPlaceSelected({
+      name: s.label,
+      lat: s.lat,
+      lng: s.lon,
+      // Photon doesn't reliably return Berlin Bezirk names — callers fall
+      // back to coordinate-based district matching (nearestBerlinDistrict)
+      // when this is null, which is more consistent than trusting OSM's
+      // inconsistent admin-boundary tagging anyway.
+      neighborhood: null,
+    });
+    setOpen(false);
+    setSelected(true);
+    inputRef.current?.blur();
+  };
 
   const handleClear = () => {
     onChange("");
+    setQuery("");
     setSelected(false);
+    setOpen(false);
     setTimeout(() => inputRef.current?.focus(), 0);
   };
 
@@ -199,12 +131,18 @@ export function PlaceAutocompleteInput({
   }
 
   return (
-    <div className="relative w-full">
+    <div ref={containerRef} className="relative w-full">
       <Input
         ref={inputRef}
         type="text"
-        defaultValue={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={query}
+        onChange={(e) => {
+          const next = e.target.value;
+          setQuery(next);
+          onChange(next);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
         placeholder={placeholder}
         required={required}
         maxLength={maxLength}
@@ -214,7 +152,7 @@ export function PlaceAutocompleteInput({
         spellCheck={false}
         className="pr-8"
       />
-      {value && (
+      {query && (
         <button
           type="button"
           onClick={handleClear}
@@ -223,6 +161,32 @@ export function PlaceAutocompleteInput({
         >
           <X className="h-4 w-4" />
         </button>
+      )}
+
+      {open && query.trim().length >= 3 && (
+        <div className="absolute inset-x-0 top-full z-10 mt-1 max-h-64 overflow-y-auto rounded-2xl border border-border bg-popover shadow-lg">
+          {loading && <div className="px-4 py-3 text-sm text-muted-foreground">Searching…</div>}
+          {!loading && error && (
+            <div className="px-4 py-3 text-sm text-muted-foreground">
+              Address search isn't available — type the address manually.
+            </div>
+          )}
+          {!loading && !error && suggestions.length === 0 && (
+            <div className="px-4 py-3 text-sm text-muted-foreground">No matches found.</div>
+          )}
+          {!loading &&
+            !error &&
+            suggestions.map((s, i) => (
+              <button
+                key={`${s.lat}-${s.lon}-${i}`}
+                type="button"
+                onClick={() => selectSuggestion(s)}
+                className="block w-full truncate px-4 py-2.5 text-left text-sm text-foreground hover:bg-accent"
+              >
+                {s.label}
+              </button>
+            ))}
+        </div>
       )}
     </div>
   );

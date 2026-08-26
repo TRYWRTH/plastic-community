@@ -9,8 +9,6 @@ type NavTab = {
   isActive: (pathname: string) => boolean;
 };
 
-// RADAR (the map view) is hidden for now — Google Maps billing isn't set
-// up; its route also redirects to Home if hit directly (see routes/radar.tsx).
 const TABS: NavTab[] = [
   {
     label: "HOME",
