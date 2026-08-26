@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format, subDays } from "date-fns";
 import { EventsMap } from "@/components/EventsMap";
@@ -6,7 +6,14 @@ import { BackButton } from "@/components/BackButton";
 import { BrandLogo } from "@/components/BrandLogo";
 import { supabase } from "@/integrations/supabase/client";
 
+// Radar (the map view) is disabled for now — Google Maps billing isn't set
+// up. Redirect any direct hit (bookmark, shared link, typed URL) straight
+// to Home rather than letting the page mount and fire billable Maps API
+// calls; the tab itself is also removed from BottomNav.
 export const Route = createFileRoute("/radar")({
+  beforeLoad: () => {
+    throw redirect({ to: "/" });
+  },
   component: RadarPage,
 });
 

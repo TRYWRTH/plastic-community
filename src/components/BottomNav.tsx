@@ -9,18 +9,14 @@ type NavTab = {
   isActive: (pathname: string) => boolean;
 };
 
+// RADAR (the map view) is hidden for now — Google Maps billing isn't set
+// up; its route also redirects to Home if hit directly (see routes/radar.tsx).
 const TABS: NavTab[] = [
   {
     label: "HOME",
     to: "/",
     requiresAuth: false,
     isActive: (p) => p === "/" || p.startsWith("/event/"),
-  },
-  {
-    label: "RADAR",
-    to: "/radar",
-    requiresAuth: false,
-    isActive: (p) => p === "/radar",
   },
   {
     label: "ADD",
@@ -49,7 +45,7 @@ export function BottomNav() {
       }}
       aria-label="Primary"
     >
-      <div className="grid w-full max-w-[456px] grid-cols-4 gap-1.5 rounded-full bg-shell-deep p-2">
+      <div className="grid w-full max-w-[456px] grid-cols-3 gap-1.5 rounded-full bg-shell-deep p-2">
         {TABS.map((tab) => {
           const active = tab.isActive(pathname);
           const gated = tab.requiresAuth && !loading && !isAuthenticated;
