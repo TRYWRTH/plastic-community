@@ -295,7 +295,23 @@ function EventDetail() {
           <div className="mt-3.5 flex flex-col gap-4">
             {(() => {
               const cardImage = resolveCardImage(event);
-              if (!cardImage) return null;
+              if (!cardImage) {
+                // A link was just added and its preview image is still
+                // being fetched/re-hosted in the background (see the
+                // refetchInterval above) — show a placeholder instead of an
+                // empty gap so it doesn't read as broken while it's still
+                // in flight.
+                if (event.link && !event.link_preview_status) {
+                  return (
+                    <div className="flex h-[220px] w-full animate-pulse items-center justify-center rounded-[22px] bg-muted">
+                      <span className="font-mono text-[10px] tracking-[0.14em] text-muted-foreground">
+                        LOADING PREVIEW…
+                      </span>
+                    </div>
+                  );
+                }
+                return null;
+              }
               const img = (
                 <img
                   src={cardImage.url}
