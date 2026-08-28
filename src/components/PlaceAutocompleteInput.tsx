@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { usePhotonAutocomplete, type PhotonSuggestion } from "@/lib/use-photon-autocomplete";
+import {
+  Command,
+  CommandList,
+  CommandGroup,
+  CommandItem,
+  CommandEmpty,
+} from "@/components/ui/command";
+import { useGooglePlacesAutocomplete } from "@/lib/use-google-places-autocomplete";
+import { fetchPlaceDetails } from "@/lib/google-places";
 
 export type PlaceResult = {
   name: string;
@@ -35,8 +43,11 @@ export function PlaceAutocompleteInput({
   const [selected, setSelected] = useState<boolean>(() => Boolean(value));
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
+  const [resolving, setResolving] = useState(false);
 
-  const { suggestions, loading, error } = usePhotonAutocomplete(open ? query : "");
+  const { suggestions, loading, error, sessionToken, resetSession } = useGooglePlacesAutocomplete(
+    open ? query : "",
+  );
 
   useEffect(() => {
     if (!selected && query !== value) setQuery(value);
@@ -57,20 +68,30 @@ export function PlaceAutocompleteInput({
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  const selectSuggestion = (s: PhotonSuggestion) => {
-    onChange(s.label);
-    setQuery(s.label);
+  const selectSuggestion = async (placeId: string, fallbackLabel: string) => {
+    if (!sessionToken) return;
+    setResolving(true);
+    // Place Details (New) call, using the same session token as the
+    // preceding autocomplete keystrokes — this is what terminates the
+    // session for billing purposes.
+    const details = await fetchPlaceDetails(placeId, sessionToken);
+    setResolving(false);
+    resetSession();
+    setOpen(false);
+
+    const label = details?.formattedAddress || fallbackLabel;
+    onChange(label);
+    setQuery(label);
     onPlaceSelected({
-      name: s.label,
-      lat: s.lat,
-      lng: s.lon,
-      // Photon doesn't reliably return Berlin Bezirk names — callers fall
-      // back to coordinate-based district matching (nearestBerlinDistrict)
-      // when this is null, which is more consistent than trusting OSM's
-      // inconsistent admin-boundary tagging anyway.
+      name: label,
+      lat: details?.lat ?? null,
+      lng: details?.lng ?? null,
+      // The Details field mask is deliberately minimal (id/displayName/
+      // formattedAddress/location only) and doesn't include address
+      // components, so callers fall back to coordinate-based district
+      // matching (nearestBerlinDistrict) when this is null.
       neighborhood: null,
     });
-    setOpen(false);
     setSelected(true);
     inputRef.current?.blur();
   };
@@ -80,6 +101,7 @@ export function PlaceAutocompleteInput({
     setQuery("");
     setSelected(false);
     setOpen(false);
+    resetSession();
     setTimeout(() => inputRef.current?.focus(), 0);
   };
 
@@ -152,7 +174,7 @@ export function PlaceAutocompleteInput({
         spellCheck={false}
         className="pr-8"
       />
-      {query && (
+      {query && !resolving && (
         <button
           type="button"
           onClick={handleClear}
@@ -164,29 +186,47 @@ export function PlaceAutocompleteInput({
       )}
 
       {open && query.trim().length >= 3 && (
-        <div className="absolute inset-x-0 top-full z-10 mt-1 max-h-64 overflow-y-auto rounded-2xl border border-border bg-popover shadow-lg">
-          {loading && <div className="px-4 py-3 text-sm text-muted-foreground">Searching…</div>}
-          {!loading && error && (
-            <div className="px-4 py-3 text-sm text-muted-foreground">
-              Address search isn't available — type the address manually.
-            </div>
-          )}
-          {!loading && !error && suggestions.length === 0 && (
-            <div className="px-4 py-3 text-sm text-muted-foreground">No matches found.</div>
-          )}
-          {!loading &&
-            !error &&
-            suggestions.map((s, i) => (
-              <button
-                key={`${s.lat}-${s.lon}-${i}`}
-                type="button"
-                onClick={() => selectSuggestion(s)}
-                className="block w-full truncate px-4 py-2.5 text-left text-sm text-foreground hover:bg-accent"
-              >
-                {s.label}
-              </button>
-            ))}
-        </div>
+        <Command
+          shouldFilter={false}
+          className="absolute inset-x-0 top-full z-10 mt-1 rounded-2xl border border-border bg-popover shadow-lg"
+        >
+          <CommandList className="max-h-64">
+            {loading || resolving ? (
+              <div className="px-4 py-3 text-sm text-muted-foreground">
+                {resolving ? "Loading address…" : "Searching…"}
+              </div>
+            ) : error ? (
+              <div className="px-4 py-3 text-sm text-muted-foreground">
+                Address search isn't available — type the address manually.
+              </div>
+            ) : (
+              <>
+                <CommandEmpty className="px-4 py-3 text-left text-sm text-muted-foreground">
+                  No matches found.
+                </CommandEmpty>
+                <CommandGroup>
+                  {suggestions.map((s) => (
+                    <CommandItem
+                      key={s.placeId}
+                      value={s.placeId}
+                      onSelect={() => selectSuggestion(s.placeId, s.fullText)}
+                      className="cursor-pointer rounded-xl px-3 py-2.5"
+                    >
+                      <span className="flex min-w-0 flex-col">
+                        <span className="truncate text-foreground">{s.mainText}</span>
+                        {s.secondaryText && (
+                          <span className="truncate text-xs text-muted-foreground">
+                            {s.secondaryText}
+                          </span>
+                        )}
+                      </span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </>
+            )}
+          </CommandList>
+        </Command>
       )}
     </div>
   );

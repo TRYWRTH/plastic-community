@@ -22,7 +22,7 @@ import {
 } from "@/lib/constants";
 import { REPEAT_OPTIONS, type RepeatOption, createRecurringInstances } from "@/lib/recurrence";
 import { cleanPlace } from "@/lib/clean-place";
-import { geocodeAddress } from "@/lib/photon-geocode";
+import { geocodeAddress } from "@/lib/google-places";
 import { nearestBerlinDistrict } from "@/lib/district-from-coords";
 import { triggerLinkPreviewUnfurl } from "@/lib/link-preview";
 import { createEventSlug } from "@/lib/slug";

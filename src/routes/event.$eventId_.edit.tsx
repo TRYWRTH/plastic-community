@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { cleanPlace } from "@/lib/clean-place";
-import { geocodeAddress } from "@/lib/photon-geocode";
+import { geocodeAddress } from "@/lib/google-places";
 import { createEventSlug, extractIdFromSlug } from "@/lib/slug";
 import { nearestBerlinDistrict } from "@/lib/district-from-coords";
 import { triggerLinkPreviewUnfurl } from "@/lib/link-preview";
