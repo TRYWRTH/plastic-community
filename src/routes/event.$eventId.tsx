@@ -131,6 +131,16 @@ function EventDetail() {
       if (error) throw error;
       return data;
     },
+    // The link preview (og:image re-hosted for the card) is fetched
+    // asynchronously by a background edge function right after an event is
+    // created/edited — it isn't ready the moment this page first loads.
+    // Poll briefly while a link is set but its preview hasn't resolved yet
+    // (link_preview_status is still null), so the image appears on its own
+    // instead of requiring the user to navigate away and back.
+    refetchInterval: (query) => {
+      const ev = query.state.data;
+      return ev?.link && !ev.link_preview_status ? 2500 : false;
+    },
   });
 
   const { data: counts } = useEventSaveCounts(id);

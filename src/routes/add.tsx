@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -52,6 +53,7 @@ const LOCATION_MODES: { value: LocationMode; label: string; hint: string }[] = [
 function AddEvent() {
   const { isAuthenticated, user, loading } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const isSubmittedRef = useRef(false);
 
   useEffect(() => {
@@ -183,6 +185,12 @@ function AddEvent() {
     }
 
     const extraCount = await createRecurringInstances(basePayload, parsedDate, repeats);
+
+    // Home's list (["events"]) and any mounted event-detail queries
+    // (["events", id]) share this key prefix, so one invalidation covers
+    // both — without it, Home keeps showing its pre-creation cached list
+    // until something else happens to refetch it.
+    await qc.invalidateQueries({ queryKey: ["events"] });
 
     // Clear form state before navigating away
     setTitle("");
