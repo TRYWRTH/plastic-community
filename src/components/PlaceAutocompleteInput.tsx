@@ -18,6 +18,24 @@ export type PlaceResult = {
   neighborhood: string | null;
 };
 
+// Normalize for substring comparison: lowercase, strip punctuation/whitespace.
+function normalize(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9äöüß]/g, "");
+}
+
+/**
+ * Combine a place's venue name and formatted address into one display/
+ * storage string — "{name} · {address}" — skipping the name when it's
+ * missing or already contained in the address (a plain street address has
+ * a displayName that just mirrors the address itself, so prepending it
+ * would duplicate the text, e.g. "Bismarckstraße 35 · Bismarckstraße 35").
+ */
+function combineNameAndAddress(displayName: string, formattedAddress: string): string {
+  if (!displayName || !formattedAddress) return formattedAddress || displayName;
+  if (normalize(formattedAddress).includes(normalize(displayName))) return formattedAddress;
+  return `${displayName} · ${formattedAddress}`;
+}
+
 type Props = {
   value: string;
   onChange: (value: string) => void;
@@ -79,7 +97,9 @@ export function PlaceAutocompleteInput({
     resetSession();
     setOpen(false);
 
-    const label = details?.formattedAddress || fallbackLabel;
+    const label = details
+      ? combineNameAndAddress(details.displayName, details.formattedAddress)
+      : fallbackLabel;
     onChange(label);
     setQuery(label);
     onPlaceSelected({
@@ -188,9 +208,9 @@ export function PlaceAutocompleteInput({
       {open && query.trim().length >= 3 && (
         <Command
           shouldFilter={false}
-          className="absolute inset-x-0 top-full z-10 mt-1 rounded-2xl border border-border bg-popover shadow-lg"
+          className="absolute inset-x-0 top-full z-50 mt-1 h-auto overflow-visible rounded-2xl border border-border bg-popover shadow-lg"
         >
-          <CommandList className="max-h-64">
+          <CommandList className="max-h-64 overflow-y-auto">
             {loading || resolving ? (
               <div className="px-4 py-3 text-sm text-muted-foreground">
                 {resolving ? "Loading address…" : "Searching…"}

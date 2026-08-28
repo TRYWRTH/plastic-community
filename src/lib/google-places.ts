@@ -22,6 +22,7 @@ export type PlacePrediction = {
 };
 
 export type PlaceDetailsResult = {
+  displayName: string;
   formattedAddress: string;
   lat: number;
   lng: number;
@@ -116,6 +117,7 @@ export async function fetchPlaceDetails(
   const data = (await res.json()) as DetailsResponse;
   if (!data.location) return null;
   return {
+    displayName: data.displayName?.text || "",
     formattedAddress: data.formattedAddress || data.displayName?.text || "",
     lat: data.location.latitude,
     lng: data.location.longitude,
