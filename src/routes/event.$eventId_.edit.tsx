@@ -282,6 +282,7 @@ function EditEventForm({
       .select("*")
       .maybeSingle();
     const initialRepeats = (event.repeats as RepeatOption) ?? "none";
+    const dateChanged = parsedDate.getTime() !== new Date(event.event_date).getTime();
 
     if (updated) {
       // Cascade shared fields to all future sibling instances (same creator + original title).
@@ -309,26 +310,36 @@ function EditEventForm({
         .neq("id", eventId)
         .gte("event_date", new Date().toISOString());
 
+      const newBase = {
+        title: nextTitle,
+        place: nextPlace,
+        neighborhood: resolvedNeighborhood,
+        event_type: nextEventType,
+        link: nextLink || null,
+        description: nextDescription || null,
+        created_by: userId,
+        lat: finalCoords.lat,
+        lng: finalCoords.lng,
+        image_url: event.image_url,
+        price_type: priceType,
+        ticket_url: nextTicketUrl,
+      };
+
       // If repeats changed from none -> something, generate future instances now.
       if (initialRepeats === "none" && repeats !== "none") {
-        await createRecurringInstances(
-          {
-            title: nextTitle,
-            place: nextPlace,
-            neighborhood: resolvedNeighborhood,
-            event_type: nextEventType,
-            link: nextLink || null,
-            description: nextDescription || null,
-            created_by: userId,
-            lat: finalCoords.lat,
-            lng: finalCoords.lng,
-            image_url: event.image_url,
-            price_type: priceType,
-            ticket_url: nextTicketUrl,
-          },
-          parsedDate,
-          repeats,
-        );
+        await createRecurringInstances(newBase, parsedDate, repeats);
+      } else if (repeats !== "none" && dateChanged) {
+        // The date of an already-repeating event moved (e.g. correcting the
+        // wrong weekday) — the other future instances were generated from
+        // the OLD date and are now stale, so drop and regenerate them.
+        await supabase
+          .from("events")
+          .delete()
+          .eq("created_by", userId)
+          .eq("title", event.title)
+          .neq("id", eventId)
+          .gte("event_date", new Date().toISOString());
+        await createRecurringInstances(newBase, parsedDate, repeats);
       }
     }
     setSaving(false);
