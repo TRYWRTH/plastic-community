@@ -59,6 +59,8 @@ function Home() {
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["events"],
     queryFn: fetchEvents,
+    // Keep the list current while the app stays open (paused in background).
+    refetchInterval: 5 * 60_000,
   });
 
   const [search, setSearch] = useState("");
