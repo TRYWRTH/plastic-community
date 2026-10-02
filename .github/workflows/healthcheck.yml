@@ -1,0 +1,61 @@
+name: Health check
+
+on:
+  schedule:
+    - cron: "*/30 * * * *" # every 30 minutes
+  push:
+    branches: [main]
+  workflow_dispatch: # "Run workflow" button in the Actions tab
+
+concurrency:
+  group: healthcheck
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # On push, give Vercel a moment to finish deploying the new commit.
+      - name: Wait for deploy
+        if: github.event_name == 'push'
+        run: sleep 180
+
+      - name: Install browser
+        run: |
+          npm i --no-save --no-package-lock playwright@1
+          npx playwright install --with-deps chromium
+
+      - name: Run health check
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://plastic-community.vercel.app' }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          HEALTHCHECK_EMAIL: ${{ secrets.HEALTHCHECK_EMAIL }}
+          HEALTHCHECK_PASSWORD: ${{ secrets.HEALTHCHECK_PASSWORD }}
+        run: node scripts/healthcheck.mjs
+
+      # One open issue at a time; a new failure adds a comment instead of a new issue.
+      - name: Open / update issue on failure
+        if: failure() && github.event_name != 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = "🚨 Health check failing";
+            const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const { data: open } = await github.rest.issues.listForRepo({ ...context.repo, state: "open", labels: "healthcheck" });
+            if (open.length) {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: open[0].number, body: `Still failing: ${url}` });
+            } else {
+              await github.rest.issues.create({ ...context.repo, title, labels: ["healthcheck"], body: `The live health check failed. Details: ${url}\n\nClose this issue once it's fixed.` });
+            }
