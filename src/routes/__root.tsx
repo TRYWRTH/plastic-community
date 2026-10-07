@@ -145,6 +145,33 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * An installed PWA can keep running an old build for days. On resume, fetch
+ * the current HTML and, if it points at a JS bundle this page never loaded,
+ * a new version is deployed — reload to pick it up. Never reloads mid-form
+ * (add/edit) and only tries once per new version.
+ */
+async function reloadIfNewVersion() {
+  try {
+    if (/^\/add\b|\/edit\b|^\/settings/.test(window.location.pathname)) return;
+    const res = await fetch("/", { cache: "no-store" });
+    if (!res.ok) return;
+    const html = await res.text();
+    const latest = html.match(/\/assets\/[\w.-]+\.js/)?.[0];
+    if (!latest) return;
+    const loaded =
+      document.documentElement.innerHTML.includes(latest) ||
+      performance.getEntriesByType("resource").some((r) => r.name.includes(latest));
+    if (loaded) return;
+    const key = "reloaded-for-version";
+    if (sessionStorage.getItem(key) === latest) return;
+    sessionStorage.setItem(key, latest);
+    window.location.reload();
+  } catch {
+    /* offline or storage blocked — try again next resume */
+  }
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
@@ -224,11 +251,17 @@ function RootComponent() {
   useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
 
+    // Focus + visibilitychange often fire together; refresh at most every 30s.
+    let lastResume = 0;
     const handleVisibleSession = async () => {
-      const session = await refreshAuthSession();
-      if (!session?.user) return;
+      if (Date.now() - lastResume < 30_000) return;
+      lastResume = Date.now();
+      // Logged-out visitors need fresh data too — an installed PWA can sit in
+      // the background for days and otherwise resumes with a stale list.
+      await refreshAuthSession().catch(() => null);
       router.invalidate();
       queryClient.invalidateQueries();
+      void reloadIfNewVersion();
     };
 
     const handleVisibilityChange = () => {
